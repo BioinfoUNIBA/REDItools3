@@ -217,10 +217,10 @@ def parse_region(region_str):
             start = to_int(region[1])
             stop = to_int(region[2])
             if start >= stop:
-                raise Exception("Please provide a region of the form chrom:start-end " +
+                raise ValueError("Please provide a region of the form chrom:start-end " +
                                 f"(with end > start). Region provided: {region}")
             return {"contig": region[0], "start": start, "stop": stop}
-    raise Exception("Please provide a region of the form chrom:start-end " +
+    raise ValueError("Please provide a region of the form chrom:start-end " +
                     f"(with end > start). Region provided: {region}")
 
 def parse_options():

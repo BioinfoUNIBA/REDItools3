@@ -8,16 +8,14 @@ Authors:
 
 from __future__ import division
 
-from collections import defaultdict, Counter
+from collections import defaultdict
 from datetime import datetime
-from gzip import open as gzip_open
 import csv
-import os
-import socket
 import sys
 
 from sortedcontainers import SortedSet
 
+from reditools import utils
 from reditools.compiled_position import CompiledReads
 from reditools.alignment import FastaFile, AlignmentManager
 
@@ -59,23 +57,6 @@ class REDItools:
             A function reference.
         '''
         return lambda *x: response
-
-    @staticmethod
-    def _open_stream(path, mode="rt", encoding="utf-8"):
-        '''
-        Opens in anput stream from a file.
-
-        Parameters:
-            path (str): Path to file for reading or writing
-            mode (str): File mode
-            gzip (bool): Whether the file is or should be gzipped
-
-        Returns:
-            TextIOWrapper to the file
-        '''
-        if path.endswith("gz"):
-            return gzip_open(path, mode, encoding=encoding)
-        return open(path, mode, encoding=encoding)
 
     def _log_all(self, level, message, *args):
         '''
@@ -194,7 +175,7 @@ class REDItools:
     def _valid_column(self, position, bases, region):
         return position + 1 >= region.get("start", 0) and \
                bases is not None and \
-               self._check_list(self._column_checks, bases=bases)
+               utils.check_list(self._column_checks, bases=bases)
 
     def load_omopolymeric_positions(self, fname):
         '''
@@ -208,7 +189,7 @@ class REDItools:
 
         self._log('INFO', 'Loading omopolymeric positions')
 
-        with REDItools._open_stream(fname, 'r') as stream:
+        with utils.open_stream(fname, 'r') as stream:
             reader = csv.reader(stream, delimiter="\t")
 
             for fields in reader:
@@ -238,7 +219,7 @@ class REDItools:
 
         strand_map = {'-': 'D', '+': 'A'}
 
-        with REDItools._open_stream(splicing_file, "r") as stream:
+        with utils.open_stream(splicing_file, "r") as stream:
             total = 0
             total_array = defaultdict(int)
             for line in stream:
@@ -275,7 +256,7 @@ class REDItools:
 
         self._log('INFO', 'Writing omopolymeric positions to file: {}.', fname)
 
-        with REDItools._open_stream(fname, 'w') as stream:
+        with utils.open_stream(fname, 'w') as stream:
             writer = csv.writer(stream, delimiter="\t", lineterminator="\n")
             writer.writerow([
                 "#Chromosome",
@@ -314,57 +295,8 @@ class REDItools:
         self._log('INFO',
                   'Loading target positions from file {}',
                   bed_file)
-
-        self._target_positions = defaultdict(SortedSet)
-
-
-        read = 0
-        total_positions = 0
-        total = Counter()
-        with REDItools._open_stream(bed_file, "r") as stream:
-            reader = csv.reader(stream, delimiter="\t")
-            for fields in reader:
-                read += 1
-                chrom = fields[0]
-
-                start = int(fields[1]) - 1
-                end = start if len(fields) < 3 else int(fields[2])
-
-                # Add target positions
-                self._target_positions[chrom] |= range(start, end + 1)
-                total[chrom] += end + 1 - start
-                total_positions += end + 1 - start
-
-        self._log('INFO', 'TARGET POSITIONS: {}', total)
-        self._log('INFO', 'TOTAL POSITIONS: {}', sum(total.values()))
-
-    def _get_hostname(self):
-        '''
-        Retrieves the machine hostname, ip, and proccess ID.
-
-        Returns:
-            String in the format "hostname|ip|pid"
-        '''
-        hostname = socket.gethostname()
-        ip_addr = socket.gethostbyname(hostname)
-        pid = os.getpid()
-        return f"{hostname}|{ip_addr}|{pid}"
-
-    def _check_list(self, check_list, **kwargs):
-        '''
-        Runs through a list of functions, determining if any return False.
-
-        Parameters:
-            check_list (list): A list of function references
-            **kwargs: Any arguments to be passed to the members of check_list
-
-        Returns:
-            False if any function in check_list returns False, else True
-        '''
-        for check in check_list:
-            if not check(**kwargs):
-                return False
-        return True
+        reader = utils.read_bed_file(bed_file)
+        self._target_positions = utils.enumerate_positions(reader)
 
     def _next_position(self, reads, nucleotides, contig, position):
         if nucleotides.is_empty():
@@ -580,7 +512,7 @@ class REDItools:
         self.reference = FastaFile(reference_fname)
 
     def __init__(self):
-        self._hostname_string = self._get_hostname()
+        self._hostname_string = utils.get_hostname_string()
         self._min_column_length = 1
         self._min_edits = 0
         self._min_edits_per_nucleotide = 0
@@ -615,4 +547,4 @@ class REDItoolsDNA(REDItools):
         self._get_strand = REDItools._default("*")
         REDItools.__init__(self)
     def set_strand(self, strand):
-        raise Exception("Cannot set strand value if DNA is True")
+        raise ValueError("Cannot set strand value if DNA is True")
