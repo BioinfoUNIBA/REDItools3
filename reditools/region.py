@@ -11,7 +11,7 @@ class Region:
             r'(?P<contig>[^:]+)(:(?P<start>\d+(,\d{3})*)-(?P<stop>\d+(,\d{3})*))?',
             text)
         if match is None:
-            raise Exception(f"Cannot parse region: {text}")
+            raise ValueError(f"Cannot parse region: {text}")
 
         self.contig = match.group("contig")
         self.start = match.group("start")
@@ -22,7 +22,7 @@ class Region:
                 self.start = Region._to_int(self.start)
                 self.stop = Region._to_int(self.stop)
             except Exception as exc:
-                raise Exception(f"Cannot parse region: {text}") from exc
+                raise ValueError(f"Cannot parse region: {text}") from exc
 
     def args(self):
         '''Reformats the Region into a tuple.
