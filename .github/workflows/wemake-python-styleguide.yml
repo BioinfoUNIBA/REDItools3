@@ -1,0 +1,13 @@
+name: WeMake Python Style Guide
+
+on: pull_request
+
+jobs:
+  style-check:
+    - name: WeMake Python Style Guide
+      uses: wemake-services/wemake-python-styleguide@0.18.0
+      with:
+        reporter: terminal
+        path: reditools/
+      env:
+        GITHUB_TOKEN: ${{ secrets.github_token }}
