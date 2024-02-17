@@ -55,6 +55,8 @@ def setup(options):
 
     if options.bed_file:
         rtools.load_target_positions(options.bed_file)
+    if options.exclude_regions:
+        rtools.load_exclude_positions(options.exclude_regions)
 
     if options.reference:
         rtools.add_reference(options.reference)
@@ -365,6 +367,9 @@ def parse_options():
         help='How many bp should be processed by each thread at a time. Defaults to full contig.',
         type=int,
         default=0)
+    parser.add_argument('-k',
+        '--exclude_regions',
+        help='Path of BED file containing regions to exclude from analysis')
 
     args = parser.parse_args()
 

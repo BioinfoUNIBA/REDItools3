@@ -119,27 +119,6 @@ class REDItools:
             return False
         return True
 
-    def _check_target_positions(self, **kwargs):
-        '''
-        Determines if the given position is the defined target regions.
-
-        Parameters:
-            position (int): Base site to check
-            contig (str): Chromosome
-
-        Returns:
-            True if the location is within a target region, else False
-        '''
-        if kwargs["position"] not in (
-                self._target_positions[kwargs["contig"]],
-                self._target_positions[f'chr{kwargs["contig"]}']):
-            self._log("DEBUG",
-                      "[TARGET POSITIONS] Discard position ({}, {})",
-                      kwargs["contig"],
-                      kwargs["position"])
-            return False
-        return True
-
     def _check_column_min_length(self, bases):
         if len(bases) < self._min_column_length:
             self._log('DEBUG',
@@ -298,6 +277,20 @@ class REDItools:
         reader = utils.read_bed_file(bed_file)
         self._target_positions = utils.enumerate_positions(reader)
 
+    def load_exclude_positions(self, bed_file):
+        '''
+        Reads positions to exclude from a file.
+
+        Parameters:
+            bed_file (str) Path to a BED formatted file for reading.
+        '''
+        self._log('INFO',
+                  'Loading exclude positions from file {}',
+                  bed_file)
+
+        reader = utils.read_bed_file(bed_file)
+        self._exclude_positions = utils.enumerate_positions(reader)
+
     def _next_position(self, reads, nucleotides, contig, position):
         if nucleotides.is_empty():
             self._log("DEBUG", "Nucleotides is empty: skipping ahead")
@@ -381,8 +374,14 @@ class REDItools:
 
             # Process edits
             bases = nucleotides.pop(position)
+            if position in self._exclude_positions.get(contig, []):
+                self._log('DEBUG', 'Listed for exclusion - skipping')
+                continue
+            if self._target_positions and position not in self._target_positions.get(contig, []):
+                self._log('DEBUG', 'Not listed for inclusion - skipping')
+                continue
             if bases is None:
-                self._log('DEBUG', 'No reads - skipping', contig, position)
+                self._log('DEBUG', 'No reads - skipping')
                 continue
             column = self._get_column(position, bases, region)
             if column is None:
@@ -532,7 +531,8 @@ class REDItools:
         self._min_read_length = 30
         self._min_read_quality = 0
 
-        self._target_positions = []
+        self._target_positions = False
+        self._exclude_positions = {}
         self._splice_positions = []
         self._omopolymeric_positions = []
 
