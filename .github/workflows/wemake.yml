@@ -4,10 +4,15 @@ on: pull_request
 
 jobs:
   style-check:
-    - name: WeMake Python Style Guide
-      uses: wemake-services/wemake-python-styleguide@0.18.0
-      with:
-        reporter: terminal
-        path: reditools/
-      env:
-        GITHUB_TOKEN: ${{ secrets.github_token }}
+      name: WeMake Python Style Guide
+      runs-on: ubuntu-20.04
+      steps:
+        - name: Run The Stuff
+          uses: wemake-services/wemake-python-styleguide@0.18.0
+          with:
+            reporter: terminal
+            path: reditools/
+          run: |
+            flake8 reditools/
+        env:
+          GITHUB_TOKEN: ${{ secrets.github_token }}
