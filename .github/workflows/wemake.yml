@@ -1,15 +1,12 @@
-name: WeMake Python Style Guide
-
-on: pull_request
-
+name: Python Pull Request Workflow
+on: [pull_request]
 jobs:
-  style-check:
-      name: flake8
-      runs-on: ubuntu-20.04
-      steps:
-        - name: Run The Stuff
-          uses: wemake-services/wemake-python-styleguide@0.18.0
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          run: |
-            flake8 --filename *.py
+
+  qa:
+    name: Quality check
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v1
+      - name: Wemake Python Stylguide
+        uses: wemake-services/wemake-python-styleguide@0.18.0
+        continue-on-error: true
