@@ -1,0 +1,13 @@
+[flake8]
+
+# WPS305 Found `f` string
+# WPS360 Found an unnecessary use of a raw string
+# RST213 Inline emphasis start-string without end-string.
+# RST210 Inline strong start-string without end-string.
+# P103   other string does contain unindexed parameters
+# WPS226 Found string literal over-use: {0}
+extend-ignore = WPS305,WPS360,RST213,RST210,P103,WPS226
+max-try-body-length = 3
+
+per-file-ignores =
+  reditools/utils.py: WPS515, WPS100

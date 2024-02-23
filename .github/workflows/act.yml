@@ -1,0 +1,12 @@
+name: Python Pull Request Workflow
+on: [pull_request]
+jobs:
+
+  qa:
+    name: Quality check
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v1
+      - name: Wemake Python Stylguide
+        uses: wemake-services/wemake-python-styleguide@0.18.0
+        continue-on-error: true
