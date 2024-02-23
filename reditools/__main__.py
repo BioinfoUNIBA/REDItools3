@@ -10,6 +10,7 @@ from queue import Empty as EmptyQueueException
 from tempfile import NamedTemporaryFile
 
 from reditools import reditools, utils
+from reditools.logger import Logger
 
 _contig = 'contig'
 _start = 'start'
@@ -32,9 +33,9 @@ def setup(options):  # noqa:WPS213
         rtools = reditools.REDItools()
 
     if options.debug:
-        rtools.logging_level('debug')
+        rtools.log_level = Logger.debug_level
     elif options.verbose:
-        rtools.logging_level('verbose')
+        rtools.log_level = Logger.info_level
 
     if options.load_omopolymeric_file:
         rtools.load_omopolymeric_positions(options.load_omopolymeric_file)

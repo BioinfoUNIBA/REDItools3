@@ -7,9 +7,7 @@ Authors:
 """
 
 import csv
-import sys
 from collections import defaultdict
-from datetime import datetime
 
 from sortedcontainers import SortedSet
 
@@ -17,15 +15,11 @@ from reditools import utils
 from reditools.alignment_manager import AlignmentManager
 from reditools.compiled_reads import CompiledReads
 from reditools.fasta_file import RTFastaFile
+from reditools.logger import Logger
 
 
 class REDItools(object):
     """Analysis system for RNA editing events."""
-
-    _info_level = 'INFO'
-    _debug_level = 'DEBUG'
-
-    _complement_map = {'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C', 'N': 'N'}
 
     fieldnames = [
         'Region',
@@ -51,7 +45,7 @@ class REDItools(object):
         self._min_edits = 0
         self._min_edits_per_nucleotide = 0
 
-        self._log = lambda *_: None
+        self.log_level = Logger.silent_level
 
         self.strand = 0
         self.usestrand_correction = False
@@ -73,22 +67,10 @@ class REDItools(object):
 
         self.reference = None
 
-    def _log_all(self, level, message, *args):
-        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        message = message.format(*args)
-        sys.stderr.write(
-            f'{timestamp} [{self.hostname_string}] ' +
-            f'[{level}] {message}\n',
-        )
-
-    def _log_verbose(self, level, message, *args):
-        if level == self._info_level:
-            self._log_all(level, message, *args)
-
     def _check_splice_positions(self, **kwargs):
         if kwargs['position'] in self._splice_positions[kwargs['contig']]:
             self._log(
-                self._debug_level,
+                Logger.debug_level,
                 '[SPLICE_SITE] Discarding ({}, {}) because in splice site',
                 kwargs['contig'],
                 kwargs['position'],
@@ -100,7 +82,7 @@ class REDItools(object):
         contig_positions = self._omoplymeric_positions[kwargs['contig']]
         if kwargs['position'] in contig_positions:
             self._log(
-                self._debug_level,
+                Logger.debug_level,
                 '[OMOPOLYMERIC] Discarding position ({}, {})' +
                 'because omopolymeric',
                 kwargs['contig'],
@@ -112,7 +94,7 @@ class REDItools(object):
     def _check_column_min_length(self, bases):
         if len(bases) < self._min_column_length:
             self._log(
-                self._debug_level,
+                Logger.debug_level,
                 'DISCARDING COLUMN {} [MIN_COLUMN_LEGNTH={}]',
                 len(bases),
                 self._min_column_length,
@@ -127,7 +109,7 @@ class REDItools(object):
             mean_q = 0
         if mean_q < self._min_read_quality:
             self._log(
-                self._debug_level,
+                Logger.debug_level,
                 'DISCARD COLUMN mean_quality={}',
                 mean_q,
             )
@@ -138,7 +120,7 @@ class REDItools(object):
         edits_no = len(bases) - bases.base_frequency('ref')
         if edits_no < self._min_edits:
             self._log(
-                self._debug_level,
+                Logger.debug_level,
                 'DISCARDING COLUMN edits={}',
                 edits_no,
             )
@@ -149,7 +131,7 @@ class REDItools(object):
         for num_edits in bases.getmin_edits():
             if 0 < num_edits < self._min_edits_per_nucleotide:
                 self._log(
-                    self._debug_level,
+                    Logger.debug_level,
                     'DISCARDING COLUMN edits={}',
                     num_edits,
                 )
@@ -172,12 +154,12 @@ class REDItools(object):
         self._poly_positions = defaultdict(SortedSet)
 
         self._log(
-            self._info_level,
+            Logger.info_level,
             'Loading omopolymeric positions from file {}',
             fname,
         )
 
-        self._log(self._info_level, 'Loading omopolymeric positions')
+        self._log(Logger.info_level, 'Loading omopolymeric positions')
 
         with utils.open_stream(fname, 'r') as stream:
             reader = csv.reader(stream, delimiter='\t')
@@ -194,7 +176,7 @@ class REDItools(object):
 
         total = sum(len(pos) for pos in self._poly_positions.values())
         self._log(
-            self._info_level,
+            Logger.info_level,
             '{} total omopolymeric positions found.',
             total,
         )
@@ -211,7 +193,7 @@ class REDItools(object):
         """
         self._splice_positions = defaultdict(SortedSet)
         self._log(
-            self._info_level,
+            Logger.info_level,
             'Loading known splice sites from file {}',
             splicing_file,
         )
@@ -237,12 +219,12 @@ class REDItools(object):
                 self._splice_positions[chrom] |= new_positions
 
         self._log(
-            self._info_level,
+            Logger.info_level,
             'Loaded {} positions from file {}',
             total,
             splicing_file,
         )
-        self._log(self._info_level, 'Partial: {}', total_array)
+        self._log(Logger.info_level, 'Partial: {}', total_array)
 
         self._column_checks.add(self._check_splice_positions)
 
@@ -255,20 +237,20 @@ class REDItools(object):
             span (int): Omopolymeric span
         """
         self._log(
-            self._info_level,
+            Logger.info_level,
             'Creating omopolymeric positions (span={}) from reference file',
             span,
         )
 
         chromosomes = self.reference.references()
         self._log(
-            self._info_level,
+            Logger.info_level,
             '{} chromosome names found',
             len(chromosomes),
         )
 
         self._log(
-            self._info_level,
+            Logger.info_level,
             'Writing omopolymeric positions to file: {}.',
             fname,
         )
@@ -285,13 +267,13 @@ class REDItools(object):
 
             for chromosome in chromosomes:
                 self._log(
-                    self._info_level,
+                    Logger.info_level,
                     'Loading reference sequence for chromosome {}',
                     chromosome,
                 )
                 sequence = self.reference.fetch(chromosome).lower()
                 self._log(
-                    self._info_level,
+                    Logger.info_level,
                     'Reference sequence for chromosome {} loaded (len: {})',
                     chromosome,
                     len(sequence),
@@ -322,7 +304,7 @@ class REDItools(object):
             bed_file (str): Path to a BED formatted file for reading.
         """
         self._log(
-            self._info_level,
+            Logger.info_level,
             'Loading target positions from file {}',
             bed_file,
         )
@@ -337,7 +319,7 @@ class REDItools(object):
             bed_file (str): Path to a BED formatted file for reading.
         """
         self._log(
-            self._info_level,
+            Logger.info_level,
             'Loading exclude positions from file {}',
             bed_file,
         )
@@ -348,7 +330,7 @@ class REDItools(object):
     def _next_position(self, reads, nucleotides, contig, position):
         if nucleotides.is_empty():
             self._log(
-                self._debug_level,
+                Logger.debug_level,
                 'Nucleotides is empty: skipping ahead',
             )
             position = reads[0].reference_start - 1
@@ -397,22 +379,22 @@ class REDItools(object):
         if region is None:
             region = {}
 
-        samfile = AlignmentManager(
+        sam_manager = AlignmentManager(
             ignore_truncation=True,
         )
-        samfile.min_quality = self._min_read_quality
-        samfile.min_length = self.min_read_length
+        sam_manager.min_quality = self._min_read_quality
+        sam_manager.min_length = self.min_read_length
         for bam in bam_files:
-            samfile.add_file(bam)
+            sam_manager.add_file(bam)
 
         # Open the iterator
         self._log(
-            self._info_level,
+            Logger.info_level,
             'Fetching data from bams {} [REGION={}]',
             bam_files,
             region,
         )
-        read_iter = samfile.fetch_by_position(**region)
+        read_iter = sam_manager.fetch_by_position(**region)
         reads = next(read_iter, None)
 
         contig = None
@@ -437,7 +419,7 @@ class REDItools(object):
             if position >= region.get('stop', position + 1):
                 break
             self._log(
-                self._debug_level,
+                Logger.debug_level,
                 'Analyzing position {} {}',
                 contig,
                 position,
@@ -445,7 +427,7 @@ class REDItools(object):
 
             # Get all the read(s) starting at position
             if reads is not None and reads[0].reference_start == position:
-                self._log(self._debug_level, 'Adding {} reads', len(reads))
+                self._log(Logger.debug_level, 'Adding {} reads', len(reads))
                 total += len(reads)
                 nucleotides.add_reads(reads)
                 reads = next(read_iter, None)
@@ -453,51 +435,56 @@ class REDItools(object):
             # Process edits
             bases = nucleotides.pop(position)
             if position in self._exclude_positions.get(contig, []):
-                self._log(self._debug_level, 'Listed for exclusion - skipping')
+                self._log(Logger.debug_level, 'Listed for exclusion - skipping')
                 continue
             if self._target_positions:
                 if position not in self._target_positions.get(contig, []):
                     self._log(
-                        self._debug_level,
+                        Logger.debug_level,
                         'Not listed for inclusion - skipping',
                     )
                     continue
             if bases is None:
-                self._log(self._debug_level, 'No reads - skipping')
+                self._log(Logger.debug_level, 'No reads - skipping')
                 continue
             column = self._get_column(position, bases, region)
             if column is None:
-                self._log(self._debug_level, 'Bad column - skipping')
+                self._log(Logger.debug_level, 'Bad column - skipping')
                 continue
             self._log(
-                self._debug_level,
+                Logger.debug_level,
                 'Yielding output for {} reads',
                 len(bases),
             )
             yield [contig] + column
 
         self._log(
-            self._info_level,
+            Logger.info_level,
             '[REGION={}] {} total reads read',
             region,
             total,
         )
 
-    def logging_level(self, level):
+    @property
+    def log_level(self):
+        """
+        The logging level.
+
+        Returns:
+            Log level
+        """
+        return self._log_level
+
+    @log_level.setter
+    def log_level(self, level):
         """
         Set the class logging level.
-
-        The options are "debug", "verbose", or "none".
 
         Parameters:
             level (str): logging level
         """
-        if level.lower() == 'debug':
-            self._log = self._log_all
-        elif level.lower() == 'verbose':
-            self._log = self._log_verbose
-        else:
-            self._log = lambda *_: None
+        self._logger = Logger(level)
+        self._log = self._logger.log
 
     @property
     def min_read_quality(self):

@@ -77,7 +77,7 @@ class AlignmentManager(object):
     """
 
     def __init__(self, *args, **kwargs):
-        r"""
+        """
         Create a new manager.
 
         Parameters:
@@ -110,7 +110,7 @@ class AlignmentManager(object):
         self._bams.append(new_file)
 
     def fetch_by_position(self, *args, **kwargs):
-        r"""
+        """
         Perform combine fetch_by_position for all managed files.
 
         Parameters:
