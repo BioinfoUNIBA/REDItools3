@@ -5,10 +5,11 @@ import os
 import re
 import socket
 from collections import defaultdict
-from gzip import open as gzip_open
 
 from pysam.libcalignmentfile import AlignmentFile
 from sortedcontainers import SortedSet
+
+from reditools.file_utils import open_stream
 
 
 def read_bed_file(path):

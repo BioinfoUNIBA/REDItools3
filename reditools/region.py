@@ -1,28 +1,67 @@
-"""Commandline tool for REDItools."""
+"""Genomic Region."""
 
 import re
 
+
 class Region(object):
+    """Genomic Region."""
+
     def __init__(self, **kwargs):
+        """
+        Create a new genomic region.
+
+        Parameters:
+            **kwargs (dict):
+                string (str): String representation of a region
+                OR
+                contig (str): Contig name
+                start (int): Genomic start
+                stop (int): Genomic stop
+
+        Raises:
+            ValueError: The contig is missing
+            IndexError: The start is greater than the stop
+        """
         if 'string' in kwargs:
-            self.contig, self.start, self.stop = self._parse_string(region_str)
+            region = self._parse_string(kwargs['string'])  # noqa:WPS529
+            self.contig = region[0]
+            self.start = region[1]
+            self.stop = region[2]
         else:
             if 'contig' not in kwargs:
                 raise ValueError('Region constructor requires a contig.')
             self.contig = kwargs['contig']
-            if 'start' in kwargs:
-                self.start = self._to_int(kwargs['start'])
-            if 'stop' in kwargs:
-                self.stop = self._to_int(kwargs['stop'])
+            self.start = self._to_int(kwargs.get('start', 1))
+            self.stop = self._to_int(kwargs.get('stop', None))
         if self.start >= self.stop:
-            raise IndexError(f'Start {self.start} is greater than stop {self.stop}.')
+            raise IndexError(
+                f'Start {self.start} is greater than stop {self.stop}.',
+            )
 
     def __str__(self):
+        """
+        Put the region into standard string format.
+
+        Returns:
+            (str): contig:start-stop
+        """
         return f'{self.contig}:{self.start}-{self.stop}'
 
     def split(self, window):
+        """
+        Split the region into a list of smaller regions.
+
+        Parameters:
+            window (int): The size of the sub regions in bp
+
+        Returns:
+            list
+
+        Raises:
+            IndexError: The region is missing a start or stop
+        """
         if not self.stop or not self.start:
-            raise IndexError(f'Can only split a region with a start and stop.')
+            raise IndexError('Can only split a region with a start and stop.')
         length = self.stop - self.start
         sub_regions = []
         for offset in range(0, length + 1, window):
@@ -34,25 +73,12 @@ class Region(object):
         if self.start < length:
             sub_regions.append(Region(
                 contig=self.contig,
-                start=self.start + offset,
+                start=sub_regions[-1].stop,
                 stop=self.stop,
             ))
         return sub_regions
 
-    def _parse_string(region_str):
-        """
-        Parse a region string into chromosome, start, and end.
-
-        Parameters:
-            region_str (str): In the format of 'contig', 'contig:start', or 'contig:start-end'
-
-        Returns:
-            A dict of the region with keys "contig", "start", and "stop".
-
-        Raises:
-            ValueError: On improper string format
-            IndexError: If the start is greater than the stop
-        """
+    def _parse_string(self, region_str):
         if region_str is None:
             return None
         region = re.split('[:-]', region_str)
@@ -63,14 +89,16 @@ class Region(object):
         stop = None
 
         if len(region) > 1:
-            start = _to_int(region[1])
+            start = self._to_int(region[1])
             if len(region) == 3:
-                stop = _to_int(region[2])
+                stop = self._to_int(region[2])
         else:
             raise ValueError('Unrecognized format: {region_str}.')
         return (contig, start, stop)
 
-    def _to_int(self, string):
-        if type(string) == str:
-            return int(re.sub(r'[\s,]', '', string))
-        return int(string)
+    def _to_int(self, number):
+        if isinstance(number, str):
+            return int(re.sub(r'[\s,]', '', number))
+        if number is None:
+            return None
+        return int(number)

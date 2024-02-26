@@ -12,10 +12,10 @@ from collections import defaultdict
 from sortedcontainers import SortedSet
 
 from reditools import utils
-from reditools.file_utils import open_stream
 from reditools.alignment_manager import AlignmentManager
 from reditools.compiled_reads import CompiledReads
 from reditools.fasta_file import RTFastaFile
+from reditools.file_utils import open_stream
 from reditools.logger import Logger
 
 
@@ -436,7 +436,7 @@ class REDItools(object):
             # Process edits
             bases = nucleotides.pop(position)
             if position in self._exclude_positions.get(contig, []):
-                self._log(Logger.debug_level, 'Listed for exclusion - skipping')
+                self._log(Logger.debug_level, 'Listed exclusion - skipping')
                 continue
             if self._target_positions:
                 if position not in self._target_positions.get(contig, []):

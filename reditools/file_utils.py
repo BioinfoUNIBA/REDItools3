@@ -4,6 +4,7 @@ import csv
 import os
 from gzip import open as gzip_open
 
+
 def open_stream(path, mode='rt', encoding='utf-8'):
     """
     Open a input or output stream from a file, accounting for gzip.

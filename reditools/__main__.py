@@ -2,7 +2,6 @@
 
 import argparse
 import csv
-import re
 import sys
 import traceback
 from multiprocessing import Process, Queue

@@ -55,7 +55,7 @@ class RTAlignmentFile(PysamAlignmentFile):
             Reads
         """
         if 'region' in kwargs:
-            kwargs['region'] = str(kwargs['region'])
+            kwargs['region'] = str(kwargs['region'])  # noqa:WPS529
         try:
             iterator = super().fetch(*args, **kwargs)
         except ValueError:
