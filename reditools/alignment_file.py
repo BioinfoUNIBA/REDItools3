@@ -44,7 +44,7 @@ class RTAlignmentFile(PysamAlignmentFile):
             self._checklist.append(self._check_length)
 
     def fetch(self, *args, **kwargs):
-        r"""
+        """
         Fetch reads aligned in a region.
 
         Parameters:
@@ -54,6 +54,8 @@ class RTAlignmentFile(PysamAlignmentFile):
         Yields:
             Reads
         """
+        if 'region' in kwargs:
+            kwargs['region'] = str(kwargs['region'])
         try:
             iterator = super().fetch(*args, **kwargs)
         except ValueError:
@@ -97,8 +99,8 @@ class RTAlignmentFile(PysamAlignmentFile):
     # 256: IS_SECONDARY
     # 2048: IS_SUPPLEMENTARY
     # 1024: IS_DUPLICATE
-    _flags_to_toss = [77, 141, 512, 256, 2048, 1024]
-    _paired_flags_to_keep = [99, 147, 83, 163]
+    _flags_to_toss = {77, 141, 512, 256, 2048, 1024}
+    _paired_flags_to_keep = {99, 147, 83, 163}
 
     def _check_quality(self, read):
         return read.mapping_quality >= self._min_quality

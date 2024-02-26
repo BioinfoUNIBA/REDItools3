@@ -12,6 +12,7 @@ from collections import defaultdict
 from sortedcontainers import SortedSet
 
 from reditools import utils
+from reditools.file_utils import open_stream
 from reditools.alignment_manager import AlignmentManager
 from reditools.compiled_reads import CompiledReads
 from reditools.fasta_file import RTFastaFile
@@ -139,7 +140,7 @@ class REDItools(object):
         return True
 
     def _valid_column(self, position, bases, region):
-        past_start = position + 1 >= region.get('start', 0)
+        past_start = position + 1 >= region.start
         if past_start and bases is not None:
             return utils.check_list(self._column_checks, bases=bases)
         return False
@@ -161,7 +162,7 @@ class REDItools(object):
 
         self._log(Logger.info_level, 'Loading omopolymeric positions')
 
-        with utils.open_stream(fname, 'r') as stream:
+        with open_stream(fname, 'r') as stream:
             reader = csv.reader(stream, delimiter='\t')
 
             for fields in reader:
@@ -200,7 +201,7 @@ class REDItools(object):
 
         strand_map = {'-': 'D', '+': 'A'}
 
-        with utils.open_stream(splicing_file, 'r') as stream:
+        with open_stream(splicing_file, 'r') as stream:
             total = 0
             total_array = defaultdict(int)
             for line in stream:
@@ -255,7 +256,7 @@ class REDItools(object):
             fname,
         )
 
-        with utils.open_stream(fname, 'w') as stream:
+        with open_stream(fname, 'w') as stream:
             writer = csv.writer(stream, delimiter='\t', lineterminator='\n')
             writer.writerow([
                 '#Chromosome',
@@ -394,7 +395,7 @@ class REDItools(object):
             bam_files,
             region,
         )
-        read_iter = sam_manager.fetch_by_position(**region)
+        read_iter = sam_manager.fetch_by_position(region=region)
         reads = next(read_iter, None)
 
         contig = None
@@ -416,7 +417,7 @@ class REDItools(object):
                 contig,
                 position,
             )
-            if position >= region.get('stop', position + 1):
+            if position >= region.stop:
                 break
             self._log(
                 Logger.debug_level,

@@ -10,7 +10,9 @@ from queue import Empty as EmptyQueueException
 from tempfile import NamedTemporaryFile
 
 from reditools import reditools, utils
+from reditools.file_utils import concat, open_stream
 from reditools.logger import Logger
+from reditools.region import Region
 
 _contig = 'contig'
 _start = 'start'
@@ -80,96 +82,20 @@ def setup(options):  # noqa:WPS213
     return rtools
 
 
-def contig_window_args(contig, start, window, end, idx=0):
-    """
-    Produce regional segments based on a window size.
-
-    Parameters:
-        contig (string): Contig or chromsome name
-        start (int): Region start position
-        window (int): Window size in bp
-        end (int): Region end
-        idx (int): Region order for recombining parallel processing output
-
-    Yields:
-        tuples (idx, region)
-    """
-    while start + window < end:
-        yield (idx, {_contig: contig, _start: start, _stop: start + window})
-        start += window
-        idx += 1
-    yield (idx, {_contig: contig, _start: start, _stop: end})
-
-
-def window_args(contigs, sizes, window):
-    """
-    Produce region segments.
-
-    Parameters:
-        contigs (iterable): Contigs/chromsome names
-        sizes (iterable): Contig sizes
-        window (int): Window size in bp
-
-    Yields:
-        tuples (i, region)
-    """
-    idx = 0
-    for contig, size in zip(contigs, sizes):
-        for arg in contig_window_args(contig, 0, window, size, idx):
-            yield arg
-            idx += 1
-
-
-def region_args(region, window):
-    """
-    Produce regional segments based on a window size.
-
-    Parameters:
-        region (dict): Genomic region with keys "contig", "start", and "stop"
-        window (int): Window size in bp
-
-    Returns:
-        Generator of tuples (i, region)
-    """
-    return contig_window_args(
-        region[_contig],
-        region[_start],
-        window,
-        region[_stop],
-    )
-
-
-def get_args(options):
-    """
-    Produce arguments to `run` for parallel processing.
-
-    Parameters:
-        options (namespace): Command line options from parseargs
-
-    Returns:
-        Generator of arguments for `run`
-    """
-    region = parse_region(options.region) if options.region else {}
-    contigs, sizes = utils.get_contigs(options.file[0])
-
-    # Put analysis chunks into queue
-    if options.window:
-        if region:
-            size = sizes[contigs.index(region[_contig])]
-            return region_args(
-                {
-                    _contig: region[_contig],
-                    _start: region.get(_start, 0),
-                    _stop: region.get(_stop, size),
-                },
-                options.window,
-            )
-        return window_args(contigs, sizes, options.window)
+def region_args(bam_fname, region, window):
     if region:
-        return [(0, region)]
-    c_range = range(len(contigs))
-    return ((idx, {_contig: contigs[idx]}) for idx in c_range)
+        return divide_region(region, window)
 
+    args = []
+    for contig, size in utils.get_contigs(bam_fname):
+        region = Region(contig=contig, start=1, stop=size+1)
+        args.extend(divide_region(region, window))
+    return args
+
+def divide_region(region, window):
+    if window:
+        return region.split(window)
+    return [region]
 
 def write_results(rtools, file_name, region, output_format):
     """
@@ -221,42 +147,6 @@ def run(options, in_queue, out_queue):
         if options.debug:
             traceback.print_exception(*sys.exc_info())
         sys.stderr.write(f'[ERROR] {exc}\n')
-
-
-def parse_region(region_str):
-    """
-    Parse a region string into chromosome, start, and end.
-
-    Parameters:
-        region_str (str): In the format of 'chr#' or 'chr#:start-end'
-
-    Returns:
-        A dict of the region with keys "contig", "start", and "stop".
-
-    Raises:
-        ValueError: On improper string format
-    """
-    if region_str is None:
-        return None
-    region = re.split('[:-]', region_str)
-    if not region:
-        return None
-    if len(region) == 1:
-        return {_contig: region[0]}
-    if len(region) == 3:
-        start = utils.to_int(region[1])
-        stop = utils.to_int(region[2])
-        if start >= stop:
-            raise ValueError(
-                'Please provide a region of the form chrom:' +
-                f'start-end (with end > start). Region provided: {region}',
-            )
-        return {_contig: region[0], _start: start, _stop: stop}
-    raise ValueError(
-        'Please provide a region of the form chrom:start-end ' +
-        f'(with end > start). Region provided: {region}',
-    )
-
 
 def parse_options():  # noqa:WPS213
     """
@@ -498,8 +388,13 @@ def main():
 
     # Put analysis chunks into queue
     in_queue = Queue()
-    for arg in get_args(options):
-        in_queue.put(arg)
+    regions = region_args(
+            options.file[0],
+            Region(string=options.region) if options.region else None,
+            window=options.window,
+    )
+    for args in enumerate(regions):
+        in_queue.put(args)
     for _ in range(options.threads):
         in_queue.put(None)
 
@@ -554,7 +449,7 @@ def concat_output(options, tfs):
     # Setup final output file
     if options.output_file:
         mode = 'a' if options.append_file else 'w'
-        stream = open(  # noqa:WPS515
+        stream = open_stream(
             options.output_file,
             mode,
             encoding=options.encoding,
@@ -566,7 +461,7 @@ def concat_output(options, tfs):
         writer = csv.writer(stream, **options.output_format)
         if not options.append_file:
             writer.writerow(reditools.REDItools.fieldnames)
-        utils.concat(stream, *tfs, encoding=options.encoding)
+        concat(stream, *tfs, encoding=options.encoding)
 
 
 if __name__ == '__main__':
