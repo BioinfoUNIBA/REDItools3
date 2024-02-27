@@ -6,16 +6,10 @@ Authors:
     ahanden - 2022
 """
 
-import csv
-from collections import defaultdict
-
-from sortedcontainers import SortedSet
-
 from reditools import utils
 from reditools.alignment_manager import AlignmentManager
 from reditools.compiled_reads import CompiledReads
 from reditools.fasta_file import RTFastaFile
-from reditools.file_utils import open_stream
 from reditools.logger import Logger
 
 
@@ -61,10 +55,10 @@ class REDItools(object):
         self.min_read_length = 30
         self._min_read_quality = 0
 
-        self._target_positions = False
+        self.target_positions = False
         self._exclude_positions = {}
         self._splice_positions = []
-        self._poly_positions = []
+        self.poly_positions = []
 
         self.reference = None
 
@@ -140,193 +134,76 @@ class REDItools(object):
         return True
 
     def _valid_column(self, position, bases, region):
-        past_start = position + 1 >= region.start
+        past_start = position + 1 >= (region.start or 0)
         if past_start and bases is not None:
             return utils.check_list(self._column_checks, bases=bases)
         return False
 
-    def load_poly_positions(self, fname):
+    @property
+    def poly_positions(self):
         """
-        Read omopolymeric positions from a file.
+        Omopolymeric positions to consider.
 
-        Parameters:
-            fname (str): File path
+        Returns:
+            list
         """
-        self._poly_positions = defaultdict(SortedSet)
+        return self.poly_positions
 
-        self._log(
-            Logger.info_level,
-            'Loading omopolymeric positions from file {}',
-            fname,
-        )
+    @poly_positions.setter
+    def poly_positions(self, regions):
+        if regions:
+            self.poly_positions = utils.enumerate_positions(regions)
+            self._column_checks.add(self._check_poly_positions)
+        else:
+            self.poly_positions = []
+            self._column_checks.discard(self._check_poly_positions)
 
-        self._log(Logger.info_level, 'Loading omopolymeric positions')
-
-        with open_stream(fname, 'r') as stream:
-            reader = csv.reader(stream, delimiter='\t')
-
-            for fields in reader:
-                if fields[0].startswith('#'):
-                    continue
-
-                contig = fields[0]
-                start = int(fields[1])
-                stop = int(fields[2])
-
-                self._poly_positions[contig] |= set(range(start, stop))
-
-        total = sum(len(pos) for pos in self._poly_positions.values())
-        self._log(
-            Logger.info_level,
-            '{} total omopolymeric positions found.',
-            total,
-        )
-
-        self._column_checks.add(self._check_poly_positions)
-
-    def load_splicing_file(self, splicing_file, span):
+    @property
+    def splice_positions(self):
         """
-        Read splicing positions from a file.
+        Known splice sites.
 
-        Parameters:
-            splicing_file (str): File path
-            span(int): Width of splice sites
+        Returns:
+            list
         """
-        self._splice_positions = defaultdict(SortedSet)
-        self._log(
-            Logger.info_level,
-            'Loading known splice sites from file {}',
-            splicing_file,
-        )
+        return self.splice_positions
 
-        strand_map = {'-': 'D', '+': 'A'}
+    @splice_positions.setter
+    def splice_positions(self, regions):
+        if regions:
+            self.splice_positions = utils.enumerate_positions(regions)
+            self._column_checks.add(self._check_splice_positions)
+        else:
+            self.splice_positions = []
+            self._column_checks.discard(self._check_splice_positions)
 
-        with open_stream(splicing_file, 'r') as stream:
-            total = 0
-            total_array = defaultdict(int)
-            for line in stream:
-                fields = line.strip().split()
-
-                chrom = fields[0]
-                strand = fields[4]
-                splice = fields[3]
-                span = int(fields[1])
-
-                total += span
-                total_array[chrom] += span
-
-                coe = -1 if strand_map.get(strand, None) == splice else 1
-                new_positions = [1 + span + coe * fctr for fctr in range(span)]
-                self._splice_positions[chrom] |= new_positions
-
-        self._log(
-            Logger.info_level,
-            'Loaded {} positions from file {}',
-            total,
-            splicing_file,
-        )
-        self._log(Logger.info_level, 'Partial: {}', total_array)
-
-        self._column_checks.add(self._check_splice_positions)
-
-    def create_poly_positions(self, fname, span):
+    @property
+    def target_positions(self):
         """
-        Generate omopolymeric position data.
+        Only report results for these locations.
 
-        Parameters:
-            fname (str): File path to write to
-            span (int): Omopolymeric span
+        Returns:
+            list
         """
-        self._log(
-            Logger.info_level,
-            'Creating omopolymeric positions (span={}) from reference file',
-            span,
-        )
+        return self.target_positions
 
-        chromosomes = self.reference.references()
-        self._log(
-            Logger.info_level,
-            '{} chromosome names found',
-            len(chromosomes),
-        )
+    @target_positions.setter
+    def target_positions(self, regions):
+        self.target_positions = utils.enumerate_positions(regions)
 
-        self._log(
-            Logger.info_level,
-            'Writing omopolymeric positions to file: {}.',
-            fname,
-        )
-
-        with open_stream(fname, 'w') as stream:
-            writer = csv.writer(stream, delimiter='\t', lineterminator='\n')
-            writer.writerow([
-                '#Chromosome',
-                'Start',
-                'End',
-                'Length',
-                'Symbol',
-            ])
-
-            for chromosome in chromosomes:
-                self._log(
-                    Logger.info_level,
-                    'Loading reference sequence for chromosome {}',
-                    chromosome,
-                )
-                sequence = self.reference.fetch(chromosome).lower()
-                self._log(
-                    Logger.info_level,
-                    'Reference sequence for chromosome {} loaded (len: {})',
-                    chromosome,
-                    len(sequence),
-                )
-
-                equals = 0
-                last = None
-                for pos, base in enumerate(sequence):
-                    if base == last:
-                        equals += 1
-                    else:
-                        if equals >= span:
-                            writer.writerow([
-                                chromosome,
-                                pos - equals,
-                                pos,
-                                equals,
-                                last,
-                            ])
-                        equals = 1
-                    last = base
-
-    def load_target_positions(self, bed_file):
+    @property
+    def exclude_positions(self):
         """
-        Read target positions from a file.
+        Do not report results for these locations.
 
-        Parameters:
-            bed_file (str): Path to a BED formatted file for reading.
+        Returns:
+            list
         """
-        self._log(
-            Logger.info_level,
-            'Loading target positions from file {}',
-            bed_file,
-        )
-        reader = utils.read_bed_file(bed_file)
-        self._target_positions = utils.enumerate_positions(reader)
+        return self.target_positions
 
-    def load_exclude_positions(self, bed_file):
-        """
-        Read positions to exclude from a file.
-
-        Parameters:
-            bed_file (str): Path to a BED formatted file for reading.
-        """
-        self._log(
-            Logger.info_level,
-            'Loading exclude positions from file {}',
-            bed_file,
-        )
-
-        reader = utils.read_bed_file(bed_file)
-        self._exclude_positions = utils.enumerate_positions(reader)
+    @exclude_positions.setter
+    def exclude_positions(self, regions):
+        self.exclude_positions = utils.enumerate_positions(regions)
 
     def _next_position(self, reads, nucleotides, contig, position):
         if nucleotides.is_empty():
@@ -417,7 +294,7 @@ class REDItools(object):
                 contig,
                 position,
             )
-            if position >= region.stop:
+            if region.stop and position >= region.stop:
                 break
             self._log(
                 Logger.debug_level,
@@ -438,8 +315,8 @@ class REDItools(object):
             if position in self._exclude_positions.get(contig, []):
                 self._log(Logger.debug_level, 'Listed exclusion - skipping')
                 continue
-            if self._target_positions:
-                if position not in self._target_positions.get(contig, []):
+            if self.target_positions:
+                if position not in self.target_positions.get(contig, []):
                     self._log(
                         Logger.debug_level,
                         'Not listed for inclusion - skipping',

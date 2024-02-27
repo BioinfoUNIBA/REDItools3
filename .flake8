@@ -8,6 +8,8 @@
 # WPS226 Found string literal over-use: {0}
 extend-ignore = WPS305,WPS360,RST213,RST210,P103,WPS226
 max-try-body-length = 3
+max-module-members = 12
+max-local-variables = 6
 
 per-file-ignores =
   reditools/utils.py: WPS515, WPS100

@@ -20,7 +20,6 @@ class Region(object):
 
         Raises:
             ValueError: The contig is missing
-            IndexError: The start is greater than the stop
         """
         if 'string' in kwargs:
             region = self._parse_string(kwargs['string'])  # noqa:WPS529
@@ -33,10 +32,6 @@ class Region(object):
             self.contig = kwargs['contig']
             self.start = self._to_int(kwargs.get('start', 1))
             self.stop = self._to_int(kwargs.get('stop', None))
-        if self.start >= self.stop:
-            raise IndexError(
-                f'Start {self.start} is greater than stop {self.stop}.',
-            )
 
     def __str__(self):
         """
@@ -45,7 +40,12 @@ class Region(object):
         Returns:
             (str): contig:start-stop
         """
-        return f'{self.contig}:{self.start}-{self.stop}'
+        region = self.contig
+        if self.start:
+            region = f'{region}:{self.start}'
+            if self.stop:
+                region = f'{region}-{self.stop}'
+        return region
 
     def split(self, window):
         """
@@ -88,12 +88,12 @@ class Region(object):
         start = None
         stop = None
 
+        if len(region) > 3:
+            raise ValueError(f'Unrecognized format: {region_str}.')
         if len(region) > 1:
             start = self._to_int(region[1])
             if len(region) == 3:
                 stop = self._to_int(region[2])
-        else:
-            raise ValueError('Unrecognized format: {region_str}.')
         return (contig, start, stop)
 
     def _to_int(self, number):

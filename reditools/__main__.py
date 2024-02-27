@@ -82,19 +82,31 @@ def setup(options):  # noqa:WPS213
 
 
 def region_args(bam_fname, region, window):
-    if region:
-        return divide_region(region, window)
+    """
+    Split a region into segments for paralllel processing.
+
+    Parameters:
+        bam_fname (str): BAM file to collect contig info from
+        region (Region): Genomic region to split
+        window (int): How large the sub regions should be.
+
+    Returns:
+        (list): Sub regions
+    """
+    if region is not None:
+        if window:
+            return region.split(window)
+        return [region]
 
     args = []
     for contig, size in utils.get_contigs(bam_fname):
         region = Region(contig=contig, start=1, stop=size+1)
-        args.extend(divide_region(region, window))
+        if window:
+            args.extend(region.split(window))
+        else:
+            args.append(region)
     return args
 
-def divide_region(region, window):
-    if window:
-        return region.split(window)
-    return [region]
 
 def write_results(rtools, file_name, region, output_format):
     """
@@ -146,6 +158,7 @@ def run(options, in_queue, out_queue):
         if options.debug:
             traceback.print_exception(*sys.exc_info())
         sys.stderr.write(f'[ERROR] {exc}\n')
+
 
 def parse_options():  # noqa:WPS213
     """
@@ -386,29 +399,30 @@ def main():
     options.encoding = 'utf-8'
 
     # Put analysis chunks into queue
-    in_queue = Queue()
     regions = region_args(
-            options.file[0],
-            Region(string=options.region) if options.region else None,
-            window=options.window,
+        options.file[0],
+        Region(string=options.region) if options.region else None,
+        window=options.window,
     )
+
+    in_queue = Queue()
     for args in enumerate(regions):
         in_queue.put(args)
     for _ in range(options.threads):
         in_queue.put(None)
 
     # Start parallel jobs
-    processes = []
     out_queue = Queue()
-    for _ in range(options.threads):
-        processes.append(
-            Process(
-                target=run,
-                args=(options, in_queue, out_queue),
-            ),
-        )
-    tfs = monitor(processes, out_queue, in_queue.qsize())
-    concat_output(options, tfs)
+    processes = [
+        Process(
+            target=run,
+            args=(options, in_queue, out_queue),
+        ) for _ in range(options.threads)
+    ]
+    concat_output(
+        options,
+        monitor(processes, out_queue, in_queue.qsize()),
+    )
 
 
 def monitor(processes, out_queue, chunks):
