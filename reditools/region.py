@@ -78,6 +78,15 @@ class Region(object):
             ))
         return sub_regions
 
+    def enumerate(self):
+        """
+        Convert a list of regions into a list of individual positions.
+
+        Returns:
+            Set enumerating the individual positions.
+        """
+        return set(range(self.start, self.end))
+
     def _parse_string(self, region_str):
         if region_str is None:
             return None

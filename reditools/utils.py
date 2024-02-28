@@ -36,18 +36,11 @@ def enumerate_positions(regions):
                         is optional. Additional values will be ignored.
 
     Returns:
-        Dictionary of contigs to SortedSets enumerating the individual
-        positions.
+        SortedSet enumerating the individual positions.
     """
     positions = defaultdict(SortedSet)
-    for reg in regions:
-        contig = reg[0]
-        start = int(reg[1]) - 1
-        if len(reg) < 3:
-            end = start + 1
-        else:
-            end = int(reg[2])
-        positions[contig] |= range(start, end)
+    for region in regions:
+        positions[region.contig] |= region.enumerate()
     return positions
 
 

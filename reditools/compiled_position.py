@@ -29,14 +29,32 @@ class CompiledPosition(object):
         """
         return len(self.bases)
 
-    def __bool__(self):
+    def __getitem__(self, base):
         """
-        Whether there are bases at this position.
+        Frequency of a given nucleotide at this position.
+
+        Parameters:
+            base (str): The nucleotide (A, C, G, T, or REF)
 
         Returns:
-            bool: True if there are bases, else False
+            int: The total number of reads with the given base
         """
-        return bool(self.bases)
+        if not self.counter:
+            self.counter = {base: 0 for base in self._bases}
+            for base_member in self.bases:
+                self.counter[base_member] += 1
+        elif base.upper() == 'REF':
+            return self.counter[self.ref]
+        return self.counter[base]
+
+    def __iter__(self):
+        """
+        Iterate over each base frequency.
+
+        Returns:
+            iterator
+        """
+        return (self[base] for base in self._bases)
 
     def add_base(self, quality, strand, base):
         """
@@ -52,21 +70,6 @@ class CompiledPosition(object):
         self.bases.append(base)
         self.counter = False
 
-    def filter_by_strand(self, vstrand):
-        """
-        Filter to only report bases on a specified strand.
-
-        Parameters:
-            vstrand (str): The strand to fitler by (+ or -)
-        """
-        indices = range(len(self.strands))
-        indices = [idx for idx in indices if self.strands[idx] == vstrand]
-
-        self.bases = [self.bases[idx] for idx in indices]
-        self.strands = [self.strands[idx] for idx in indices]
-        self.qualities = [self.qualities[idx] for idx in indices]
-        self.counter = False
-
     def complement(self):
         """Modify all the summarized nucleotides to their complements."""
         self.bases = [self._comp[base] for base in self.bases]
@@ -76,56 +79,6 @@ class CompiledPosition(object):
         complements = self._comp.items()
         self.counter = {sb: self.counter[bs] for bs, sb in complements}
 
-    def base_frequency(self, base=None):
-        """
-        Frequency of a given nucleotide at this position.
-
-        Parameters:
-            base (str): The nucleotide (A, C, G, or T)
-
-        Returns:
-            int: The total number of reads with the given base as an int
-        """
-        if not self.counter:
-            self.counter = {base: 0 for base in self._bases}
-            for base_member in self.bases:
-                self.counter[base_member] += 1
-        if base is None:
-            return [self.counter[base] for base in self._bases]
-        elif base.upper() == 'REF':
-            return self.counter[self.ref]
-        return self.counter[base]
-
-    # WTF!?!?!
-    def get_min_edits(self):
-        """
-        Lowest edit frequency.
-
-        Returns:
-            generator
-        """
-        return (self.base_frequency(alt) for alt in self._get_alts())
-
-    def get_max_edits(self):
-        """
-        Highest edit frequency.
-
-        Returns:
-            float
-        """
-        return max(self.base_frequency(alt) for alt in self._get_alts())
-
-    def get_max_ratio(self):
-        """
-        Highest ratio of variant to variant + reference frequency.
-
-        Returns:
-            float
-        """
-        ref_freq = self.base_frequency(self.ref)
-        var_freq = self.get_max_edits()
-        return var_freq / (var_freq + ref_freq)
-
     def get_variants(self):
         """
         List all detected variants.
@@ -133,9 +86,8 @@ class CompiledPosition(object):
         Returns:
             list
         """
-        alts = self._get_alts()
-        ref = self.ref
-        return [f'{ref}{base}' for base in alts if self.base_frequency(base)]
+        alts = set(self._bases) - {self.ref}
+        return [base for base in alts if self[base]]
 
     def get_strand(self, threshold=0):
         """
@@ -158,6 +110,3 @@ class CompiledPosition(object):
         if strand_counts[strand] / total >= threshold:
             return strand
         return '*'
-
-    def _get_alts(self):
-        return set(self._bases) - {self.ref}

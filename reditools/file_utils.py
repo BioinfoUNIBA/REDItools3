@@ -2,7 +2,11 @@
 
 import csv
 import os
+from collections import defaultdict
 from gzip import open as gzip_open
+
+from sortedcontainers import SortedSet
+
 from reditools.region import Region
 
 
@@ -57,14 +61,18 @@ def concat(output, *fnames, clean_up=True, encoding='utf-8'):
         if clean_up:
             os.remove(fname)
 
+
 def load_poly_positions(fname):
     """
     Read omopolymeric positions from a file.
 
     Parameters:
         fname (str): File path
+
+    Returns:
+        (dict): Contigs and regions
     """
-    poly_positions = defaultDict(set)
+    poly_positions = defaultdict(set)
     with read_bed_file(fname) as reader:
         for row in reader:
             poly_positions[row[0]] = Region(
@@ -75,13 +83,16 @@ def load_poly_positions(fname):
     return poly_positions
 
 
-def load_splicing_file(self, splicing_file, span):
+def load_splicing_file(splicing_file, span):
     """
     Read splicing positions from a file.
 
     Parameters:
         splicing_file (str): File path
         span(int): Width of splice sites
+
+    Returns:
+        (dict): Contig and positions
     """
     splice_positions = defaultdict(SortedSet)
     strand_map = {'-': 'D', '+': 'A'}
@@ -95,10 +106,7 @@ def load_splicing_file(self, splicing_file, span):
             splice = fields[3]
             span = int(fields[1])
 
-            total_array[chrom] += span
-
             coe = -1 if strand_map.get(strand, None) == splice else 1
             new_positions = [1 + span + coe * fctr for fctr in range(span)]
             splice_positions[chrom] |= new_positions
         return splice_positions
-
