@@ -9,7 +9,10 @@
 extend-ignore = WPS305,WPS360,RST213,RST210,P103,WPS226
 max-try-body-length = 3
 max-module-members = 12
-max-local-variables = 6
+max-local-variables = 12
+max-methods = 12
+max-attributes = 12
 
 per-file-ignores =
   reditools/utils.py: WPS515, WPS100
+  reditools/reditools.py: WPS214

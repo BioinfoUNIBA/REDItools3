@@ -14,25 +14,95 @@ from reditools.logger import Logger
 from reditools.rtchecks import RTChecks
 
 
+class RTResult(object):
+    """RNA editing analysis for a single base position."""
+
+    def __init__(self, bases, strand, contig, position):
+        """
+        RNA editing analysis for a single base position.
+
+        Parameters:
+            bases (compiledPosition): Bases found by REDItools
+            strand (str): Strand of the position
+            contig (str): Contig name
+            position (int): Genomic position
+        """
+        self.contig = contig
+        self.position = position + 1
+        self.bases = bases
+        self.strand = strand
+        self._variants = bases.get_variants()
+
+    @property
+    def variants(self):
+        """
+        The detected variants at this position.
+
+        Returns:
+            list
+        """
+        ref = self.bases.ref
+        return [f'{ref}{base}' for base in self._variants]
+
+    @property
+    def mean_quality(self):
+        """
+        Mean read quality of the base position.
+
+        Returns:
+            int
+        """
+        if self.bases:
+            return sum(self.bases.qualities) / len(self.bases)
+        return 0
+
+    @property
+    def edit_ratio(self):
+        """
+        Edit ratio.
+
+        Returns:
+            float
+        """
+        if self._variants:
+            max_edits = max(self.bases[base] for base in self._variants)
+        else:
+            max_edits = 0
+        return max_edits / (max_edits + self.bases['REF'])
+
+    @property
+    def reference(self):
+        """
+        Base in the reference genome.
+
+        Returns:
+            str
+        """
+        return self.bases.ref
+
+    @property
+    def depth(self):
+        """
+        How many reads cover the position. (post filtering).
+
+        Returns:
+            int
+        """
+        return len(self.bases)
+
+    @property
+    def per_base_depth(self):
+        """
+        How many reads had each base for this position.
+
+        Returns:
+            list
+        """
+        return list(iter(self.bases))
+
+
 class REDItools(object):
     """Analysis system for RNA editing events."""
-
-    fieldnames = [
-        'Region',
-        'Position',
-        'Reference',
-        'Strand',
-        'Coverage-q30',
-        'MeanQ',
-        'BaseCount[A,C,G,T]',
-        'AllSubs',
-        'Frequency',
-        'gCoverage-q30',
-        'gMeanQ',
-        'gBaseCount[A,C,G,T]',
-        'gAllSubs',
-        'gFrequency',
-    ]
 
     def __init__(self):
         """Create a new REDItools object."""
@@ -91,16 +161,16 @@ class REDItools(object):
         Returns:
             list
         """
-        return self.splice_positions
+        return self._splice_positions
 
     @splice_positions.setter
     def splice_positions(self, regions):
         function = self._rtqc.check_splice_positions
         if regions:
-            self.splice_positions = utils.enumerate_positions(regions)
+            self._splice_positions = utils.enumerate_positions(regions)
             self._rtqc.add(function)
         else:
-            self.splice_positions = []
+            self._splice_positions = []
             self._rtqc.discard(function)
 
     @property
@@ -134,52 +204,93 @@ class REDItools(object):
     def exclude_positions(self, regions):
         self.exclude_positions = utils.enumerate_positions(regions)
 
-    def _get_column(self, position, bases, region):
-        strand = bases.get_strand(threshold=self.strand_confidence_threshold)
-        if self.usestrand_correction:
-            bases.filter_bystrand(strand)
-        if strand == '-':
-            bases.complement()
-
-        past_start = position + 1 >= (region.start or 0)
-        if past_start and bases is not None:
-            if not self._rtqc.check(self, bases, region.contig, position):
-                return None
-
-        variants = bases.get_variants()
-        if bases:
-            mean_q = sum(bases.qualities) / len(bases)
-        else:
-            mean_q = 0
-        if variants:
-            max_edits = max(bases[base] for base in variants)
-        else:
-            max_edits = 0
-        max_ratio = max_edits / (max_edits + bases['REF'])
-        variants = [f'{bases.ref}{base}' for base in variants]
-        return [
-            position + 1,  # 1 indexed
-            bases.ref,
-            strand,
-            len(bases),
-            f'{mean_q:.2f}',
-            list(iter(bases)),
-            ' '.join(sorted(variants)) if variants else '-',
-            f'{max_ratio:.2f}',
-            '\t'.join(['-' for _ in range(5)]),
-        ]
-
-    def analyze(self, bam_files, region=None):
+    @property
+    def log_level(self):
         """
-        Compute editting rates for a given SAM file.
+        The logging level.
+
+        Returns:
+            Log level
+        """
+        return self._log_level
+
+    @log_level.setter
+    def log_level(self, level):
+        """
+        Set the class logging level.
 
         Parameters:
-            bam_files (list): Path to the SAM files
-            region (dict): Must have a "contig" key and optional "start"
-            and "end".
+            level (str): logging level
+        """
+        self._logger = Logger(level)
+        self.log = self._logger.log
+
+    @property
+    def min_read_quality(self):
+        """Minimum read quality for inclusion."""
+        return self._min_read_quality  # noqa:DAR201
+
+    @min_read_quality.setter
+    def min_read_quality(self, threshold):
+        self._min_read_quality = threshold
+        function = self._rtqc.check_column_quality
+        if self._min_read_quality > 0:
+            self._rtqc.add(function)
+        else:
+            self._rtqc.discard(function)
+
+    @property
+    def min_column_length(self):
+        """Minimum depth for a position to be reported."""
+        return self._min_column_length  # noqa:DAR201
+
+    @min_column_length.setter
+    def min_column_length(self, threshold):
+        self._min_column_length = threshold
+        function = self._rtqc.check_column_min_length
+        if threshold > 1:
+            self._rtqc.add(function)
+        else:
+            self._rtqc.discard(function)
+
+    @property
+    def min_edits(self):
+        """Minimum number of editing events for reporting."""
+        return self._min_edits  # noqa:DAR201
+
+    @min_edits.setter
+    def min_edits(self, threshold):
+        self._min_edits = threshold
+        function = self._rtqc.check_column_edit_frequency
+        if threshold > 0:
+            self._rtqc.add(function)
+        else:
+            self._rtqc.discard(function)
+
+    @property
+    def min_edits_per_nucleotide(self):
+        """Minimum number of edits for a single nucleotide for reporting."""
+        return self._min_edits_per_nucleotide  # noqa:DAR201
+
+    @min_edits_per_nucleotide.setter
+    def min_edits_per_nucleotide(self, threshold):
+        self._min_edits_per_nucleotide = threshold
+        function = self._rtqc.check_column_min_edits
+        if threshold > 0:
+            self._rtqc.add(function)
+        else:
+            self._rtqc.discard(function)
+
+    def analyze(self, bam_files, region=None):  # noqa:WPS231,WPS213
+        """
+        Detect RNA editing events.
+
+        Parameters:
+            bam_files (list): Names of BAM files to read from
+            region (Region): Where to look for edits
 
         Yields:
-            Analysis results for individual base positions.
+            Analysis results for each base position in region
         """
         if region is None:
             region = {}
@@ -263,7 +374,7 @@ class REDItools(object):
                 'Yielding output for {} reads',
                 len(bases),
             )
-            yield [contig] + column
+            yield column
 
         self.log(
             Logger.info_level,
@@ -272,86 +383,9 @@ class REDItools(object):
             total,
         )
 
-    @property
-    def log_level(self):
-        """
-        The logging level.
-
-        Returns:
-            Log level
-        """
-        return self._log_level
-
-    @log_level.setter
-    def log_level(self, level):
-        """
-        Set the class logging level.
-
-        Parameters:
-            level (str): logging level
-        """
-        self._logger = Logger(level)
-        self.log = self._logger.log
-
-    @property
-    def min_read_quality(self):
-        """Minimum read quality for inclusion."""
-        return self._min_read_quality  # noqa:DAR201
-
-    @min_read_quality.setter
-    def min_read_quality(self, threshold):
-        self._min_read_quality = threshold
-        function = self._rtqc.check_column_quality
-        if self._min_read_quality > 0:
-            self._rtqc.add(function)
-        else:
-            self._rtqc.discard(function)
-
-    @property
-    def min_column_length(self):
-        """Minimum depth for a position to be reported."""
-        return self._min_column_length  # noqa:DAR201
-
-    @min_column_length.setter
-    def min_column_length(self, threshold):
-        self._min_column_length = threshold
-        function = self._rtqc.check_column_min_length
-        if threshold > 1:
-            self._rtqc.add(function)
-        else:
-            self._rtqc.discard(function)
-
     def use_strand_correction(self):
         """Only reports reads/positions that match `strand`."""
         self.usestrand_correction = True
-
-    @property
-    def min_edits(self):
-        """Minimum number of editing events for reporting."""
-        return self._min_edits  # noqa:DAR201
-
-    @min_edits.setter
-    def min_edits(self, threshold):
-        self._min_edits = threshold
-        function = self._rtqc.check_column_edit_frequency
-        if threshold > 0:
-            self._rtqc.add(function)
-        else:
-            self._rtqc.discard(function)
-
-    @property
-    def min_edits_per_nucleotide(self):
-        """Minimum number of edits for a single nucleotide for reporting."""
-        return self._min_edits_per_nucleotide  # noqa:DAR201
-
-    @min_edits_per_nucleotide.setter
-    def min_edits_per_nucleotide(self, threshold):
-        self._min_edits_per_nucleotide = threshold
-        function = self._rtqc.check_column_min_edits
-        if threshold > 0:
-            self._rtqc.add(function)
-        else:
-            self._rtqc.discard(function)
 
     def add_reference(self, reference_fname):
         """
@@ -361,6 +395,20 @@ class REDItools(object):
             reference_fname (str): File path to FASTA reference
         """
         self.reference = RTFastaFile(reference_fname)
+
+    def _get_column(self, position, bases, region):
+        strand = bases.get_strand(threshold=self.strand_confidence_threshold)
+        if self.usestrand_correction:
+            bases.filter_bystrand(strand)
+        if strand == '-':
+            bases.complement()
+
+        past_start = position + 1 >= (region.start or 0)
+        if past_start and bases is not None:
+            if not self._rtqc.check(self, bases, region.contig, position):
+                return None
+
+        return RTResult(bases, strand, region.contig, position)
 
 
 class REDItoolsDNA(REDItools):

@@ -17,6 +17,23 @@ _contig = 'contig'
 _start = 'start'
 _stop = 'stop'
 
+fieldnames = [
+    'Region',
+    'Position',
+    'Reference',
+    'Strand',
+    'Coverage-q30',
+    'MeanQ',
+    'BaseCount[A,C,G,T]',
+    'AllSubs',
+    'Frequency',
+    'gCoverage-q30',
+    'gMeanQ',
+    'gBaseCount[A,C,G,T]',
+    'gAllSubs',
+    'gFrequency',
+]
+
 
 def setup(options):  # noqa:WPS213
     """
@@ -123,8 +140,20 @@ def write_results(rtools, file_name, region, output_format):
     """
     with NamedTemporaryFile(mode='w', delete=False) as stream:
         writer = csv.writer(stream, **output_format)
-        for rtools_output in rtools.analyze(file_name, region):
-            writer.writerow(rtools_output)
+        for rt_result in rtools.analyze(file_name, region):
+            variants = rt_result.variants
+            writer.writerow([
+                rt_result.contig,
+                rt_result.position,
+                rt_result.reference,
+                rt_result.strand,
+                rt_result.depth,
+                f'{rt_result.mean_quality:.2f}',
+                rt_result.per_base_depth,
+                ' '.join(sorted(variants)) if variants else '-',
+                f'{rt_result.edit_ratio:.2f}',
+                '\t'.join(['-' for _ in range(5)]),
+            ])
         return stream.name
 
 
@@ -473,7 +502,7 @@ def concat_output(options, tfs):
     with stream:
         writer = csv.writer(stream, **options.output_format)
         if not options.append_file:
-            writer.writerow(reditools.REDItools.fieldnames)
+            writer.writerow(fieldnames)
         concat(stream, *tfs, encoding=options.encoding)
 
 

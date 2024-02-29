@@ -24,7 +24,7 @@ def open_stream(path, mode='rt', encoding='utf-8'):
     """
     if path.endswith('gz'):
         return gzip_open(path, mode, encoding=encoding)
-    return open(path, mode, encoding=encoding)
+    return open(path, mode, encoding=encoding)  # noqa:WPS515
 
 
 def read_bed_file(path):
