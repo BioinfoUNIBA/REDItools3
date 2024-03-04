@@ -148,7 +148,7 @@ class REDItools(object):
         function = self._rtqc.check_poly_positions
         if regions:
             self._poly_positions = utils.enumerate_positions(regions)
-            self._reqc.add(function)
+            self._rtqc.add(function)
         else:
             self._poly_positions = []
             self._rtqc.discard(function)
@@ -386,6 +386,10 @@ class REDItools(object):
     def use_strand_correction(self):
         """Only reports reads/positions that match `strand`."""
         self.usestrand_correction = True
+
+    def only_one_alt(self):
+        """Only report a position if there is less than 2 alt bases."""
+        self._rtqc.add(self._rtqc.check_multiple_alts)
 
     def add_reference(self, reference_fname):
         """

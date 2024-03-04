@@ -94,6 +94,8 @@ def setup(options):  # noqa:WPS213
 
     if options.strand_correction:
         rtools.use_strand_correction()
+    if options.exclude_multis:
+        rtools.only_one_alt()
 
     return rtools
 
@@ -313,7 +315,6 @@ def parse_options():  # noqa:WPS213
     parser.add_argument(
         '-e',
         '--exclude-multis',
-        type=bool,
         default=False,
         help='Do not report any position with more than one alternate base.',
         action='store_true',
