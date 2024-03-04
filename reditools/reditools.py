@@ -114,7 +114,7 @@ class REDItools(object):
         self.log_level = Logger.silent_level
 
         self.strand = 0
-        self.usestrand_correction = False
+        self._use_strand_correction = False
         self.strand_confidence_threshold = 0.5
 
         self.min_base_quality = 30
@@ -385,7 +385,7 @@ class REDItools(object):
 
     def use_strand_correction(self):
         """Only reports reads/positions that match `strand`."""
-        self.usestrand_correction = True
+        self._use_strand_correction = True
 
     def add_reference(self, reference_fname):
         """
@@ -398,8 +398,10 @@ class REDItools(object):
 
     def _get_column(self, position, bases, region):
         strand = bases.get_strand(threshold=self.strand_confidence_threshold)
-        if self.usestrand_correction:
-            bases.filter_bystrand(strand)
+        if self._use_strand_correction:
+            bases.filter_by_strand(strand)
+            if not bases:
+                return None
         if strand == '-':
             bases.complement()
 

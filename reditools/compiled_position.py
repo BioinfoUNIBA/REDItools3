@@ -110,3 +110,20 @@ class CompiledPosition(object):
         if strand_counts[strand] / total >= threshold:
             return strand
         return '*'
+
+    def filter_by_strand(self, strand):
+        """
+        Remove all bases not on the strand.
+
+        Parameters:
+            strand (str): Either +, -, or *
+        """
+        keep = range(len(self.bases))
+        keep = [idx for idx in keep if self.strands[idx] == strand]
+        self.qualities = self._filter(self.qualities, keep)
+        self.strands = self._filter(self.strands, keep)
+        self.bases = self._filter(self.bases, keep)
+        self.counter = False
+
+    def _filter(self, lst, indx):
+        return [lst[idx] for idx in indx]
