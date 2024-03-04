@@ -311,6 +311,14 @@ def parse_options():  # noqa:WPS213
         'not be included in the analysis.',
     )
     parser.add_argument(
+        '-e',
+        '--exclude-multis',
+        type=bool,
+        default=False,
+        help='Do not report any position with more than one alternate base.',
+        action='store_true',
+    )
+    parser.add_argument(
         '-men',
         '--min-edits-per-nucleotide',
         type=int,
