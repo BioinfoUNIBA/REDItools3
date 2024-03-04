@@ -191,20 +191,6 @@ class REDItools(object):
             self._target_positions = False
 
     @property
-    def exclude_positions(self):
-        """
-        Do not report results for these locations.
-
-        Returns:
-            list
-        """
-        return self.exclude_positions
-
-    @exclude_positions.setter
-    def exclude_positions(self, regions):
-        self.exclude_positions = utils.enumerate_positions(regions)
-
-    @property
     def log_level(self):
         """
         The logging level.
@@ -280,6 +266,18 @@ class REDItools(object):
             self._rtqc.add(function)
         else:
             self._rtqc.discard(function)
+
+    def exclude(self, regions):
+        """
+        Explicitly skip specified genomic regions.
+
+        Parameters:
+            regions (list): Regions to skip
+        """
+        for region in regions:
+            contig = region.contig
+            old_pos = self._exclude_positions.get(contig, set())
+            self._exclude_positions[contig] = old_pos | region.enumerate()
 
     def analyze(self, bam_files, region=None):  # noqa:WPS231,WPS213
         """

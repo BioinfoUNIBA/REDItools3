@@ -34,13 +34,19 @@ def read_bed_file(path):
     Parameters:
         path (str): Path to a BED file for reading.
 
-    Returns:
-        Iterator of BED file contents.
+    Yields:
+        BED file contents as Regions.
     """
     stream = open_stream(path)
-    return csv.reader(
+    reader = csv.reader(
         filter(lambda row: row[0] != '#', stream),
         delimiter='\t',
+    )
+    yield from (Region(
+        contig=row[0],
+        start=row[1],
+        stop=row[2],
+        ) for row in reader
     )
 
 
@@ -62,7 +68,7 @@ def concat(output, *fnames, clean_up=True, encoding='utf-8'):
             os.remove(fname)
 
 
-def load_poly_positions(fname):
+def load_poly_regions(fname):
     """
     Read omopolymeric positions from a file.
 
@@ -72,15 +78,15 @@ def load_poly_positions(fname):
     Returns:
         (dict): Contigs and regions
     """
-    poly_positions = defaultdict(set)
+    poly_regions = defaultdict(set)
     with read_bed_file(fname) as reader:
         for row in reader:
-            poly_positions[row[0]] = Region(
+            poly_regions[row[0]] = Region(
                 contig=row[0],
                 start=row[1],
                 stop=row[2],
             )
-    return poly_positions
+    return poly_regions
 
 
 def load_splicing_file(splicing_file, span):

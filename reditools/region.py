@@ -85,7 +85,7 @@ class Region(object):
         Returns:
             Set enumerating the individual positions.
         """
-        return set(range(self.start, self.end))
+        return set(range(self.start, self.stop))
 
     def _parse_string(self, region_str):
         if region_str is None:
