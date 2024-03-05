@@ -43,6 +43,27 @@ class RTAlignmentFile(PysamAlignmentFile):
             self._min_length = min_length
             self._checklist.append(self._check_length)
 
+    @property
+    def exclude_reads(self):
+        """
+        Names of reads not to be fetched.
+
+        Returns:
+            iterable
+        """
+        return self._exclude_reads
+
+    @exclude_reads.setter
+    def exclude_reads(self, read_names):
+        """
+        Provide a list of read names to be skipped during fetch.
+
+        Parameters:
+            read_names (iterable): Reads to skip
+        """
+        self._exclude_reads = set(read_names)
+        self._checklist.append(self._check_read_name)
+
     def fetch(self, *args, **kwargs):
         """
         Fetch reads aligned in a region.
@@ -107,6 +128,9 @@ class RTAlignmentFile(PysamAlignmentFile):
 
     def _check_length(self, read):
         return read.query_length >= self._min_length
+
+    def _check_read_name(self, read):
+        return read.query_name not in self._exclude_reads
 
     def _check_read(self, read):
         if read.has_tag('SA'):

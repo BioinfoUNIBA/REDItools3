@@ -8,8 +8,8 @@ from multiprocessing import Process, Queue
 from queue import Empty as EmptyQueueException
 from tempfile import NamedTemporaryFile
 
-from reditools import reditools, utils
-from reditools.file_utils import concat, open_stream
+from reditools import file_utils, reditools, utils
+from reditools.alignment_manager import AlignmentManager
 from reditools.logger import Logger
 from reditools.region import Region
 
@@ -35,7 +35,30 @@ fieldnames = [
 ]
 
 
-def setup(options):  # noqa:WPS213
+def setup_alignment_manager(options):
+    """
+    Create an AlignmentManager for REDItools.
+
+    Parameters:
+        options (namespace): Commandline arguments
+
+    Returns:
+        AlignmentManager
+    """
+    sam_manager = AlignmentManager(
+        ignore_truncation=True,
+    )
+    sam_manager.min_quality = options.min_read_quality
+    sam_manager.min_length = options.min_read_length
+    for sam in options.file:
+        sam_manager.add_file(
+            sam,
+            options.exclude_reads,
+        )
+    return sam_manager
+
+
+def setup_rtools(options):  # noqa:WPS213
     """
     Create a REDItools object.
 
@@ -74,12 +97,8 @@ def setup(options):  # noqa:WPS213
         rtools.load_target_positions(options.bed_file)
     if options.exclude_regions:
         rtools.load_exclude_positions(options.exclude_regions)
-
     if options.reference:
         rtools.add_reference(options.reference)
-
-    rtools.min_quality = options.min_read_quality
-    rtools.min_length = options.min_read_length
 
     rtools.min_base_position = options.min_base_position
     rtools.max_base_position = options.max_base_position
@@ -125,12 +144,13 @@ def region_args(bam_fname, region, window):
     return args
 
 
-def write_results(rtools, file_name, region, output_format):
+def write_results(rtools, sam_manager, file_name, region, output_format):
     """
     Write the results from a REDItools analysis to a temporary file.
 
     Parameters:
         rtools (REDItools): REDItools instance
+        sam_manager (AlignmentManager): Source of reads
         file_name (string): Input file name for analysis
         region: Region to analyze
         output_format (dict): keyword arguments for csv.writer constructor.
@@ -140,7 +160,7 @@ def write_results(rtools, file_name, region, output_format):
     """
     with NamedTemporaryFile(mode='w', delete=False) as stream:
         writer = csv.writer(stream, **output_format)
-        for rt_result in rtools.analyze(file_name, region):
+        for rt_result in rtools.analyze(sam_manager, region):
             variants = rt_result.variants
             writer.writerow([
                 rt_result.contig,
@@ -170,14 +190,16 @@ def run(options, in_queue, out_queue):
         bool: True if the in_queue is empty
     """
     try:
-        rtools = setup(options)
+        rtools = setup_rtools(options)
         while True:
             args = in_queue.get()
             if args is None:
                 return True
+            sam_manager = setup_alignment_manager(options)
             idx, region = args
             file_name = write_results(
                 rtools,
+                sam_manager,
                 options.file,
                 region,
                 options.output_format,
@@ -338,13 +360,6 @@ def parse_options():  # noqa:WPS213
         '"max-editing-nucleotides" will not be included in the analysis.',
     )
     parser.add_argument(
-        '-d',
-        '--debug',
-        default=False,
-        help='REDItools is run in DEBUG mode.',
-        action='store_true',
-    )
-    parser.add_argument(
         '-T',
         '--strand-confidence-threshold',
         type=float,
@@ -399,6 +414,18 @@ def parse_options():  # noqa:WPS213
         '--exclude_regions',
         help='Path of BED file containing regions to exclude from analysis',
     )
+    parser.add_argument(
+        '-e',
+        '--exclude_reads',
+        help='Path to a text file listing read names to exclude from analysis',
+    )
+    parser.add_argument(
+        '-d',
+        '--debug',
+        default=False,
+        help='REDItools is run in DEBUG mode.',
+        action='store_true',
+    )
 
     return parser.parse_args()
 
@@ -426,6 +453,10 @@ def main():
     options = parse_options()
     options.output_format = {'delimiter': '\t', 'lineterminator': '\n'}
     options.encoding = 'utf-8'
+    if options.exclude_reads:
+        options.exclude_reads = file_utils.load_text_file(
+            options.exclude_reads,
+        )
 
     # Put analysis chunks into queue
     regions = region_args(
@@ -491,7 +522,7 @@ def concat_output(options, tfs):
     # Setup final output file
     if options.output_file:
         mode = 'a' if options.append_file else 'w'
-        stream = open_stream(
+        stream = file_utils.open_stream(
             options.output_file,
             mode,
             encoding=options.encoding,
@@ -503,7 +534,7 @@ def concat_output(options, tfs):
         writer = csv.writer(stream, **options.output_format)
         if not options.append_file:
             writer.writerow(fieldnames)
-        concat(stream, *tfs, encoding=options.encoding)
+        file_utils.concat(stream, *tfs, encoding=options.encoding)
 
 
 if __name__ == '__main__':

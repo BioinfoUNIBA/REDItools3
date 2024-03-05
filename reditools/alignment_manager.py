@@ -91,13 +91,15 @@ class AlignmentManager(object):
         self._bams = []
         self.min_quality = 0
         self.min_length = 0
+        self.file_list = []
 
-    def add_file(self, fname):
+    def add_file(self, fname, exclude_reads=None):
         """
         Add an alignment file to the manager for analysis.
 
         Parameters:
-            fname (str): Path to BAM file.
+            fname (str): Path to BAM file
+            exclude_reads (set): Read names not to skip
         """
         new_file = RTAlignmentFile(
             fname,
@@ -107,7 +109,10 @@ class AlignmentManager(object):
             **self._bam_kwargs,
         )
         new_file.check_index()
+        if exclude_reads:
+            new_file.exclude_reads = exclude_reads
         self._bams.append(new_file)
+        self.file_list.append(fname)
 
     def fetch_by_position(self, *args, **kwargs):
         """

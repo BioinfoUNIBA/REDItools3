@@ -110,3 +110,17 @@ def load_splicing_file(splicing_file, span):
             new_positions = [1 + span + coe * fctr for fctr in range(span)]
             splice_positions[chrom] |= new_positions
         return splice_positions
+
+
+def load_text_file(file_name):
+    """
+    Extract file contents to a list.
+
+    Parameters:
+        file_name (str): The file to open.
+
+    Returns:
+        List of content
+    """
+    with open_stream(file_name, 'r') as stream:
+        return [line.strip() for line in stream]
