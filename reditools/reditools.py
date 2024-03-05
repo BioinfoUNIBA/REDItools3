@@ -7,7 +7,6 @@ Authors:
 """
 
 from reditools import utils
-from reditools.alignment_manager import AlignmentManager
 from reditools.compiled_reads import CompiledReads
 from reditools.fasta_file import RTFastaFile
 from reditools.logger import Logger
@@ -279,12 +278,12 @@ class REDItools(object):
             old_pos = self._exclude_positions.get(contig, set())
             self._exclude_positions[contig] = old_pos | region.enumerate()
 
-    def analyze(self, bam_files, region=None):  # noqa:WPS231,WPS213
+    def analyze(self, alignment_manager, region=None):  # noqa:WPS231,WPS213
         """
         Detect RNA editing events.
 
         Parameters:
-            bam_files (list): Names of BAM files to read from
+            alignment_manager (AlignmentManager): Source of reads
             region (Region): Where to look for edits
 
         Yields:
@@ -293,22 +292,14 @@ class REDItools(object):
         if region is None:
             region = {}
 
-        sam_manager = AlignmentManager(
-            ignore_truncation=True,
-        )
-        sam_manager.min_quality = self._min_read_quality
-        sam_manager.min_length = self.min_read_length
-        for bam in bam_files:
-            sam_manager.add_file(bam)
-
         # Open the iterator
         self.log(
             Logger.info_level,
             'Fetching data from bams {} [REGION={}]',
-            bam_files,
+            alignment_manager.file_list,
             region,
         )
-        read_iter = sam_manager.fetch_by_position(region=region)
+        read_iter = alignment_manager.fetch_by_position(region=region)
         reads = next(read_iter, None)
 
         nucleotides = CompiledReads(
@@ -327,8 +318,8 @@ class REDItools(object):
                     Logger.debug_level,
                     'Nucleotides is empty: skipping ahead',
                 )
-                position = sam_manager.position
-                contig = sam_manager.contig
+                position = alignment_manager.position
+                contig = alignment_manager.contig
             else:
                 position += 1
 
