@@ -122,15 +122,32 @@ class REDItools(object):
 
         self._rtqc = RTChecks()
 
-        self.min_read_length = 30
         self._min_read_quality = 0
 
         self._target_positions = False
         self._exclude_positions = {}
         self._splice_positions = []
         self._poly_positions = []
+        self._specific_edits = None
 
         self.reference = None
+
+        self._include_refs = None
+
+    @property
+    def specific_edits(self):
+        """
+        Specific edit events to report.
+
+        Returns:
+            iterable
+        """
+        return self._specific_edits
+
+    @specific_edits.setter
+    def specific_edits(self, alts):
+        self._specific_edits = set(alts)
+        self._include_refs = [_[0] for _ in alts]
 
     @property
     def poly_positions(self):
@@ -341,6 +358,16 @@ class REDItools(object):
 
             # Process edits
             bases = nucleotides.pop(position)
+            if bases is None:
+                self.log(Logger.debug_level, 'No reads - skipping')
+                continue
+            if self._include_refs and bases.ref not in self._include_refs:
+                self.log(
+                    Logger.debug_level,
+                    'Reference base "{}" not listed for reporting - skipping.',
+                    bases.ref,
+                )
+                continue
             if position in self._exclude_positions.get(contig, []):
                 self.log(Logger.debug_level, 'Listed exclusion - skipping')
                 continue
@@ -351,13 +378,17 @@ class REDItools(object):
                         'Not listed for inclusion - skipping',
                     )
                     continue
-            if bases is None:
-                self.log(Logger.debug_level, 'No reads - skipping')
-                continue
             column = self._get_column(position, bases, region)
             if column is None:
                 self.log(Logger.debug_level, 'Bad column - skipping')
                 continue
+            if self._specific_edits:
+                if not self._specific_edits & set(column.variants):
+                    self.log(
+                        Logger.debug_level,
+                        'Requested edits not found - skipping',
+                    )
+                    continue
             self.log(
                 Logger.debug_level,
                 'Yielding output for {} reads',
