@@ -448,7 +448,6 @@ def parse_options():  # noqa:WPS213
         '(option provided for backwards compatability with REDI1)',
     )
 
-
     return parser.parse_args()
 
 
