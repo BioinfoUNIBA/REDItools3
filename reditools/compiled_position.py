@@ -7,18 +7,22 @@ class CompiledPosition(object):
     _bases = 'ACGT'
     _comp = {'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C'}
 
-    def __init__(self, ref):
+    def __init__(self, ref, contig, position):
         """
         Create a new compiled position.
 
         Parameters:
             ref (string): The reference base for this position
+            contig (string): Chromosome name
+            position (int): Genomic coordinate
         """
         self.qualities = []
         self.strands = []
         self.bases = []
         self.counter = False
         self.ref = ref
+        self.contig = contig
+        self.position = position
 
     def __len__(self):
         """
