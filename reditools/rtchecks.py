@@ -109,7 +109,7 @@ class RTChecks(object):
         else:
             mean_q = 0
         if mean_q < rtools.min_read_quality:
-            self._log(
+            rtools.log(
                 Logger.debug_level,
                 'DISCARD COLUMN mean_quality={} < {}',
                 mean_q,
@@ -186,10 +186,11 @@ class RTChecks(object):
         if bases is None:
             rtools.log(Logger.debug_level, 'DISCARD COLUMN no reads')
             return False
+        return True
 
     def check_target_positions(self, bases, rtools):
         if bases.position not in rtools.target_positions.get(bases.contig, []):
-            self.log(
+            rtools.log(
                 Logger.debug_level,
                 'DISCARD COLUMN not in target positions',
             )

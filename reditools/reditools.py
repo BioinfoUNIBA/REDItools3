@@ -409,10 +409,9 @@ class REDItools(object):
         if strand == '-':
             bases.complement()
 
-        past_start = position + 1 >= (region.start or 0)
-        if past_start and bases is not None:
-            if not self._rtqc.check(self, bases, region.contig, position):
-                return None
+        past_stop = position + 1 >= (region.stop or 0)
+        if past_stop or bases is None:
+            return None
 
         return RTResult(bases, strand, region.contig, position)
 
