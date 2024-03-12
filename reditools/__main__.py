@@ -104,12 +104,16 @@ def setup_rtools(options):  # noqa:WPS213
     if options.reference:
         rtools.add_reference(options.reference)
 
+    rtools.min_edits = max(
+        options.min_edits,
+        options.exclude_invariant,
+    )
+
     rtools.min_base_position = options.min_base_position
     rtools.max_base_position = options.max_base_position
     rtools.min_base_quality = options.min_base_quality
 
     rtools.min_column_length = options.min_column_length
-    rtools.min_edits = options.min_edits
     rtools.min_edits_per_nucleotide = options.min_edits_per_nucleotide
     rtools.strand = options.strand
 
@@ -239,7 +243,9 @@ def parse_options():  # noqa:WPS213
     parser.add_argument(
         '-o',
         '--output-file',
-        help='The output statistics file',
+        help='The output statistics file. ' +
+        'Results are otherwise sent to STDOUT. ' +
+        'If the output file name ends in .gz, the results will be gzipped.',
     )
     parser.add_argument(
         '-s',
@@ -446,6 +452,13 @@ def parse_options():  # noqa:WPS213
         nargs='+',
         help='Input BAM files ' +
         '(option provided for backwards compatability with REDI1)',
+    )
+    parser.add_argument(
+        '-R',
+        '--exclude-invariant',
+        default=False,
+        action='store_true',
+        help='Only report positions with edits (equivalent to -me 1)',
     )
 
     return parser.parse_args()
