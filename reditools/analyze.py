@@ -58,7 +58,7 @@ def setup_alignment_manager(options):
     return sam_manager
 
 
-def setup_rtools(options):  # noqa:WPS213
+def setup_rtools(options):  # noqa:WPS213,WPS231
     """
     Create a REDItools object.
 
@@ -99,8 +99,9 @@ def setup_rtools(options):  # noqa:WPS213
     if options.bed_file:
         rtools.load_target_positions(options.bed_file)
     if options.exclude_regions:
-        regions = file_utils.read_bed_file(options.exclude_regions)
-        rtools.exclude(regions)
+        for fname in options.exclude_regions:
+            regions = file_utils.read_bed_file(fname)
+            rtools.exclude(regions)
     if options.reference:
         rtools.add_reference(options.reference)
 
