@@ -6,7 +6,7 @@
 # RST210 Inline strong start-string without end-string.
 # P103   other string does contain unindexed parameters
 # WPS226 Found string literal over-use: {0}
-extend-ignore = WPS305,WPS360,RST213,RST210,P103,WPS226
+extend-ignore = WPS305,WPS360,RST213,RST210,P103,WPS226,WPS336
 max-try-body-length = 3
 max-module-members = 12
 max-local-variables = 12
