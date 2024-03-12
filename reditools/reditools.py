@@ -135,7 +135,12 @@ class REDItools(object):
 
     @property
     def includ_refs(self):
-        """Genome reference bases to report on."""
+        """
+        Genome reference bases to report on.
+
+        Returns:
+            list
+        """
         return self._include_refs
 
     @property
@@ -280,6 +285,12 @@ class REDItools(object):
 
     @property
     def exclude_positions(self):
+        """
+        Genomic positions NOT to include in output.
+
+        Returns:
+            Dictionary of contigs to positions
+        """
         return self._exclude_positions
 
     def exclude(self, regions):
@@ -299,7 +310,6 @@ class REDItools(object):
         else:
             self._rtqc.discard(function)
 
-
     def analyze(self, alignment_manager, region=None):  # noqa:WPS231,WPS213
         """
         Detect RNA editing events.
@@ -313,7 +323,6 @@ class REDItools(object):
         """
         if region is None:
             region = {}
-
         # Open the iterator
         self.log(
             Logger.info_level,
@@ -323,7 +332,6 @@ class REDItools(object):
         )
         read_iter = alignment_manager.fetch_by_position(region=region)
         reads = next(read_iter, None)
-
         nucleotides = CompiledReads(
             self.strand,
             self.min_base_position,
@@ -333,7 +341,6 @@ class REDItools(object):
         if self.reference:
             nucleotides.add_reference(self.reference)
         total = 0
-
         while reads is not None or not nucleotides.is_empty():
             if nucleotides.is_empty():
                 self.log(
@@ -353,14 +360,12 @@ class REDItools(object):
                 contig,
                 position,
             )
-
             # Get all the read(s) starting at position
             if reads and reads[0].reference_start == position:
                 self.log(Logger.debug_level, 'Adding {} reads', len(reads))
                 total += len(reads)
                 nucleotides.add_reads(reads)
                 reads = next(read_iter, None)
-
             # Process edits
             bases = nucleotides.pop(position)
             if not self._rtqc.check(self, bases):
@@ -375,7 +380,6 @@ class REDItools(object):
                 len(bases),
             )
             yield column
-
         self.log(
             Logger.info_level,
             '[REGION={}] {} total reads',

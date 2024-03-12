@@ -81,7 +81,7 @@ class RTChecks(object):
             (bool): True if the read depth is sufficient
         """
         if len(bases) < rtools.min_column_length:
-            self._log(
+            rtools.log(
                 Logger.debug_level,
                 'DISCARDING COLUMN {} [MIN_COLUMN_LEGNTH={}]',
                 len(bases),
@@ -98,8 +98,6 @@ class RTChecks(object):
         Parameters:
             rtools (REDItools): Object performing analysis
             bases (CompiledPosition): Base position under analysis
-            contig (str): Current contig
-            position (int): Current position
 
         Returns:
             (bool): True if quality is sufficient
@@ -162,12 +160,13 @@ class RTChecks(object):
                 return False
         return True
 
-    def check_multiple_alts(self, bases):
+    def check_multiple_alts(self, bases, rtools):
         """
         Check that there is, at most, one alternate base.
 
         Parameters:
             bases (CompiledPosition): Base position under analysis
+            rtools (REDItools): Object running the analysis
 
         Returns:
             (bool): True if there is zero or one alt
@@ -183,12 +182,32 @@ class RTChecks(object):
         return True
 
     def check_is_none(self, bases, rtools):
+        """
+        Check if the bases object is None.
+
+        Parameters:
+            bases (CompiledPosition): Data for analysis
+            rtools (REDItools): Object running the analysis
+
+        Returns:
+            (bool): True if bases is not None
+        """
         if bases is None:
             rtools.log(Logger.debug_level, 'DISCARD COLUMN no reads')
             return False
         return True
 
     def check_target_positions(self, bases, rtools):
+        """
+        Check if the bases object is in a target region.
+
+        Parameters:
+            bases (CompiledPosition): Data for analysis
+            rtools (REDItools): Object running the analysis
+
+        Returns:
+            (bool): True if the position is in a target region
+        """
         if bases.position not in rtools.target_positions.get(bases.contig, []):
             rtools.log(
                 Logger.debug_level,
@@ -198,6 +217,16 @@ class RTChecks(object):
         return True
 
     def check_ref(self, bases, rtools):
+        """
+        Check if the reference base is of interest.
+
+        Parameters:
+            bases (CompiledPosition): Data for analysis
+            rtools (REDItools): Object running the analysis
+
+        Returns:
+            (bool): True if reference base was specified
+        """
         if bases.ref not in rtools.include_refs:
             rtools.log(
                 Logger.debug_level,
@@ -208,14 +237,34 @@ class RTChecks(object):
         return True
 
     def check_exclusions(self, bases, rtools):
+        """
+        Check if the bases object is in an excluded position.
+
+        Parameters:
+            bases (CompiledPosition): Data for analysis
+            rtools (REDItools): Object running the analysis
+
+        Returns:
+            (bool): True if the position is not excluded
+        """
         if bases.position in rtools.exclude_positions.get(bases.contig, []):
             rtools.log(Logger.debug_level, 'DISCARD COLUMN in excluded region')
             return False
         return True
 
     def check_specific_edits(self, bases, rtools):
+        """
+        Check whether specified edits are present.
+
+        Parameters:
+            bases (CompiledPosition): Data for analysis
+            rtools (REDItools): Object running the analysis
+
+        Returns:
+            (bool): True if the edit was specified
+        """
         for ref, alt in rtools.specific_edits:
-            if bases[ref] <= 0 >= bases[alt]:
+            if not bases[ref] or not bases[alt]:
                 rtools.log(
                     Logger.debug_level,
                     'DISCARD COLUMN edit "{}" not specified for output',
@@ -223,4 +272,3 @@ class RTChecks(object):
                 )
                 return False
         return True
-
