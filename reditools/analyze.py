@@ -425,6 +425,7 @@ def parse_options():  # noqa:WPS213
     parser.add_argument(
         '-k',
         '--exclude_regions',
+        nargs='+',
         help='Path of BED file containing regions to exclude from analysis',
     )
     parser.add_argument(
