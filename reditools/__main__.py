@@ -224,14 +224,15 @@ def parse_options():  # noqa:WPS213
     Returns:
         namespace: commandline args
     """
-    parser = argparse.ArgumentParser(description='REDItools 2.0')
+    parser = argparse.ArgumentParser(description='REDItools 3.0')
     parser.add_argument(
         'file',
-        nargs='+',
+        nargs='*',
+        default=[],
         help='The bam file to be analyzed',
     )
     parser.add_argument(
-        '-r',
+        '-f',
         '--reference',
         help='The reference FASTA file',
     )
@@ -262,12 +263,12 @@ def parse_options():  # noqa:WPS213
         help='The self.region of the bam file to be analyzed',
     )
     parser.add_argument(
-        '-m',
+        '-M',
         '--load-omopolymeric-file',
         help='The file containing the omopolymeric positions',
     )
     parser.add_argument(
-        '-c',
+        '-Co',
         '--create-omopolymeric-file',
         default=False,
         help='Path to write omopolymeric positions to',
@@ -300,14 +301,14 @@ def parse_options():  # noqa:WPS213
         help='Reads whose length is below this value will be discarded.',
     )
     parser.add_argument(
-        '-q',
+        '-m',
         '--min-read-quality',
         type=int,
         default=20,  # noqa:WPS432
         help='Reads with mapping quality below this value will be discarded.',
     )
     parser.add_argument(
-        '-bq',
+        '-O',
         '--min-base-quality',
         type=int,
         default=30,  # noqa:WPS432
@@ -315,7 +316,7 @@ def parse_options():  # noqa:WPS213
         'the analysis.',
     )
     parser.add_argument(
-        '-mbp',
+        '-U',
         '--min-base-position',
         type=int,
         default=0,
@@ -323,7 +324,7 @@ def parse_options():  # noqa:WPS213
         'will not be included in the analysis.',
     )
     parser.add_argument(
-        '-Mbp',
+        '-T',
         '--max-base-position',
         type=int,
         default=0,
@@ -331,7 +332,7 @@ def parse_options():  # noqa:WPS213
         'will not be included in the analysis.',
     )
     parser.add_argument(
-        '-l',
+        '-c',
         '--min-column-length',
         type=int,
         default=1,
@@ -354,7 +355,7 @@ def parse_options():  # noqa:WPS213
         'min-edits-per-base edits will not be included in the analysis.',
     )
     parser.add_argument(
-        '-me',
+        '-v',
         '--min-edits',
         type=int,
         default=0,  # noqa:WPS432
@@ -373,7 +374,7 @@ def parse_options():  # noqa:WPS213
         '"max-editing-nucleotides" will not be included in the analysis.',
     )
     parser.add_argument(
-        '-T',
+        '-x',
         '--strand-confidence-threshold',
         type=float,
         default=0.7,  # noqa:WPS432
@@ -381,7 +382,7 @@ def parse_options():  # noqa:WPS213
         'reads are of a given strand',
     )
     parser.add_argument(
-        '-C',
+        '-S',
         '--strand-correction',
         default=False,
         help='Strand correction. Once the strand has been inferred, ' +
@@ -415,7 +416,7 @@ def parse_options():  # noqa:WPS213
         default=1,
     )
     parser.add_argument(
-        '-w',
+        '-C',
         '--window',
         help='How many bp should be processed by each thread at a time. ' +
         'Defaults to full contig.',
@@ -423,7 +424,7 @@ def parse_options():  # noqa:WPS213
         default=0,
     )
     parser.add_argument(
-        '-k',
+        '-K',
         '--exclude_regions',
         help='Path of BED file containing regions to exclude from analysis',
     )
@@ -439,6 +440,14 @@ def parse_options():  # noqa:WPS213
         help='REDItools is run in DEBUG mode.',
         action='store_true',
     )
+    parser.add_argument(
+        '-i',
+        '--input',
+        nargs='+',
+        help='Input BAM files ' +
+        '(option provided for backwards compatability with REDI1)',
+    )
+
 
     return parser.parse_args()
 
@@ -466,6 +475,8 @@ def main():
     options = parse_options()
     options.output_format = {'delimiter': '\t', 'lineterminator': '\n'}
     options.encoding = 'utf-8'
+    if options.input:
+        options.file.extend(options.input)
     if options.exclude_reads:
         options.exclude_reads = file_utils.load_text_file(
             options.exclude_reads,
