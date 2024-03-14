@@ -22,7 +22,7 @@ def usage():
     )
     parser.parse_args()
 
-
+    
 if __name__ == '__main__':
     if len(sys.argv) > 1:
         command = sys.argv[1]

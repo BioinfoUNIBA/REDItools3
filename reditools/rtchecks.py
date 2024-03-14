@@ -9,7 +9,7 @@ class RTChecks(object):
 
     def __init__(self):
         """Create a RTChecks object."""
-        self.check_list = set()
+        self.check_list = [self.check_is_none]
 
     def add(self, function):
         """
@@ -18,7 +18,7 @@ class RTChecks(object):
         Parameters:
             function (RTChecks method): The check to perform
         """
-        self.check_list.add(function)
+        self.check_list.append(function)
 
     def discard(self, function):
         """
@@ -27,17 +27,16 @@ class RTChecks(object):
         Parameters:
             function (RTChecks method): The check to discard
         """
-        self.check_list.discard(function)
+        if function in self.check_list:
+            self.check_list.remove(function)
 
-    def check(self, rtools, bases, contig, position):
+    def check(self, rtools, bases):
         """
         Perform QC.
 
         Parameters:
             rtools (REDItools): Object performing analysis
             bases (CompiledPosition): Base position under analysis
-            contig (str): Current contig
-            position (int): Current position
 
         Returns:
             (bool): True of all checks pass, else false
@@ -48,68 +47,41 @@ class RTChecks(object):
             rtools=rtools,
         )
 
-    def check_splice_positions(self, rtools, bases, contig, position):
+    def check_splice_positions(self, rtools, bases):
         """
         Check if the contig and position are in a splice site.
 
         Parameters:
             rtools (REDItools): Object performing analysis
             bases (CompiledPosition): Base position under analysis
-            contig (str): Current contig
-            position (int): Current position
 
         Returns:
             (bool): True if the position is not a splice site.
         """
-        if position in rtools.splice_positions.get('contig', []):
+        contig = bases.contig
+        if bases.position in rtools.splice_positions.get(contig, []):
             rtools.log(
                 Logger.debug_level,
                 '[SPLICE_SITE] Discarding ({}, {}) because in splice site',
                 contig,
-                position,
+                bases.position,
             )
             return False
         return True
 
-    def check_poly_positions(self, rtools, bases, contig, position):
-        """
-        Check if the position is omoplymeric.
-
-        Parameters:
-            rtools (REDItools): Object performing analysis
-            bases (CompiledPosition): Base position under analysis
-            contig (str): Current contig
-            position (int): Current position
-
-        Returns:
-            (bool): True if the position is not omopolymeric
-        """
-        if position in rtools.omopolymeric_positions.get(contig, []):
-            rtools.log(
-                Logger.debug_level,
-                '[OMOPOLYMERIC] Discarding position ({}, {})' +
-                'because omopolymeric',
-                contig,
-                position,
-            )
-            return False
-        return True
-
-    def check_column_min_length(self, rtools, bases, contig, position):
+    def check_column_min_length(self, rtools, bases):
         """
         Check read depth.
 
         Parameters:
             rtools (REDItools): Object performing analysis
             bases (CompiledPosition): Base position under analysis
-            contig (str): Current contig
-            position (int): Current position
 
         Returns:
             (bool): True if the read depth is sufficient
         """
         if len(bases) < rtools.min_column_length:
-            self._log(
+            rtools.log(
                 Logger.debug_level,
                 'DISCARDING COLUMN {} [MIN_COLUMN_LEGNTH={}]',
                 len(bases),
@@ -119,15 +91,13 @@ class RTChecks(object):
         return True
 
     # Really shouldn't use this one. I have to compute mean_q anyway
-    def check_column_quality(self, rtools, bases, contig, position):
+    def check_column_quality(self, rtools, bases):
         """
         Check mean quality of the position.
 
         Parameters:
             rtools (REDItools): Object performing analysis
             bases (CompiledPosition): Base position under analysis
-            contig (str): Current contig
-            position (int): Current position
 
         Returns:
             (bool): True if quality is sufficient
@@ -137,7 +107,7 @@ class RTChecks(object):
         else:
             mean_q = 0
         if mean_q < rtools.min_read_quality:
-            self._log(
+            rtools.log(
                 Logger.debug_level,
                 'DISCARD COLUMN mean_quality={} < {}',
                 mean_q,
@@ -168,15 +138,13 @@ class RTChecks(object):
             return False
         return True
 
-    def check_column_min_edits(self, rtools, bases, contig, position):
+    def check_column_min_edits(self, rtools, bases):
         """
         Check that there are sufficient edit events for each base.
 
         Parameters:
             rtools (REDItools): Object performing analysis
             bases (CompiledPosition): Base position under analysis
-            contig (str): Current contig
-            position (int): Current position
 
         Returns:
             (bool): True if there are sufficient edits
@@ -192,14 +160,115 @@ class RTChecks(object):
                 return False
         return True
 
-    def check_multiple_alts(self, bases):
+    def check_multiple_alts(self, bases, rtools):
         """
         Check that there is, at most, one alternate base.
 
         Parameters:
             bases (CompiledPosition): Base position under analysis
+            rtools (REDItools): Object running the analysis
 
         Returns:
             (bool): True if there is zero or one alt
         """
-        return len(bases.get_variants()) < 2
+        alts = bases.get_variants()
+        if len(alts) < 2:
+            rtools.log(
+                Logger.debug_level,
+                'DISCARD COLUMN alts={} > 1',
+                len(alts),
+            )
+            return False
+        return True
+
+    def check_is_none(self, bases, rtools):
+        """
+        Check if the bases object is None.
+
+        Parameters:
+            bases (CompiledPosition): Data for analysis
+            rtools (REDItools): Object running the analysis
+
+        Returns:
+            (bool): True if bases is not None
+        """
+        if bases is None:
+            rtools.log(Logger.debug_level, 'DISCARD COLUMN no reads')
+            return False
+        return True
+
+    def check_target_positions(self, bases, rtools):
+        """
+        Check if the bases object is in a target region.
+
+        Parameters:
+            bases (CompiledPosition): Data for analysis
+            rtools (REDItools): Object running the analysis
+
+        Returns:
+            (bool): True if the position is in a target region
+        """
+        if bases.position not in rtools.target_positions.get(bases.contig, []):
+            rtools.log(
+                Logger.debug_level,
+                'DISCARD COLUMN not in target positions',
+            )
+            return False
+        return True
+
+    def check_ref(self, bases, rtools):
+        """
+        Check if the reference base is of interest.
+
+        Parameters:
+            bases (CompiledPosition): Data for analysis
+            rtools (REDItools): Object running the analysis
+
+        Returns:
+            (bool): True if reference base was specified
+        """
+        if bases.ref not in rtools.include_refs:
+            rtools.log(
+                Logger.debug_level,
+                'DISCARD COLUMN base "{}" not listed for reporting',
+                bases.ref,
+            )
+            return False
+        return True
+
+    def check_exclusions(self, bases, rtools):
+        """
+        Check if the bases object is in an excluded position.
+
+        Parameters:
+            bases (CompiledPosition): Data for analysis
+            rtools (REDItools): Object running the analysis
+
+        Returns:
+            (bool): True if the position is not excluded
+        """
+        if bases.position in rtools.exclude_positions.get(bases.contig, []):
+            rtools.log(Logger.debug_level, 'DISCARD COLUMN in excluded region')
+            return False
+        return True
+
+    def check_specific_edits(self, bases, rtools):
+        """
+        Check whether specified edits are present.
+
+        Parameters:
+            bases (CompiledPosition): Data for analysis
+            rtools (REDItools): Object running the analysis
+
+        Returns:
+            (bool): True if the edit was specified
+        """
+        for ref, alt in rtools.specific_edits:
+            if not bases[ref] or not bases[alt]:
+                rtools.log(
+                    Logger.debug_level,
+                    'DISCARD COLUMN edit "{}" not specified for output',
+                    ref + alt,
+                )
+                return False
+        return True

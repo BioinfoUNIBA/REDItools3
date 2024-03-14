@@ -68,7 +68,11 @@ class CompiledReads(object):
                 try:
                     self._nucleotides[pos].add_base(quality, strand, base)
                 except KeyError:
-                    self._nucleotides[pos] = CompiledPosition(ref=ref)
+                    self._nucleotides[pos] = CompiledPosition(
+                        ref=ref,
+                        position=pos,
+                        contig=read.reference_name,
+                    )
                     self._nucleotides[pos].add_base(quality, strand, base)
 
     def pop(self, position):

@@ -127,12 +127,21 @@ class REDItools(object):
         self._target_positions = False
         self._exclude_positions = {}
         self._splice_positions = []
-        self._poly_positions = []
         self._specific_edits = None
 
         self.reference = None
 
         self._include_refs = None
+
+    @property
+    def includ_refs(self):
+        """
+        Genome reference bases to report on.
+
+        Returns:
+            list
+        """
+        return self._include_refs
 
     @property
     def specific_edits(self):
@@ -146,28 +155,16 @@ class REDItools(object):
 
     @specific_edits.setter
     def specific_edits(self, alts):
+        function_a = self._rtqc.check_specific_edits
+        function_b = self._rtqc.check_ref
         self._specific_edits = set(alts)
         self._include_refs = [_[0] for _ in alts]
-
-    @property
-    def poly_positions(self):
-        """
-        Omopolymeric positions to consider.
-
-        Returns:
-            list
-        """
-        return self._poly_positions
-
-    @poly_positions.setter
-    def poly_positions(self, regions):
-        function = self._rtqc.check_poly_positions
-        if regions:
-            self._poly_positions = utils.enumerate_positions(regions)
-            self._rtqc.add(function)
+        if self._include_refs:
+            self._rtqc.add(function_a)
+            self._rtqc.add(function_b)
         else:
-            self._poly_positions = []
-            self._rtqc.discard(function)
+            self._rtqc.discard(function_a)
+            self._rtqc.discard(function_b)
 
     @property
     def splice_positions(self):
@@ -201,10 +198,13 @@ class REDItools(object):
 
     @target_positions.setter
     def target_positions(self, regions):
+        function = self._rtqc.check_target_positions
         if regions:
             self._target_positions = utils.enumerate_positions(regions)
+            self._rtqc.add(function)
         else:
             self._target_positions = False
+            self._rtqc.discard(function)
 
     @property
     def log_level(self):
@@ -283,6 +283,16 @@ class REDItools(object):
         else:
             self._rtqc.discard(function)
 
+    @property
+    def exclude_positions(self):
+        """
+        Genomic positions NOT to include in output.
+
+        Returns:
+            Dictionary of contigs to positions
+        """
+        return self._exclude_positions
+
     def exclude(self, regions):
         """
         Explicitly skip specified genomic regions.
@@ -294,6 +304,11 @@ class REDItools(object):
             contig = region.contig
             old_pos = self._exclude_positions.get(contig, set())
             self._exclude_positions[contig] = old_pos | region.enumerate()
+        function = self._rtqc.check_exclusion
+        if self._exclude_positions:
+            self._rtqc.add(function)
+        else:
+            self._rtqc.discard(function)
 
     def analyze(self, alignment_manager, region=None):  # noqa:WPS231,WPS213
         """
@@ -308,7 +323,6 @@ class REDItools(object):
         """
         if region is None:
             region = {}
-
         # Open the iterator
         self.log(
             Logger.info_level,
@@ -318,7 +332,6 @@ class REDItools(object):
         )
         read_iter = alignment_manager.fetch_by_position(region=region)
         reads = next(read_iter, None)
-
         nucleotides = CompiledReads(
             self.strand,
             self.min_base_position,
@@ -328,7 +341,6 @@ class REDItools(object):
         if self.reference:
             nucleotides.add_reference(self.reference)
         total = 0
-
         while reads is not None or not nucleotides.is_empty():
             if nucleotides.is_empty():
                 self.log(
@@ -348,54 +360,26 @@ class REDItools(object):
                 contig,
                 position,
             )
-
             # Get all the read(s) starting at position
             if reads and reads[0].reference_start == position:
                 self.log(Logger.debug_level, 'Adding {} reads', len(reads))
                 total += len(reads)
                 nucleotides.add_reads(reads)
                 reads = next(read_iter, None)
-
             # Process edits
             bases = nucleotides.pop(position)
-            if bases is None:
-                self.log(Logger.debug_level, 'No reads - skipping')
+            if not self._rtqc.check(self, bases):
                 continue
-            if self._include_refs and bases.ref not in self._include_refs:
-                self.log(
-                    Logger.debug_level,
-                    'Reference base "{}" not listed for reporting - skipping.',
-                    bases.ref,
-                )
-                continue
-            if position in self._exclude_positions.get(contig, []):
-                self.log(Logger.debug_level, 'Listed exclusion - skipping')
-                continue
-            if self.target_positions:
-                if position not in self.target_positions.get(contig, []):
-                    self.log(
-                        Logger.debug_level,
-                        'Not listed for inclusion - skipping',
-                    )
-                    continue
             column = self._get_column(position, bases, region)
             if column is None:
                 self.log(Logger.debug_level, 'Bad column - skipping')
                 continue
-            if self._specific_edits:
-                if not self._specific_edits & set(column.variants):
-                    self.log(
-                        Logger.debug_level,
-                        'Requested edits not found - skipping',
-                    )
-                    continue
             self.log(
                 Logger.debug_level,
                 'Yielding output for {} reads',
                 len(bases),
             )
             yield column
-
         self.log(
             Logger.info_level,
             '[REGION={}] {} total reads',
@@ -429,10 +413,9 @@ class REDItools(object):
         if strand == '-':
             bases.complement()
 
-        past_start = position + 1 >= (region.start or 0)
-        if past_start and bases is not None:
-            if not self._rtqc.check(self, bases, region.contig, position):
-                return None
+        past_stop = position + 1 >= (region.stop or 0)
+        if past_stop or bases is None:
+            return None
 
         return RTResult(bases, strand, region.contig, position)
 
