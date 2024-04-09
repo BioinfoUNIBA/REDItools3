@@ -3,7 +3,7 @@
 import argparse
 import sys
 
-from reditools import analyze, homopolymerics
+from reditools import analyze, homopolymerics, index
 
 
 def usage():
@@ -22,16 +22,16 @@ def usage():
     )
     parser.parse_args()
 
-    
+
 if __name__ == '__main__':
     if len(sys.argv) > 1:
-        command = sys.argv[1]
+        command = sys.argv.pop(1)
         if command == 'analyze':
-            sys.argv.pop(1)
             analyze.main()
         elif command == 'find-repeats':
-            sys.argv.pop(1)
             homopolymerics.main()
+        elif command == 'index':
+            index.main()
         else:
             usage()
     else:

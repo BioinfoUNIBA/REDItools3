@@ -2,27 +2,70 @@
 
 import argparse
 import csv
+from json import loads as load_json
 
 _ref = 'Reference'
 _count = 'BaseCount[A,C,G,T]'
-_bases = 'ACGT'
+_nucs = 'ACGT'
+_ref_set = {f'{nuc}-{nuc}' for nuc in _nucs}
 
-def go(rt_output_file):
+
+def count_nuc_events(fname):
+    """
+    Count the number of reads with matches and substitutions.
+
+    Parameters:
+        fname (str): File path to a REDItools output
+
+    Returns:
+        Dict with keys in the format of base-base
+    """
     counts = {}
-    with open(rt_output_file, "r") as stream:
-        reader = csv.DictReader(stream, delimiter="\t")
+    with open(fname, 'r') as stream:
+        reader = csv.DictReader(stream, delimiter='\t')
         for row in reader:
             ref = row[_ref]
-            reads = json.loads(row[_count])
-            for base, count in zip(_bases, reads):
-                key=f"{base}-{ref}"
+            reads = load_json(row[_count])
+            for nuc, count in zip(_nucs, reads):
+                key = f'{nuc}-{ref}'
                 counts[key] = counts.get(key, 0) + count
-    indices = set(counts) - set([f"{base}-{base}" for base in _bases])
+    return counts
+
+
+def merge(dict_list):
+    """
+    Combine multiple dictionaries together using the sum of their values.
+
+    Parameters:
+        dict_list (list): A list of dictionariees to merge
+
+    Returns:
+        A final cumulative dictionary
+    """
+    if len(dict_list) == 1:
+        return dict_list[0]
+    merged = merge(dict_list[1:])
+    for key, count in dict_list[0].items():
+        merged[key] = merged.get(key, 0) + count
+    return merged
+
+
+def index(rt_output_files):
+    """
+    Compute all editing indices.
+
+    Parameters:
+        rt_output_files (list): All REDItools output files to be processed
+    """
+    counts = merge([count_nuc_events(fname) for fname in rt_output_files])
+    indices = set(counts) - _ref_set
     for idx in indices:
         ref = idx[-1]
         numerator = counts[idx]
-        denominator = counts[f"{ref}-{ref}"] + numerator
-        print(f"{idx}\t{numerator / denominator}")
+        denominator = counts[f'{ref}-{ref}'] + numerator
+        scale_factor = numerator / denominator
+        print(f'{idx}\t{scale_factor}')
+
 
 def parse_options():  # noqa:WPS213
     """
@@ -55,25 +98,18 @@ def parse_options():  # noqa:WPS213
     parser.add_argument(
         '-g',
         '--region',
-        help='The self.region of the bam file to be analyzed',
+        help='The region of the bam file to be analyzed',
     )
-   parser.add_argument(
+    parser.add_argument(
         '-B',
         '--bed_file',
-        help='Path of BED file containing target self.regions',
+        help='Path of BED file containing target regions',
     )
-   parser.add_argument(
+    parser.add_argument(
         '-k',
         '--exclude_regions',
         nargs='+',
         help='Path of BED file containing regions to exclude from analysis',
-    )
-    parser.add_argument(
-        '-d',
-        '--debug',
-        default=False,
-        help='REDItools is run in DEBUG mode.',
-        action='store_true',
     )
 
     return parser.parse_args()
@@ -82,7 +118,8 @@ def parse_options():  # noqa:WPS213
 def main():
     """Perform RNA editing analysis."""
     options = parse_options()
-    go(options.file)
+    index(options.file[0])
 
-if __name__ == "__main__":
+
+if __name__ == '__main__':
     main()
