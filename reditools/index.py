@@ -2,69 +2,170 @@
 
 import argparse
 import csv
+import sys
+from itertools import permutations
 from json import loads as load_json
 
+from reditools.file_utils import open_stream, read_bed_file
+from reditools.region import Region
+
 _ref = 'Reference'
+_position = 'Position'
+_contig = 'Region'
 _count = 'BaseCount[A,C,G,T]'
 _nucs = 'ACGT'
 _ref_set = {f'{nuc}-{nuc}' for nuc in _nucs}
 
 
-def count_nuc_events(fname):
-    """
-    Count the number of reads with matches and substitutions.
+class Index(object):
+    """Utility for calculating editing indices."""
 
-    Parameters:
-        fname (str): File path to a REDItools output
+    def __init__(self, region=None):
+        """
+        Create a new Index.
 
-    Returns:
-        Dict with keys in the format of base-base
-    """
-    counts = {}
-    with open(fname, 'r') as stream:
+        Parameters:
+            region (Region): Limit results to the given genomic region
+        """
+        self.targets = {}
+        self.exclusions = {}
+        self.counts = {'-'.join(_): 0 for _ in permutations(_nucs, 2)}
+        self.region = region
+
+    def add_target_from_bed(self, fname):
+        """
+        Only report index data for regions from a given bed file.
+
+        Parameters:
+            fname (str): Path to BED formatted file.
+        """
+        for region in read_bed_file(fname):
+            self.targets[region.contig] = update_region_dict(
+                self.targets,
+                region,
+            )
+
+    def add_exclusions_from_bed(self, fname):
+        """
+        Exclude index data for regions from a given bed file.
+
+        Parameters:
+            fname (str): Path to BED formatted file.
+        """
+        for region in read_bed_file(fname):
+            self.exclusions[region.contig] = update_region_dict(
+                self.exclusions,
+                region,
+            )
+
+    def in_region_list(self, region_list, contig, position):
+        """
+        Check if a genomic position is in a list of regions.
+
+        Parameters:
+            region_list (dict): Region list to check
+            contig (str): Contig/Chromsome name
+            position (int): Coordinate
+
+        Returns:
+            True if the position is present, else False
+        """
+        return position in region_list.get(contig, [])
+
+    def in_targets(self, contig, position):
+        """
+        Check if a genomic position is in the target list.
+
+        Parameters:
+            contig (str): Contig/Chromsome name
+            position (int): Coordiante
+
+        Returns:
+            True if there are no targets or the position is in the target
+            list; else False
+        """
+        return not self.targets or self.in_region_list(self.targets)
+
+    def in_exclusions(self, contig, position):
+        """
+        Check if a genomic position is in the exclusions list.
+
+        Parameters:
+            contig (str): Contig/Chromsome name
+            position (int): Coordiante
+
+        Returns:
+            True if there are no exclusions or the position is in the
+            exclusions list; else False
+        """
+        return self.exclusions and self.in_region_list(self.exclusions)
+
+    def do_ignore(self, row):
+        """
+        Check whether a row should meets analysis criteria.
+
+        Parameters:
+            row (dict): Row from REIDtools output file.
+
+        Returns:
+            True if the row should be discarded; else False
+        """
+        if self.region:
+            if not self.region.contains(row[_contig], row[_position]):
+                return True
+        if self.in_exclusions(row[_contig], row[_position]):
+            return True
+        return not self.in_targets(row[_contig], row[_position])
+
+    def add_rt_output(self, fname):
+        """
+        Count the number of reads with matches and substitutions.
+
+        Parameters:
+            fname (str): File path to a REDItools output
+        """
+        stream = open_stream(fname)
         reader = csv.DictReader(stream, delimiter='\t')
         for row in reader:
+            if self.do_ignore(row):
+                continue
             ref = row[_ref]
             reads = load_json(row[_count])
             for nuc, count in zip(_nucs, reads):
                 key = f'{nuc}-{ref}'
-                counts[key] = counts.get(key, 0) + count
-    return counts
+                self.counts[key] = self.counts.get(key, 0) + count
+        stream.close()
 
+    def calc_index(self):
+        """
+        Compute all editing indices.
 
-def merge(dict_list):
-    """
-    Combine multiple dictionaries together using the sum of their values.
+        Returns:
+            Dictionary of indices
+        """
+        keys = set(self.counts) - _ref_set
+        indices = {}
+        for idx in keys:
+            ref = idx[-1]
+            numerator = self.counts[idx]
+            denominator = self.counts.get(self.ref_edit(ref), 0) + numerator
+            if denominator == 0:
+                indices[idx] = 0
+            else:
+                indices[idx] = numerator / denominator
+        return indices
 
-    Parameters:
-        dict_list (list): A list of dictionariees to merge
+    def ref_edit(self, ref):
+        """
+        Format a base as a non-edit.
 
-    Returns:
-        A final cumulative dictionary
-    """
-    if len(dict_list) == 1:
-        return dict_list[0]
-    merged = merge(dict_list[1:])
-    for key, count in dict_list[0].items():
-        merged[key] = merged.get(key, 0) + count
-    return merged
+        Parameters:
+            ref (str): Reference base
 
-
-def index(rt_output_files):
-    """
-    Compute all editing indices.
-
-    Parameters:
-        rt_output_files (list): All REDItools output files to be processed
-    """
-    counts = merge([count_nuc_events(fname) for fname in rt_output_files])
-    indices = set(counts) - _ref_set
-    for idx in indices:
-        ref = idx[-1]
-        numerator = counts[idx]
-        denominator = counts[f'{ref}-{ref}'] + numerator
-        scale_factor = numerator / denominator
-        print(f'{idx}\t{scale_factor}')
+        Returns:
+            A string in the format of {ref}-{ref}
+        """
+        return f'{ref}-{ref}'
 
 
 def parse_options():  # noqa:WPS213
@@ -98,11 +199,12 @@ def parse_options():  # noqa:WPS213
     parser.add_argument(
         '-g',
         '--region',
-        help='The region of the bam file to be analyzed',
+        help='The genomic region to be analyzed',
     )
     parser.add_argument(
         '-B',
         '--bed_file',
+        nargs='+',
         help='Path of BED file containing target regions',
     )
     parser.add_argument(
@@ -118,7 +220,43 @@ def parse_options():  # noqa:WPS213
 def main():
     """Perform RNA editing analysis."""
     options = parse_options()
-    index(options.file[0])
+    if options.region:
+        indexer = Index(Region(string=options.region))
+    else:
+        indexer = Index()
+
+    if options.exclude_regions:
+        for exc_fname in options.exclude_regions:
+            indexer.add_exclusions_from_bed(exc_fname)
+
+    if options.bed_file:
+        for trg_fname in options.bed_file:
+            indexer.add_target_from_bed(trg_fname)
+
+    if options.output_file:
+        stream = open_stream(options.output_fipe, 'w')
+    else:
+        stream = sys.stdout
+
+    for fname in options.file:
+        indexer.add_rt_output(fname)
+
+    for nuc, idx in indexer.calc_index().items():
+        stream.write(f'{nuc}\t{idx}\n')
+
+
+def update_region_dict(region_dict, region):
+    """
+    Add a region to a region dictionary.
+
+    Parameters:
+        region_dict (dict): Region dictionary
+        region (Region): Region to add
+
+    Returns:
+        An updated copy of region_dict
+    """
+    return region_dict.get(region.contig, set()) | region.enumerate()
 
 
 if __name__ == '__main__':

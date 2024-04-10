@@ -87,6 +87,23 @@ class Region(object):
         """
         return set(range(self.start, self.stop))
 
+    def contains(self, contig, position):
+        """
+        Determines if a given genomic location is within the region.
+
+        Parameters:
+            contig (str): Contig/Chromosome name
+            position (int): Position
+
+        Returns:
+            bool
+        """
+        if self.contig != contig:
+            return False
+        left = self.start is None or self.start <= position
+        right = self.stop is None or position < self.stop
+        return left and right
+
     def _parse_string(self, region_str):
         if region_str is None:
             return None
