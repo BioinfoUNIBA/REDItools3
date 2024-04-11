@@ -27,6 +27,7 @@ class Index(object):
 
         Parameters:
             region (Region): Limit results to the given genomic region
+            strand (int): Either 0, 1, or 2 for unstranded, reverse, or forward
         """
         self.targets = {}
         self.exclusions = {}
@@ -112,7 +113,7 @@ class Index(object):
         Returns:
             True if the row should be discarded; else False
         """
-        if self.strand != '*' and self.strand != row[_strand]:
+        if '*' != self.strand != row[_strand]:
             return True
         if self.region:
             if not self.region.contains(row[_contig], row[_position]):
@@ -225,9 +226,9 @@ def main():
     """Perform RNA editing analysis."""
     options = parse_options()
     if options.region:
-        indexer = Index(Region(string=options.region))
+        indexer = Index(Region(string=options.region), strand=options.strand)
     else:
-        indexer = Index()
+        indexer = Index(strand=options.strand)
 
     if options.exclude_regions:
         for exc_fname in options.exclude_regions:
@@ -245,7 +246,7 @@ def main():
     for fname in options.file:
         indexer.add_rt_output(fname)
 
-    for nuc, idx in indexer.calc_index().items():
+    for nuc, idx in sorted(indexer.calc_index().items()):
         stream.write(f'{nuc}\t{idx}\n')
 
 
