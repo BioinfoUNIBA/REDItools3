@@ -13,6 +13,7 @@ _ref = 'Reference'
 _position = 'Position'
 _contig = 'Region'
 _count = 'BaseCount[A,C,G,T]'
+_strand = 'Strand'
 _nucs = 'ACGT'
 _ref_set = {f'{nuc}-{nuc}' for nuc in _nucs}
 
@@ -20,7 +21,7 @@ _ref_set = {f'{nuc}-{nuc}' for nuc in _nucs}
 class Index(object):
     """Utility for calculating editing indices."""
 
-    def __init__(self, region=None):
+    def __init__(self, region=None, strand=0):
         """
         Create a new Index.
 
@@ -31,6 +32,7 @@ class Index(object):
         self.exclusions = {}
         self.counts = {'-'.join(_): 0 for _ in permutations(_nucs, 2)}
         self.region = region
+        self.strand = ['*', '-', '+'][strand]
 
     def add_target_from_bed(self, fname):
         """
@@ -110,6 +112,8 @@ class Index(object):
         Returns:
             True if the row should be discarded; else False
         """
+        if self.strand != '*' and self.strand != row[_strand]:
+            return True
         if self.region:
             if not self.region.contains(row[_contig], row[_position]):
                 return True
