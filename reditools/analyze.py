@@ -89,7 +89,8 @@ def setup_rtools(options):  # noqa:WPS213,WPS231
         )
 
     if options.bed_file:
-        rtools.load_target_positions(options.bed_file)
+        regions = file_utils.read_bed_file(options.bed_file)
+        rtools.target_positions = regions
     if options.exclude_regions:
         for fname in options.exclude_regions:
             regions = file_utils.read_bed_file(fname)
