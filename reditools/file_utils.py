@@ -2,10 +2,7 @@
 
 import csv
 import os
-from collections import defaultdict
 from gzip import open as gzip_open
-
-from sortedcontainers import SortedSet
 
 from reditools.region import Region
 
@@ -68,54 +65,36 @@ def concat(output, *fnames, clean_up=True, encoding='utf-8'):
             os.remove(fname)
 
 
-def load_poly_regions(fname):
-    """
-    Read omopolymeric positions from a file.
-
-    Parameters:
-        fname (str): File path
-
-    Returns:
-        (dict): Contigs and regions
-    """
-    poly_regions = defaultdict(set)
-    with read_bed_file(fname) as reader:
-        for row in reader:
-            poly_regions[row[0]] = Region(
-                contig=row[0],
-                start=row[1],
-                stop=row[2],
-            )
-    return poly_regions
-
-
-def load_splicing_file(splicing_file, span):
+def load_splicing_file(splicing_file, splicing_span):
     """
     Read splicing positions from a file.
 
     Parameters:
         splicing_file (str): File path
-        span(int): Width of splice sites
+        splicing_span(int): Width of splice sites
 
-    Returns:
-        (dict): Contig and positions
+    Yeilds:
+        Splicing file contents as Regions.
     """
-    splice_positions = defaultdict(SortedSet)
     strand_map = {'-': 'D', '+': 'A'}
 
-    with open_stream(splicing_file, 'r') as stream:
-        for line in stream:
-            fields = line.strip().split()
+    stream = open_stream(splicing_file)
+    reader = csv.reader(
+        filter(lambda row: row[0] != '#', stream),
+        delimiter=' ',
+    )
+    for row in reader:
+        contig = row[0]
+        span = int(row[1])
+        splice = row[3]
+        strand = row[4]
 
-            chrom = fields[0]
-            strand = fields[4]
-            splice = fields[3]
-            span = int(fields[1])
-
-            coe = -1 if strand_map.get(strand, None) == splice else 1
-            new_positions = [1 + span + coe * fctr for fctr in range(span)]
-            splice_positions[chrom] |= new_positions
-        return splice_positions
+        coe = -1 if strand_map.get(strand, None) == splice else 1
+        start = 1 + span
+        stop = start + splicing_span * coe
+        if start > stop:
+            start, stop = stop, start
+        yield Region(contig=contig, start=start, stop=stop)
 
 
 def load_text_file(file_name):

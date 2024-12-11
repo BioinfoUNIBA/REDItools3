@@ -272,3 +272,26 @@ class RTChecks(object):
                 )
                 return False
         return True
+
+    def check_max_alts(self, bases, rtools):
+        """
+        Check that there are no more than a max number of alts.
+
+        Parameters:
+            bases (CompiledPosition): Base position under analysis
+            rtools (REDItools): Object running the analysis
+
+        Returns:
+            (bool): True if there are n or fewer alts
+        """
+
+        alts = bases.get_variants()
+        if len(alts) > rtools.max_alts:
+            rtools.log(
+                Logger.debug_level,
+                'DISCARD COLUMN alts={} > {}',
+                len(alts),
+                rtools.max_alts,
+            )
+            return False
+        return True

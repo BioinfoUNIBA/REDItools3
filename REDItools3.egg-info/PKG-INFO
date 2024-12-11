@@ -6,9 +6,18 @@ Author-email: Adam Handen <adam.handen@gmail.com>
 Project-URL: homepage, https://github.com/BioinfoUNIBA/REDItools3
 Project-URL: repository, https://github.com/BioinfoUNIBA/REDItools3
 Project-URL: issues, https://github.com/BioinfoUNIBA/REDItools3/issues
-Keywords: bioinformatics,RNA,editing
-Requires-Python: >=3.11.5
+Keywords: bioinformatics,RNA,RNA-editing
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: Science/Research
+Classifier: License :: OSI Approved :: GNU General Public License (GPL)
+Classifier: Operating System :: MacOS :: MacOS X
+Classifier: Operating System :: Unix
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Topic :: Scientific/Engineering :: Bio-Informatics
+Requires-Python: >=3.7
 Description-Content-Type: text/markdown
+License-File: LICENSE
 Requires-Dist: pysam>=0.22.0
 Requires-Dist: sortedcontainers>=2.4.0
 
@@ -16,8 +25,8 @@ Requires-Dist: sortedcontainers>=2.4.0
 A new REDItools implementation to speed-up the RNA editing profiling in massive RNAseq data
 
 # Installation
-Use the whl file under the dist directory.
-`pip install dist/reditools-0.1-py3-none-any.whl`
+Install from PyPi.
+`pip install REDItools3`
 
 # Usage
 Once installed, reditools can be run from the commandline.

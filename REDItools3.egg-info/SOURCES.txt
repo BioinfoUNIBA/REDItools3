@@ -1,3 +1,4 @@
+LICENSE
 README.md
 pyproject.toml
 REDItools3.egg-info/PKG-INFO

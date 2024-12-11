@@ -1,21 +1,31 @@
 [build-system]
- requires = ["setuptools>=68.2.2", "pysam>=0.22.0", "sortedcontainers>=2.4.0"]
- build-backend = "setuptools.build_meta"
+requires = ["setuptools>=68.2.2", "pysam>=0.22.0", "sortedcontainers>=2.4.0"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "REDItools3"
 version = "v3.1-alpha"
 authors = [
   { name="Adam Handen", email="adam.handen@gmail.com" },
-  { name="Ernesto Picardi" }
+  { name="Ernesto Picardi" },
 ]
 readme = "README.md"
 dependencies = [
     "pysam>=0.22.0",
-    "sortedcontainers>=2.4.0"
+    "sortedcontainers>=2.4.0",
 ]
-keywords = ["bioinformatics", "RNA", "editing"]
-requires-python = ">=3.11.5"
+keywords = ["bioinformatics", "RNA", "RNA-editing"]
+requires-python = ">=3.7"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: GNU General Public License (GPL)",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: Unix",
+    "Programming Language :: Python :: 3.7",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
 
 [project.urls]
 homepage = "https://github.com/BioinfoUNIBA/REDItools3"

@@ -42,7 +42,11 @@ def parse_options():
     Returns:
         namespace
     """
-    parser = argparse.ArgumentParser(description='REDItools 2.0')
+    parser = argparse.ArgumentParser(
+        prog="reditools find-repeats",
+        description='REDItools3',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
     parser.add_argument(
         'file',
         help='The fasta file to be analyzed',
@@ -57,6 +61,7 @@ def parse_options():
     parser.add_argument(
         '-o',
         '--output',
+        default='/dev/stdout',
         help='Destination to write results. Default is to use STDOUT. ' +
         'If the filename ends in .gz, the contents will be gzipped.',
     )

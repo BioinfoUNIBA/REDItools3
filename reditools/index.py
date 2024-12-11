@@ -180,7 +180,11 @@ def parse_options():  # noqa:WPS213
     Returns:
         namespace: commandline args
     """
-    parser = argparse.ArgumentParser(description='REDItools 2.0')
+    parser = argparse.ArgumentParser(
+        prog="reditools index",
+        description='REDItools3',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
     parser.add_argument(
         'file',
         nargs='+',
@@ -189,6 +193,7 @@ def parse_options():  # noqa:WPS213
     parser.add_argument(
         '-o',
         '--output-file',
+        default='/dev/stdout',
         help='The output statistics file',
     )
     parser.add_argument(
@@ -239,7 +244,7 @@ def main():
             indexer.add_target_from_bed(trg_fname)
 
     if options.output_file:
-        stream = open_stream(options.output_fipe, 'w')
+        stream = open_stream(options.output_file, 'w')
     else:
         stream = sys.stdout
 

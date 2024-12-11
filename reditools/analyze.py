@@ -79,25 +79,18 @@ def setup_rtools(options):  # noqa:WPS213,WPS231
         rtools.log_level = Logger.info_level
 
     if options.load_omopolymeric_file:
-        regions = file_utils.load_omopolymeric_regions(
-            options.load_omopolymeric_file,
-        )
+        regions = file_utils.read_bed_file(options.load_omopolymeric_file)
         rtools.exclude(regions)
 
-    if options.create_omopolymeric_file:
-        rtools.create_omopolymeric_positions(
-            options.create_omopolymeric_file,
-            options.omopolymeric_span,
-        )
-
     if options.splicing_file:
-        rtools.load_splicing_file(
+        rtools.splice_positions = file_utils.load_splicing_file(
             options.splicing_file,
             options.splicing_span,
         )
 
     if options.bed_file:
-        rtools.load_target_positions(options.bed_file)
+        regions = file_utils.read_bed_file(options.bed_file)
+        rtools.target_positions = regions
     if options.exclude_regions:
         for fname in options.exclude_regions:
             regions = file_utils.read_bed_file(fname)
@@ -109,10 +102,11 @@ def setup_rtools(options):  # noqa:WPS213,WPS231
     rtools.max_base_position = options.max_base_position
     rtools.min_base_quality = options.min_base_quality
 
-    rtools.min_column_length = options.min_column_length
+    rtools.min_column_length = options.min_read_depth
     rtools.min_edits = options.min_edits
     rtools.min_edits_per_nucleotide = options.min_edits_per_nucleotide
     rtools.strand = options.strand
+    rtools.max_alts = options.max_editing_nucleotides
 
     rtools.strand_confidence_threshold = options.strand_confidence_threshold
 
@@ -225,21 +219,26 @@ def parse_options():  # noqa:WPS213
     Returns:
         namespace: commandline args
     """
-    parser = argparse.ArgumentParser(description='REDItools 2.0')
+    parser = argparse.ArgumentParser(
+        prog="reditools analyze",
+        description='REDItools3',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
     parser.add_argument(
         'file',
         nargs='+',
-        help='The bam file to be analyzed',
+        help='The bam file(s) to be analyzed.',
     )
     parser.add_argument(
         '-r',
         '--reference',
-        help='The reference FASTA file',
+        help='Reference FASTA file.',
     )
     parser.add_argument(
         '-o',
         '--output-file',
-        help='The output statistics file',
+        help='Path to write output to.',
+        default='/dev/stdout',
     )
     parser.add_argument(
         '-s',
@@ -248,96 +247,85 @@ def parse_options():  # noqa:WPS213
         type=int,
         default=0,
         help='Strand: this can be 0 (unstranded),' +
-        '1 (secondstrand oriented) or ' +
-        '2 (firststrand oriented)',
+        '1 (second strand oriented) or ' +
+        '2 (first strand oriented).',
     )
     parser.add_argument(
         '-a',
         '--append-file',
         action='store_true',
-        help='Appends results to file (and creates if not existing)',
+        help='Appends results to file (and creates if not existing).',
     )
     parser.add_argument(
         '-g',
         '--region',
-        help='The self.region of the bam file to be analyzed',
+        help='Only analyzes the specified region.',
     )
     parser.add_argument(
         '-m',
         '--load-omopolymeric-file',
-        help='The file containing the omopolymeric positions',
-    )
-    parser.add_argument(
-        '-c',
-        '--create-omopolymeric-file',
-        default=False,
-        help='Path to write omopolymeric positions to',
-        action='store_true',
+        help='BED file of omopolymeric positions.',
     )
     parser.add_argument(
         '-os',
         '--omopolymeric-span',
         type=int,
         default=5,
-        help='The omopolymeric span',
+        help='The omopolymeric span.',
     )
     parser.add_argument(
         '-sf',
         '--splicing-file',
-        help='The file containing the splicing sites positions',
+        help='The file containing splicing site positions.',
     )
     parser.add_argument(
         '-ss',
         '--splicing-span',
         type=int,
         default=4,
-        help='The splicing span',
+        help='The splicing span.',
     )
     parser.add_argument(
         '-mrl',
         '--min-read-length',
         type=int,
         default=30,  # noqa:WPS432
-        help='Reads whose length is below this value will be discarded.',
+        help='Reads with length below -mrl will be discarded.',
     )
     parser.add_argument(
         '-q',
         '--min-read-quality',
         type=int,
         default=20,  # noqa:WPS432
-        help='Reads with mapping quality below this value will be discarded.',
+        help='Reads with mapping quality below -q will be discarded.',
     )
     parser.add_argument(
         '-bq',
         '--min-base-quality',
         type=int,
         default=30,  # noqa:WPS432
-        help='Base quality below this value will not be included in ' +
-        'the analysis.',
+        help='Base quality below -bq will bed discarded.',
     )
     parser.add_argument(
         '-mbp',
         '--min-base-position',
         type=int,
         default=0,
-        help='Bases which reside in a previous position (in the read)' +
-        'will not be included in the analysis.',
+        help='Ignores the first -mbp bases in each read.',
     )
     parser.add_argument(
         '-Mbp',
         '--max-base-position',
         type=int,
         default=0,
-        help='Bases which reside in a further position (in the read)' +
-        'will not be included in the analysis.',
+        help='Ignores the last -Mpb bases in each read.',
     )
     parser.add_argument(
         '-l',
-        '--min-column-length',
+        '--min-read-depth',
         type=int,
         default=1,
-        help='Positions whose columns have length below this value will' +
-        'not be included in the analysis.',
+        help='Only report on positions with at least -l read depth',
     )
     parser.add_argument(
         '-e',
@@ -351,8 +339,7 @@ def parse_options():  # noqa:WPS213
         '--min-edits-per-nucleotide',
         type=int,
         default=0,
-        help='Positions whose columns have bases with less than' +
-        'min-edits-per-base edits will not be included in the analysis.',
+        help='Positions with fewer than -men edits will not be discarded.',
     )
     parser.add_argument(
         '-me',
@@ -360,16 +347,14 @@ def parse_options():  # noqa:WPS213
         type=int,
         default=0,  # noqa:WPS432
         help='The minimum number of editing events (per position). ' +
-        'Positions whose columns have bases with less than ' +
-        '"min-edits-per-base edits" will not be included in the ' +
-        'analysis.',
+        'Positions with fewer than -me edits will be discarded.',
     )
     parser.add_argument(
         '-Men',
         '--max-editing-nucleotides',
         type=int,
-        default=100,  # noqa:WPS432
-        help='The maximum number of editing nucleotides, from 0 to 4 ' +
+        default=4,  # noqa:WPS432
+        help='The maximum number of editing nucleotides, from 0 to 3 ' +
         '(per position). Positions whose columns have more than ' +
         '"max-editing-nucleotides" will not be included in the analysis.',
     )
@@ -378,8 +363,8 @@ def parse_options():  # noqa:WPS213
         '--strand-confidence-threshold',
         type=float,
         default=0.7,  # noqa:WPS432
-        help='Only report the strandedness if at least this proportion of ' +
-        'reads are of a given strand',
+        help='Only report the strandedness if at least -T proportion of ' +
+        'reads are of a given strand.',
     )
     parser.add_argument(
         '-C',
@@ -393,25 +378,25 @@ def parse_options():  # noqa:WPS213
         '-V',
         '--verbose',
         default=False,
-        help='Verbose information in stderr',
+        help='Run in verbose mode.',
         action='store_true',
     )
     parser.add_argument(
         '-N',
         '--dna',
         default=False,
-        help='Run REDItools 2.0 on DNA-Seq data',
+        help='Run REDItools on DNA-Seq data.',
         action='store_true',
     )
     parser.add_argument(
         '-B',
         '--bed_file',
-        help='Path of BED file containing target self.regions',
+        help='Only analyze regions in the provided BED file.',
     )
     parser.add_argument(
         '-t',
         '--threads',
-        help='Number of threads to run',
+        help='Number of threads for parallel processing.',
         type=int,
         default=1,
     )
@@ -419,7 +404,7 @@ def parse_options():  # noqa:WPS213
         '-w',
         '--window',
         help='How many bp should be processed by each thread at a time. ' +
-        'Defaults to full contig.',
+        'Zero uses the full contig.',
         type=int,
         default=0,
     )
@@ -427,18 +412,18 @@ def parse_options():  # noqa:WPS213
         '-k',
         '--exclude_regions',
         nargs='+',
-        help='Path of BED file containing regions to exclude from analysis',
+        help='Skip regions in the provided BED file(s).',
     )
     parser.add_argument(
         '-E',
         '--exclude_reads',
-        help='Path to a text file listing read names to exclude from analysis',
+        help='Text file listing read names to exclude from analysis.',
     )
     parser.add_argument(
         '-d',
         '--debug',
         default=False,
-        help='REDItools is run in DEBUG mode.',
+        help='Run in debug mode.',
         action='store_true',
     )
 
