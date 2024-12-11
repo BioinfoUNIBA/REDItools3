@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: REDItools3
-Version: 3.1a0
+Version: 3.2a0
 Author: Ernesto Picardi
 Author-email: Adam Handen <adam.handen@gmail.com>
 Project-URL: homepage, https://github.com/BioinfoUNIBA/REDItools3
@@ -13,7 +13,7 @@ Classifier: Intended Audience :: Science/Research
 Classifier: License :: OSI Approved :: GNU General Public License (GPL)
 Classifier: Operating System :: MacOS :: MacOS X
 Classifier: Operating System :: Unix
-Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.7
 Classifier: Topic :: Scientific/Engineering :: Bio-Informatics
 Requires-Python: >=3.7
 Description-Content-Type: text/markdown
@@ -27,6 +27,9 @@ A new REDItools implementation to speed-up the RNA editing profiling in massive 
 # Installation
 Install from PyPi.
 `pip install REDItools3`
+
+Use the whl file under the dist directory.
+`pip install dist/reditools-0.1-py3-none-any.whl`
 
 # Usage
 Once installed, reditools can be run from the commandline.
