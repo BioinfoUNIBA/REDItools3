@@ -209,7 +209,7 @@ def run(options, in_queue, out_queue):
     except Exception as exc:
         if options.debug:
             traceback.print_exception(*sys.exc_info())
-        sys.stderr.write(f'[ERROR] {exc}\n')
+        sys.stderr.write(f'[ERROR] ({type(exc)}) {exc}\n')
 
 
 def parse_options():  # noqa:WPS213
