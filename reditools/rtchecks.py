@@ -149,12 +149,14 @@ class RTChecks(object):
         Returns:
             (bool): True if there are sufficient edits
         """
-        for num_edits in bases.get_min_edits():
-            if 0 < num_edits < rtools.min_edits_per_nucleotide:
+        for base in "ATCG":
+            if base == bases.ref:
+                continue
+            if bases[base] < rtools.min_edits_per_nucleotide:
                 rtools.log(
                     Logger.debug_level,
                     'DISCARDING COLUMN edits={} < {}',
-                    num_edits,
+                    bases[base],
                     rtools.min_edits_per_nucleotide,
                 )
                 return False
