@@ -337,6 +337,7 @@ class REDItools(object):
         """
         if region is None:
             region = {}
+
         # Open the iterator
         self.log(
             Logger.info_level,

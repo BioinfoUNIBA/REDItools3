@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "REDItools3"
-version = "v3.1-alpha"
+version = "v3.3"
 authors = [
   { name="Adam Handen", email="adam.handen@gmail.com" },
   { name="Ernesto Picardi" },
@@ -12,18 +12,18 @@ authors = [
 readme = "README.md"
 dependencies = [
     "pysam>=0.22.0",
-    "sortedcontainers>=2.4.0"
+    "sortedcontainers>=2.4.0",
 ]
 keywords = ["bioinformatics", "RNA", "RNA-editing"]
 requires-python = ">=3.7"
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: GNU General Public License (GPL)",
     "Operating System :: MacOS :: MacOS X",
     "Operating System :: Unix",
-    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.7",
     "Topic :: Scientific/Engineering :: Bio-Informatics",
 ]
 
