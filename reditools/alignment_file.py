@@ -118,9 +118,8 @@ class RTAlignmentFile(PysamAlignmentFile):
     # 141: NOT_MAPPED
     # 512: QC_FAIL
     # 256: IS_SECONDARY
-    # 2048: IS_SUPPLEMENTARY
     # 1024: IS_DUPLICATE
-    _flags_to_toss = {77, 141, 512, 256, 2048, 1024}
+    _flags_to_toss = {77, 141, 512, 256, 1024}
     _paired_flags_to_keep = {99, 147, 83, 163}
 
     def _check_quality(self, read):
