@@ -345,7 +345,7 @@ def parse_options():  # noqa:WPS213
         '-me',
         '--min-edits',
         type=int,
-        default=0,  # noqa:WPS432
+        default=1,
         help='The minimum number of editing events (per position). ' +
         'Positions with fewer than -me edits will be discarded.',
     )
