@@ -2,12 +2,12 @@
 
 import sys
 
-from reditools import analyze, homopolymerics, index
+from reditools import analyze, homopolymerics, index, annotate
 
 
 def usage():
     """Print program usage."""
-    print("""usage: reditools {analyze,find-repeats,index}
+    print("""usage: reditools {analyze,find-repeats,index,annotate}
 
 REDItools3
 
@@ -18,6 +18,8 @@ Run Modes:
 
   index              Calculate editing indices from the output of `analyze`
                      mode.
+
+  annotate           Annotate REDItools RNA output with DNA output
 """)
 
 
@@ -31,6 +33,8 @@ if __name__ == '__main__':
                 homopolymerics.main()
             case 'index':
                 index.main()
+            case 'annotate':
+                annotate.main()
             case _:
                 usage()
     else:
