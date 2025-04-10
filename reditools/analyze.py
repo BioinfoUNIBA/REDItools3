@@ -176,7 +176,7 @@ def write_results(rtools, sam_manager, file_name, region, output_format):
                 rt_result.per_base_depth,
                 ' '.join(sorted(variants)) if variants else '-',
                 f'{rt_result.edit_ratio:.2f}',
-                '\t'.join(['-' for _ in range(5)]),
+                '-', '-', '-', '-', '-',
             ])
         return stream.name
 
