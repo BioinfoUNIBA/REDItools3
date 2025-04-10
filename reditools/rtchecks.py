@@ -266,14 +266,13 @@ class RTChecks(object):
             (bool): True if the edit was specified
         """
         for ref, alt in rtools.specific_edits:
-            if not bases[ref] or not bases[alt]:
-                rtools.log(
-                    Logger.debug_level,
-                    'DISCARD COLUMN edit "{}" not specified for output',
-                    ref + alt,
-                )
-                return False
-        return True
+            if bases[ref] and bases[alt]:
+                return True
+        rtools.log(
+            Logger.debug_level,
+            'DISCARD COLUMN Specified edit(s) not detected',
+        )
+        return False
 
     def check_max_alts(self, bases, rtools):
         """

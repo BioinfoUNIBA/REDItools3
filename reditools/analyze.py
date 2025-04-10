@@ -88,6 +88,9 @@ def setup_rtools(options):  # noqa:WPS213,WPS231
             options.splicing_span,
         )
 
+    if options.variants:
+        rtools.specific_edits = [_.upper() for _ in options.variants]
+
     if options.bed_file:
         regions = file_utils.read_bed_file(options.bed_file)
         rtools.target_positions = regions
@@ -425,6 +428,14 @@ def parse_options():  # noqa:WPS213
         default=False,
         help='Run in debug mode.',
         action='store_true',
+    )
+    parser.add_argument(
+        '-v',
+        '--variants',
+        nargs='*',
+        default=['CT', 'AG'],
+        help='Which editing events to report. Edits should be two characters, '
+        'seperated by spaces. Use "all" to report all variants.',
     )
 
     return parser.parse_args()
