@@ -153,6 +153,17 @@ class REDItools(object):
         """
         return self._specific_edits
 
+    @specific_edits.setter
+    def specific_edits(self, edits):
+        if edits == ["ALL"]:
+            edits = []
+        for alt in edits:
+            if not self._verify_alt(alt):
+                raise Exception(
+                        f'Specific edit "{alt}" is not valid. ' +
+                        'Edits must be two character strings of ATCG.')
+        self._specific_edits = set(edits)
+
     def _verify_alt(self, alt):
         if not isinstance(alt, str):
             return False
@@ -161,22 +172,6 @@ class REDItools(object):
         if alt[0] not in 'ATCG' and alt[1] not in 'ATCG':
             return False
         return True
-
-    @specific_edits.setter
-    def specific_edits(self, alts):
-        function = self._rtqc.check_specific_edits
-        if alts == ["ALL"]:
-            alts = []
-        for alt in alts:
-            if not self._verify_alt(alt):
-                raise Exception(
-                    f'Specific edit "{alt}" is not valid. ' +
-                    'Edits must be two character strings of ATCG.')
-        self._specific_edits = set(alts)
-        if self._specific_edits:
-            self._rtqc.add(function)
-        else:
-            self._rtqc.discard(function)
 
     @property
     def splice_positions(self):
@@ -401,13 +396,12 @@ class REDItools(object):
             if column is None:
                 self.log(Logger.debug_level, 'Bad column - skipping')
                 continue
-            if self._specific_edits:
-                if not self._specific_edits & set(column.variants):
-                    self.log(
-                        Logger.debug_level,
-                        'Requested edits not found - skipping',
-                    )
-                    continue
+            if self._specific_edits and not self._specific_edits & set(column.variants):
+                self.log(
+                    Logger.debug_level,
+                    'Requested edits not found - skipping',
+                )
+                continue
             self.log(
                 Logger.debug_level,
                 'Yielding output for {} reads',
