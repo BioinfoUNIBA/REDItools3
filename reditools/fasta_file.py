@@ -50,7 +50,7 @@ class RTFastaFile(PysamFastaFile):
             self._update_contig_cache(contig)
         try:
             if len(position) == 1:
-                return self._contig_cache[position[0]]
+                return [self._contig_cache[position[0]]]
             return [self._contig_cache[idx] for idx in position]
         except IndexError as exc:
             raise IndexError(
