@@ -30,7 +30,7 @@ class Region(object):
             if 'contig' not in kwargs:
                 raise ValueError('Region constructor requires a contig.')
             self.contig = kwargs['contig']
-            self.start = self._to_int(kwargs.get('start', 1))
+            self.start = self._to_int(kwargs.get('start', 0))
             self.stop = self._to_int(kwargs.get('stop', None))
 
     def __str__(self):
