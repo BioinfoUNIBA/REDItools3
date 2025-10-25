@@ -210,7 +210,10 @@ class RTChecks(object):
         Returns:
             (bool): True if the position is not excluded
         """
-        in_exclusions = rtools.exclude_regions.contains(bases.contig, bases.position)
+        in_exclusions = rtools.exclude_regions.contains(
+            bases.contig,
+            bases.position,
+        )
         if in_exclusions:
             rtools.log(Logger.debug_level, 'DISCARD COLUMN in excluded region')
             return False

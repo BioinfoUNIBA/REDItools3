@@ -24,14 +24,17 @@ class Region(object):
         if 'string' in kwargs:
             region = self._parse_string(kwargs['string'])  # noqa:WPS529
             self.contig = region[0]
-            self.start = region[1]
+            self.start = region[1] - 1
             self.stop = region[2]
         else:
             if 'contig' not in kwargs:
                 raise ValueError('Region constructor requires a contig.')
             self.contig = kwargs['contig']
-            self.start = self._to_int(kwargs.get('start', 0))
-            self.stop = self._to_int(kwargs.get('stop', None))
+            self.start = self._to_int(kwargs.get('start', 1)) - 1
+            if 'stop' in kwargs:
+                self.stop = self._to_int(kwargs['stop']) - 1
+            else:
+                self.stop = None
 
     def __str__(self):
         """
@@ -44,7 +47,7 @@ class Region(object):
         if self.start:
             region = f'{region}:{self.start}'
             if self.stop:
-                region = f'{region}-{self.stop}'
+                region = f'{region}-{self.stop + 1}'
         return region
 
     def split(self, window):
@@ -111,7 +114,7 @@ class Region(object):
         if not region:
             return None
         contig = region[0]
-        start = None
+        start = 0
         stop = None
 
         if len(region) > 3:

@@ -13,6 +13,7 @@ from reditools.logger import Logger
 from reditools.rtchecks import RTChecks
 from reditools.region_collection import RegionCollection
 
+
 class RTResult(object):
     """RNA editing analysis for a single base position."""
 
@@ -190,7 +191,7 @@ class REDItools(object):
             regions (iterable): List of Region objects.
         """
         if regions:
-            self._target_regions.addRegions(regions)
+            self._target_regions.add_regions(regions)
             self._rtqc.add(self._rtqc.check_target_positions)
 
     @property
@@ -283,7 +284,7 @@ class REDItools(object):
             regions (iterable): List of Region objects.
         """
         if regions:
-            self._exclude_regions.addRegions(regions)
+            self._exclude_regions.add_regions(regions)
             self._rtqc.add(self._rtqc.check_exclusions)
 
     @property
@@ -382,7 +383,8 @@ class REDItools(object):
             if column is None:
                 self.log(Logger.debug_level, 'Bad column - skipping')
                 continue
-            if self._specific_edits and not self._specific_edits & set(column.variants):
+            if self._specific_edits and \
+                    not self._specific_edits & set(column.variants):
                 self.log(
                     Logger.debug_level,
                     'Requested edits not found - skipping',

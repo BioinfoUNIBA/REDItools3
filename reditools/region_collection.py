@@ -1,8 +1,5 @@
-"""Genomic Region."""
+"""Genomic Region Collection."""
 
-import re
-
-from reditools.region import Region
 
 class RegionCollection(object):
     """Collections of REDItools3 region objects. This class is meant to
@@ -21,7 +18,10 @@ class RegionCollection(object):
 
     def _sort(self):
         for contig, regions in self._regions.items():
-            self._regions[contig] = sorted(regions, key=lambda _: (_.start, _.stop))
+            self._regions[contig] = sorted(
+                regions,
+                key=lambda _: (_.start, _.stop),
+            )
         self._sorted = True
 
     def contains(self, contig, position):
@@ -48,16 +48,17 @@ class RegionCollection(object):
             region = self._regions[contig][i]
             if position < region.start:
                 return False
-            if position >= region.start and position < region.stop:
+            if position >= region.start and \
+                    (region.stop is None or position < region.stop):
                 return True
         self._last_index += 1
 
         return False
 
-    def addRegion(self, region):
+    def add_region(self, region):
         """
         Add a region to the collection.
-        
+
         Parameters:
             region (Region): region to add.
         """
@@ -66,7 +67,7 @@ class RegionCollection(object):
             self._regions[region.contig] = []
         self._regions[region.contig].append(region)
 
-    def addRegions(self, regions):
+    def add_regions(self, regions):
         """
         Add a list or iterable of regions to the collection.
 
@@ -74,4 +75,4 @@ class RegionCollection(object):
             regions (iterable): List of regions.
         """
         for r in regions:
-            self.addRegion(r)
+            self.add_region(r)
