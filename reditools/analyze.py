@@ -80,26 +80,28 @@ def setup_rtools(options):  # noqa:WPS213,WPS231
 
     if options.load_omopolymeric_file:
         regions = file_utils.read_bed_file(options.load_omopolymeric_file)
-        rtools.exclude(regions)
+        rtools.add_exclude_regions(regions)
+
+    if options.variants:
+        rtools.specific_edits = [_.upper() for _ in options.variants]
+
+    if options.bed_file:
+        for fname in options.bed_file:
+            regions = file_utils.read_bed_file(fname)
+            rtools.add_target_regions(regions)
+    if options.exclude_regions:
+        for fname in options.exclude_regions:
+            regions = file_utils.read_bed_file(fname)
+            rtools.add_exclude_regions(regions)
+    if options.reference:
+        rtools.add_reference(options.reference)
 
     if options.splicing_file:
         rtools.splice_positions = file_utils.load_splicing_file(
             options.splicing_file,
             options.splicing_span,
         )
-
-    if options.variants:
-        rtools.specific_edits = [_.upper() for _ in options.variants]
-
-    if options.bed_file:
-        regions = file_utils.read_bed_file(options.bed_file)
-        rtools.target_positions = regions
-    if options.exclude_regions:
-        for fname in options.exclude_regions:
-            regions = file_utils.read_bed_file(fname)
-            rtools.exclude(regions)
-    if options.reference:
-        rtools.add_reference(options.reference)
+        rtools.add_exclude_regions(regions)
 
     rtools.min_base_position = options.min_base_position
     rtools.max_base_position = options.max_base_position
@@ -270,13 +272,6 @@ def parse_options():  # noqa:WPS213
         help='BED file of omopolymeric positions.',
     )
     parser.add_argument(
-        '-os',
-        '--omopolymeric-span',
-        type=int,
-        default=5,
-        help='The omopolymeric span.',
-    )
-    parser.add_argument(
         '-sf',
         '--splicing-file',
         help='The file containing splicing site positions.',
@@ -394,6 +389,7 @@ def parse_options():  # noqa:WPS213
     parser.add_argument(
         '-B',
         '--bed_file',
+        nargs='+',
         help='Only analyze regions in the provided BED file.',
     )
     parser.add_argument(
