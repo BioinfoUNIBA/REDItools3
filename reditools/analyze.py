@@ -82,14 +82,6 @@ def setup_rtools(options):  # noqa:WPS213,WPS231
         regions = file_utils.read_bed_file(options.load_omopolymeric_file)
         rtools.add_exclude_regions(regions)
 
-    if options.splicing_file:
-        rtools.add_exclude_regions(
-            file_utils.load_splicing_file(
-                options.splicing_file,
-                options.splicing_span,
-            ),
-        )
-
     if options.variants:
         rtools.specific_edits = [_.upper() for _ in options.variants]
 
@@ -271,25 +263,6 @@ def parse_options():  # noqa:WPS213
         '-m',
         '--load-omopolymeric-file',
         help='BED file of omopolymeric positions.',
-    )
-    parser.add_argument(
-        '-os',
-        '--omopolymeric-span',
-        type=int,
-        default=5,
-        help='The omopolymeric span.',
-    )
-    parser.add_argument(
-        '-sf',
-        '--splicing-file',
-        help='The file containing splicing site positions.',
-    )
-    parser.add_argument(
-        '-ss',
-        '--splicing-span',
-        type=int,
-        default=4,
-        help='The splicing span.',
     )
     parser.add_argument(
         '-mrl',
