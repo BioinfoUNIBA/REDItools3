@@ -150,7 +150,8 @@ def region_args(bam_fname, region, window):
     return args
 
 
-def write_results(rtools, sam_manager, file_name, region, output_format):
+def write_results(rtools, sam_manager, file_name, region, output_format,
+                  temp_dir):
     """
     Write the results from a REDItools analysis to a temporary file.
 
@@ -164,7 +165,7 @@ def write_results(rtools, sam_manager, file_name, region, output_format):
     Returns:
         string: Name of the temporary file.
     """
-    with NamedTemporaryFile(mode='w', delete=False) as stream:
+    with NamedTemporaryFile(mode='w', delete=False, dir=temp_dir) as stream:
         writer = csv.writer(stream, **output_format)
         for rt_result in rtools.analyze(sam_manager, region):
             variants = rt_result.variants
@@ -209,12 +210,14 @@ def run(options, in_queue, out_queue):
                 options.file,
                 region,
                 options.output_format,
+                options.temp_dir,
             )
             out_queue.put((idx, file_name))
     except Exception as exc:
         if options.debug:
             traceback.print_exception(*sys.exc_info())
         sys.stderr.write(f'[ERROR] ({type(exc)}) {exc}\n')
+        sys.exit(1)
 
 
 def parse_options():  # noqa:WPS213
@@ -399,6 +402,9 @@ def parse_options():  # noqa:WPS213
         type=int,
         default=1,
     )
+    parser.add_argument(
+        '--temp-dir',
+        help='Location to save temporary files')
     parser.add_argument(
         '-w',
         '--window',
