@@ -43,7 +43,7 @@ class Region(object):
         Returns:
             (str): contig:start-stop
         """
-        if self.start >= 0:
+        if self.start > 0:
             if self.stop:
                 return f'{self.contig}:{self.start}-{self.stop + 1}'
             return f'{self.contig}:{self.start}'
