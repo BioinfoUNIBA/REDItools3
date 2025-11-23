@@ -24,7 +24,7 @@ class Region(object):
         if 'string' in kwargs:
             region = self._parse_string(kwargs['string'])  # noqa:WPS529
             self.contig = region[0]
-            self.start = region[1] - 1
+            self.start = region[1]
             self.stop = region[2]
         else:
             if 'contig' not in kwargs:
