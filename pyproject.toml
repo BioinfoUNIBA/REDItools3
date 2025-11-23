@@ -4,10 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "REDItools3"
-version = "v3.3"
+version = "v3.5"
+license = "GPL-3.0-or-later"
 authors = [
-  { name="Adam Handen", email="adam.handen@gmail.com" },
   { name="Ernesto Picardi" },
+  { name="Adam Handen", email="adam.handen@gmail.com" },
 ]
 readme = "README.md"
 dependencies = [
@@ -20,7 +21,6 @@ classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: GNU General Public License (GPL)",
     "Operating System :: MacOS :: MacOS X",
     "Operating System :: Unix",
     "Programming Language :: Python :: 3.7",
