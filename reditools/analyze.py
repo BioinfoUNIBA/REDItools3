@@ -435,7 +435,7 @@ def parse_options():  # noqa:WPS213
         '-v',
         '--variants',
         nargs='*',
-        default=['CT', 'AG'],
+        default=['all'],
         help='Which editing events to report. Edits should be two characters, '
         'separated by spaces. Use "all" to report all variants.',
     )
