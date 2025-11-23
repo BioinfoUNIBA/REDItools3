@@ -29,7 +29,7 @@ class CompiledReads(object):
         self._nucleotides = {}
         if strand == 0:
             self.get_strand = lambda _: 2
-        if strand == 1:
+        elif strand == 1:
             self.get_strand = lambda read: read.is_read1 and not read.is_reverse or read.is_read2 and read.is_reverse
         else:
             self.get_strand = lambda read: read.is_read1 and read.is_reverse or read.is_read2 and not read.is_reverse
