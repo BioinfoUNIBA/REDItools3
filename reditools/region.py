@@ -43,12 +43,11 @@ class Region(object):
         Returns:
             (str): contig:start-stop
         """
-        region = self.contig
-        if self.start:
-            region = f'{region}:{self.start}'
+        if self.start >= 0:
             if self.stop:
-                region = f'{region}-{self.stop + 1}'
-        return region
+                return f'{self.contig}:{self.start}-{self.stop + 1}'
+            return f'{self.contig}:{self.start}'
+        return self.contig
 
     def split(self, window):
         """
