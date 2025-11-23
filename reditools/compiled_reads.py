@@ -30,9 +30,9 @@ class CompiledReads(object):
         if strand == 0:
             self.get_strand = lambda _: 2
         elif strand == 1:
-            self.get_strand = lambda read: read.is_read1 and not read.is_reverse or read.is_read2 and read.is_reverse
+            self.get_strand = self._get_strand_one
         else:
-            self.get_strand = lambda read: read.is_read1 and read.is_reverse or read.is_read2 and not read.is_reverse
+            self.get_strand = self._get_strand_two
 
         self._ref = None
         self._ref_seq = self._get_ref_from_read
@@ -127,3 +127,11 @@ class CompiledReads(object):
             if ref_base != 'N' != seq[offset]:
                 if qualities[offset] >= self._qc['min_base_quality']:
                     yield (ref_pos, seq[offset], qualities[offset], ref_base)
+
+    def _get_strand_one(self, read):
+        return read.is_read1 and not read.is_reverse or \
+            read.is_read2 and read.is_reverse
+
+    def _get_strand_two(self, read):
+        return read.is_read1 and read.is_reverse or \
+            read.is_read2 and not read.is_reverse
