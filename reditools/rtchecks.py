@@ -47,28 +47,6 @@ class RTChecks(object):
             rtools=rtools,
         )
 
-    def check_splice_positions(self, rtools, bases):
-        """
-        Check if the contig and position are in a splice site.
-
-        Parameters:
-            rtools (REDItools): Object performing analysis
-            bases (CompiledPosition): Base position under analysis
-
-        Returns:
-            (bool): True if the position is not a splice site.
-        """
-        contig = bases.contig
-        if bases.position in rtools.splice_positions.get(contig, []):
-            rtools.log(
-                Logger.debug_level,
-                '[SPLICE_SITE] Discarding ({}, {}) because in splice site',
-                contig,
-                bases.position,
-            )
-            return False
-        return True
-
     def check_column_min_length(self, rtools, bases):
         """
         Check read depth.
@@ -210,13 +188,16 @@ class RTChecks(object):
         Returns:
             (bool): True if the position is in a target region
         """
-        if bases.position not in rtools.target_positions.get(bases.contig, []):
+        in_targets = rtools.target_regions.contains(
+            bases.contig,
+            bases.position,
+        )
+        if not in_targets:
             rtools.log(
                 Logger.debug_level,
-                'DISCARD COLUMN not in target positions',
+                'DISCARD COLUMN not in target regions',
             )
-            return False
-        return True
+        return in_targets
 
     def check_exclusions(self, bases, rtools):
         """
@@ -229,7 +210,11 @@ class RTChecks(object):
         Returns:
             (bool): True if the position is not excluded
         """
-        if bases.position in rtools.exclude_positions.get(bases.contig, []):
+        in_exclusions = rtools.exclude_regions.contains(
+            bases.contig,
+            bases.position,
+        )
+        if in_exclusions:
             rtools.log(Logger.debug_level, 'DISCARD COLUMN in excluded region')
             return False
         return True

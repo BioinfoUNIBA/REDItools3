@@ -80,26 +80,31 @@ def setup_rtools(options):  # noqa:WPS213,WPS231
 
     if options.load_omopolymeric_file:
         regions = file_utils.read_bed_file(options.load_omopolymeric_file)
-        rtools.exclude(regions)
+        rtools.add_exclude_regions(regions)
+
+    if options.variants:
+        rtools.specific_edits = [_.upper() for _ in options.variants]
+
+    if options.variants:
+        rtools.specific_edits = [_.upper() for _ in options.variants]
+
+    if options.bed_file:
+        for fname in options.bed_file:
+            regions = file_utils.read_bed_file(fname)
+            rtools.add_target_regions(regions)
+    if options.exclude_regions:
+        for fname in options.exclude_regions:
+            regions = file_utils.read_bed_file(fname)
+            rtools.add_exclude_regions(regions)
+    if options.reference:
+        rtools.add_reference(options.reference)
 
     if options.splicing_file:
         rtools.splice_positions = file_utils.load_splicing_file(
             options.splicing_file,
             options.splicing_span,
         )
-
-    if options.variants:
-        rtools.specific_edits = [_.upper() for _ in options.variants]
-
-    if options.bed_file:
-        regions = file_utils.read_bed_file(options.bed_file)
-        rtools.target_positions = regions
-    if options.exclude_regions:
-        for fname in options.exclude_regions:
-            regions = file_utils.read_bed_file(fname)
-            rtools.exclude(regions)
-    if options.reference:
-        rtools.add_reference(options.reference)
+        rtools.add_exclude_regions(regions)
 
     rtools.min_base_position = options.min_base_position
     rtools.max_base_position = options.max_base_position
@@ -148,7 +153,8 @@ def region_args(bam_fname, region, window):
     return args
 
 
-def write_results(rtools, sam_manager, file_name, region, output_format):
+def write_results(rtools, sam_manager, file_name, region, output_format,
+                  temp_dir):
     """
     Write the results from a REDItools analysis to a temporary file.
 
@@ -162,7 +168,7 @@ def write_results(rtools, sam_manager, file_name, region, output_format):
     Returns:
         string: Name of the temporary file.
     """
-    with NamedTemporaryFile(mode='w', delete=False) as stream:
+    with NamedTemporaryFile(mode='w', delete=False, dir=temp_dir) as stream:
         writer = csv.writer(stream, **output_format)
         for rt_result in rtools.analyze(sam_manager, region):
             variants = rt_result.variants
@@ -207,12 +213,14 @@ def run(options, in_queue, out_queue):
                 options.file,
                 region,
                 options.output_format,
+                options.temp_dir,
             )
             out_queue.put((idx, file_name))
     except Exception as exc:
         if options.debug:
             traceback.print_exception(*sys.exc_info())
         sys.stderr.write(f'[ERROR] ({type(exc)}) {exc}\n')
+        sys.exit(1)
 
 
 def parse_options():  # noqa:WPS213
@@ -268,13 +276,6 @@ def parse_options():  # noqa:WPS213
         '-m',
         '--load-omopolymeric-file',
         help='BED file of omopolymeric positions.',
-    )
-    parser.add_argument(
-        '-os',
-        '--omopolymeric-span',
-        type=int,
-        default=5,
-        help='The omopolymeric span.',
     )
     parser.add_argument(
         '-sf',
@@ -394,6 +395,7 @@ def parse_options():  # noqa:WPS213
     parser.add_argument(
         '-B',
         '--bed_file',
+        nargs='+',
         help='Only analyze regions in the provided BED file.',
     )
     parser.add_argument(
@@ -403,6 +405,9 @@ def parse_options():  # noqa:WPS213
         type=int,
         default=1,
     )
+    parser.add_argument(
+        '--temp-dir',
+        help='Location to save temporary files')
     parser.add_argument(
         '-w',
         '--window',
@@ -433,7 +438,7 @@ def parse_options():  # noqa:WPS213
         '-v',
         '--variants',
         nargs='*',
-        default=['CT', 'AG'],
+        default=['all'],
         help='Which editing events to report. Edits should be two characters, '
         'separated by spaces. Use "all" to report all variants.',
     )

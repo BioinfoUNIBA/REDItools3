@@ -11,6 +11,7 @@ from reditools.compiled_reads import CompiledReads
 from reditools.fasta_file import RTFastaFile
 from reditools.logger import Logger
 from reditools.rtchecks import RTChecks
+from reditools.region_collection import RegionCollection
 
 
 class RTResult(object):
@@ -124,9 +125,8 @@ class REDItools(object):
 
         self._min_read_quality = 0
 
-        self._target_positions = False
-        self._exclude_positions = {}
-        self._splice_positions = []
+        self._target_regions = RegionCollection()
+        self._exclude_regions = RegionCollection()
         self._specific_edits = None
 
         self.reference = None
@@ -174,44 +174,25 @@ class REDItools(object):
         return True
 
     @property
-    def splice_positions(self):
-        """
-        Known splice sites.
-
-        Returns:
-            list
-        """
-        return self._splice_positions
-
-    @splice_positions.setter
-    def splice_positions(self, regions):
-        function = self._rtqc.check_splice_positions
-        if regions:
-            self._splice_positions = utils.enumerate_positions(regions)
-            self._rtqc.add(function)
-        else:
-            self._splice_positions = []
-            self._rtqc.discard(function)
-
-    @property
-    def target_positions(self):
+    def target_regions(self):
         """
         Only report results for these locations.
 
         Returns:
             list
         """
-        return self._target_positions
+        return self._target_regions
 
-    @target_positions.setter
-    def target_positions(self, regions):
-        function = self._rtqc.check_target_positions
+    def add_target_regions(self, regions):
+        """
+        Only report results for these locations.
+
+        Parameters:
+            regions (iterable): List of Region objects.
+        """
         if regions:
-            self._target_positions = utils.enumerate_positions(regions)
-            self._rtqc.add(function)
-        else:
-            self._target_positions = False
-            self._rtqc.discard(function)
+            self._target_regions.add_regions(regions)
+            self._rtqc.add(self._rtqc.check_target_positions)
 
     @property
     def log_level(self):
@@ -291,14 +272,20 @@ class REDItools(object):
             self._rtqc.discard(function)
 
     @property
-    def exclude_positions(self):
-        """
-        Genomic positions NOT to include in output.
+    def exclude_regions(self):
+        """Regions to exclude from analysis"""
+        return self._exclude_regions
 
-        Returns:
-            Dictionary of contigs to positions
+    def add_exclude_regions(self, regions):
         """
-        return self._exclude_positions
+        Regions to exclude from analysis
+
+        Parameters:
+            regions (iterable): List of Region objects.
+        """
+        if regions:
+            self._exclude_regions.add_regions(regions)
+            self._rtqc.add(self._rtqc.check_exclusions)
 
     @property
     def max_alts(self):
@@ -323,10 +310,10 @@ class REDItools(object):
         """
         for region in regions:
             contig = region.contig
-            old_pos = self._exclude_positions.get(contig, set())
-            self._exclude_positions[contig] = old_pos | region.enumerate()
-        function = self._rtqc.check_exclusion
-        if self._exclude_positions:
+            old_pos = self._exclude_regions.get(contig, set())
+            self._exclude_regions[contig] = old_pos | region.enumerate()
+        function = self._rtqc.check_exclusions
+        if self._exclude_regions:
             self._rtqc.add(function)
         else:
             self._rtqc.discard(function)
@@ -396,7 +383,9 @@ class REDItools(object):
             if column is None:
                 self.log(Logger.debug_level, 'Bad column - skipping')
                 continue
-            if self._specific_edits and not self._specific_edits & set(column.variants):
+
+            if self._specific_edits and \
+                    not self._specific_edits & set(column.variants):
                 self.log(
                     Logger.debug_level,
                     'Requested edits not found - skipping',

@@ -21,5 +21,6 @@ reditools/index.py
 reditools/logger.py
 reditools/reditools.py
 reditools/region.py
+reditools/region_collection.py
 reditools/rtchecks.py
 reditools/utils.py

@@ -1,8 +1,9 @@
 Metadata-Version: 2.4
 Name: REDItools3
-Version: 3.4
+Version: 3.5
 Author: Ernesto Picardi
 Author-email: Adam Handen <adam.handen@gmail.com>
+License-Expression: GPL-3.0-or-later
 Project-URL: homepage, https://github.com/BioinfoUNIBA/REDItools3
 Project-URL: repository, https://github.com/BioinfoUNIBA/REDItools3
 Project-URL: issues, https://github.com/BioinfoUNIBA/REDItools3/issues
@@ -10,7 +11,6 @@ Keywords: bioinformatics,RNA,RNA-editing
 Classifier: Development Status :: 5 - Production/Stable
 Classifier: Intended Audience :: Developers
 Classifier: Intended Audience :: Science/Research
-Classifier: License :: OSI Approved :: GNU General Public License (GPL)
 Classifier: Operating System :: MacOS :: MacOS X
 Classifier: Operating System :: Unix
 Classifier: Programming Language :: Python :: 3.7
