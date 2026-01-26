@@ -73,3 +73,8 @@ Compute RNA editing index from reditools `analyze` output
 ([PMDI: 31636457](https://pubmed.ncbi.nlm.nih.gov/31636457/)).
 The `index` tool computes the editing indices for all possible variants, not
 just A-to-I (listed as A-G in the output).
+
+# Citing and Credit
+Please cite the following papers when using REDItools3
+1. Fonzino A, Mazzacuva PL, Handen A, Silvestris DA, Arnold A, Pecori R, Pesole G, Picardi E. REDInet: a temporal convolutional network-based classifier for A-to-I RNA editing detection harnessing million known events. Brief Bioinform. 2025 Mar 4;26(2):bbaf107. doi: 10.1093/bib/bbaf107. PMID: 40112338; PMCID: PMC11924403.
+2. Picardi E, Pesole G. REDItools: high-throughput RNA editing detection made easy. Bioinformatics. 2013 Jul 15;29(14):1813-4. doi: 10.1093/bioinformatics/btt287. Epub 2013 Jun 5. PMID: 23742983.

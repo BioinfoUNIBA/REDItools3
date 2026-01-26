@@ -383,6 +383,7 @@ class REDItools(object):
             if column is None:
                 self.log(Logger.debug_level, 'Bad column - skipping')
                 continue
+
             if self._specific_edits and \
                     not self._specific_edits & set(column.variants):
                 self.log(

@@ -85,6 +85,9 @@ def setup_rtools(options):  # noqa:WPS213,WPS231
     if options.variants:
         rtools.specific_edits = [_.upper() for _ in options.variants]
 
+    if options.variants:
+        rtools.specific_edits = [_.upper() for _ in options.variants]
+
     if options.bed_file:
         for fname in options.bed_file:
             regions = file_utils.read_bed_file(fname)
