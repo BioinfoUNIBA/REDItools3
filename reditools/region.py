@@ -62,7 +62,7 @@ class Region(object):
         Raises:
             IndexError: The region is missing a start or stop
         """
-        if not self.stop or not self.start:
+        if self.stop is None or self.start is None:
             raise IndexError('Can only split a region with a start and stop.')
         length = self.stop - self.start
         sub_regions = []
