@@ -154,7 +154,7 @@ class Index(object):
             if denominator == 0:
                 indices[idx] = 0
             else:
-                indices[idx] = numerator / denominator
+                indices[idx] = 100 * numerator / denominator
         return indices
 
     def ref_edit(self, ref):
@@ -192,16 +192,6 @@ def parse_options():  # noqa:WPS213
         '--output-file',
         default='/dev/stdout',
         help='The output statistics file',
-    )
-    parser.add_argument(
-        '-s',
-        '--strand',
-        choices=(0, 1, 2),
-        type=int,
-        default=0,
-        help='Strand: this can be 0 (unstranded),' +
-        '1 (secondstrand oriented) or ' +
-        '2 (firststrand oriented)',
     )
     parser.add_argument(
         '-g',
