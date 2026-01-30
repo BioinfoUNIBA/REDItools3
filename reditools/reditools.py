@@ -377,11 +377,13 @@ class REDItools(object):
                 reads = next(read_iter, None)
             # Process edits
             bases = nucleotides.pop(position)
+            if bases is not None and self._use_strand_correction:
+                strand = bases.get_strand(threshold=self.strand_confidence_threshold)
+                bases.filter_by_strand(strand)
             if not self._rtqc.check(self, bases):
                 continue
             column = self._get_column(position, bases, region)
             if column is None:
-                self.log(Logger.debug_level, 'Bad column - skipping')
                 continue
 
             if self._specific_edits and \
@@ -425,18 +427,17 @@ class REDItools(object):
         past_stop = position + 1 >= (region.stop or 0)
         before_start = position + 1 < region.start
         if before_start or past_stop:
+            self.log(
+                Logger.debug_level,
+                'DISCARDING COLUMN: outside query region {} < {} > {}',
+                region.start,
+                position,
+                region.stop,
+            )
             return None
         strand = bases.get_strand(threshold=self.strand_confidence_threshold)
-        if self._use_strand_correction:
-            bases.filter_by_strand(strand)
-            if not bases:
-                self.log(Logger.debug_level, 'Column has no bases')
-                return None
         if strand == '-':
             bases.complement()
-
-        if bases is None:
-            return None
 
         return RTResult(bases, strand, region.contig, position)
 
