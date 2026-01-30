@@ -218,9 +218,9 @@ def main():
     """Perform RNA editing analysis."""
     options = parse_options()
     if options.region:
-        indexer = Index(Region(string=options.region), strand=options.strand)
+        indexer = Index(Region(string=options.region))
     else:
-        indexer = Index(strand=options.strand)
+        indexer = Index()
 
     if options.exclude_regions:
         for exc_fname in options.exclude_regions:
