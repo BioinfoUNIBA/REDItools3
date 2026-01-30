@@ -430,6 +430,7 @@ class REDItools(object):
         if self._use_strand_correction:
             bases.filter_by_strand(strand)
             if not bases:
+                self.log(Logger.debug_level, 'Column has no bases')
                 return None
         if strand == '-':
             bases.complement()

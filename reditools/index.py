@@ -8,6 +8,7 @@ from json import loads as load_json
 
 from reditools.file_utils import open_stream, read_bed_file
 from reditools.region import Region
+from reditools.region_collection import RegionCollection
 
 _ref = 'Reference'
 _position = 'Position'
@@ -29,8 +30,8 @@ class Index(object):
             region (Region): Limit results to the given genomic region
             strand (int): Either 0, 1, or 2 for unstranded, reverse, or forward
         """
-        self.targets = {}
-        self.exclusions = {}
+        self.targets = False
+        self.exclusions = False
         self.counts = {'-'.join(_): 0 for _ in permutations(_nucs, 2)}
         self.region = region
         self.strand = ['*', '-', '+'][strand]
@@ -42,11 +43,9 @@ class Index(object):
         Parameters:
             fname (str): Path to BED formatted file.
         """
-        for region in read_bed_file(fname):
-            self.targets[region.contig] = update_region_dict(
-                self.targets,
-                region,
-            )
+        if not self.targets:
+            self.targets = RegionCollection()
+        self.targets.add_regions(read_bed_file(fname))
 
     def add_exclusions_from_bed(self, fname):
         """
@@ -55,11 +54,9 @@ class Index(object):
         Parameters:
             fname (str): Path to BED formatted file.
         """
-        for region in read_bed_file(fname):
-            self.exclusions[region.contig] = update_region_dict(
-                self.exclusions,
-                region,
-            )
+        if not self.exclusions:
+            self.exclusions = RegionCollection()
+        self.exclusions.add_regions(read_bed_file(fname))
 
     def in_region_list(self, region_list, contig, position):
         """
@@ -87,7 +84,7 @@ class Index(object):
             True if there are no targets or the position is in the target
             list; else False
         """
-        return not self.targets or self.in_region_list(self.targets)
+        return not self.targets or self.targets.contains(contig, position)
 
     def in_exclusions(self, contig, position):
         """
@@ -120,7 +117,7 @@ class Index(object):
                 return True
         if self.in_exclusions(row[_contig], row[_position]):
             return True
-        return not self.in_targets(row[_contig], row[_position])
+        return not self.in_targets(row[_contig], int(row[_position]))
 
     def add_rt_output(self, fname):
         """
@@ -157,7 +154,7 @@ class Index(object):
             if denominator == 0:
                 indices[idx] = 0
             else:
-                indices[idx] = numerator / denominator
+                indices[idx] = 100 * numerator / denominator
         return indices
 
     def ref_edit(self, ref):
@@ -195,16 +192,6 @@ def parse_options():  # noqa:WPS213
         '--output-file',
         default='/dev/stdout',
         help='The output statistics file',
-    )
-    parser.add_argument(
-        '-s',
-        '--strand',
-        choices=(0, 1, 2),
-        type=int,
-        default=0,
-        help='Strand: this can be 0 (unstranded),' +
-        '1 (secondstrand oriented) or ' +
-        '2 (firststrand oriented)',
     )
     parser.add_argument(
         '-g',
