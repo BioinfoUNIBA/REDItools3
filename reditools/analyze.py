@@ -478,7 +478,7 @@ def main():
     log.log(
         Logger.info_level,
         "Summary of command line parameters: {}",
-       ", ".join([f"{_}:{getattr(options, _)}" for _ in vars(options)]), 
+        ", ".join([f"{_}:{getattr(options, _)}" for _ in vars(options)]),
     )
 
     options.output_format = {'delimiter': '\t', 'lineterminator': '\n'}
@@ -487,7 +487,6 @@ def main():
         options.exclude_reads = file_utils.load_text_file(
             options.exclude_reads,
         )
-
 
     # Put analysis chunks into queue
     regions = region_args(
