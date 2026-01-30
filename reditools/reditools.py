@@ -426,12 +426,14 @@ class REDItools(object):
         if self._use_strand_correction:
             bases.filter_by_strand(strand)
             if not bases:
+                self.log(Logger.debug_level, 'Column has no bases')
                 return None
         if strand == '-':
             bases.complement()
 
-        past_stop = position + 1 >= (region.stop or 0)
+        past_stop = region.stop is not None and position + 1 >= region.stop
         if past_stop or bases is None:
+            self.log(Logger.debug_level, 'Position outside defined region')
             return None
 
         return RTResult(bases, strand, region.contig, position)
