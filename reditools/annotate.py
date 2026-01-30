@@ -9,6 +9,7 @@ class RTAnnotater:
         self.rna_file = rna_file
         self.dna_file = dna_file
         self.contig_order = self._load_contig_order()
+        self._dna_coverage_key = 'Coverage'
 
     def _load_contig_order(self):
         contigs = {}
@@ -41,12 +42,16 @@ class RTAnnotater:
         return 0
 
     def _annotate_row(self, rna_row, dna_row):
-        rna_row['gCoverage-q30'] = dna_row['Coverage-q30']
+        rna_row['gCoverage'] = dna_row[self._dna_coverage_key]
         rna_row['gMeanQ'] = dna_row['MeanQ']
         rna_row['gBaseCount[A,C,G,T]'] = dna_row['BaseCount[A,C,G,T]']
         rna_row['gAllSubs'] = dna_row['AllSubs']
         rna_row['gFrequency'] = dna_row['Frequency']
         return rna_row
+
+    def _legacy_translate(self, row, old_key, new_key):
+        row[new_key] = row.pop(old_key, row.get(new_key))
+        return row
 
     def _compare_files(self):
         with file_utils.open_stream(self.rna_file, 'r') as rna_stream, \
@@ -54,10 +59,15 @@ class RTAnnotater:
             rna_reader = csv.DictReader(rna_stream, delimiter='\t')
             dna_reader = csv.DictReader(dna_stream, delimiter='\t')
 
+            if 'Coverage-q30' in dna_reader.fieldnames:
+                self._dna_coverage_key = 'Coverage-q30'
+
             rna_entry = next(rna_reader, None)
             dna_entry = next(dna_reader, None)
 
             while rna_entry is not None:
+                self._legacy_translate(rna_entry, 'Coverage-q30', 'Coverage')
+                self._legacy_translate(rna_entry, 'gCoverage-q30', 'gCoverage')
                 if dna_entry is None:
                     yield rna_entry
                     rna_entry = next(rna_reader, None)
@@ -83,12 +93,12 @@ class RTAnnotater:
             'Position',
             'Reference',
             'Strand',
-            'Coverage-q30',
+            'Coverage',
             'MeanQ',
             'BaseCount[A,C,G,T]',
             'AllSubs',
             'Frequency',
-            'gCoverage-q30',
+            'gCoverage',
             'gMeanQ',
             'gBaseCount[A,C,G,T]',
             'gAllSubs',

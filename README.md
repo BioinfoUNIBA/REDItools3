@@ -24,12 +24,12 @@ The output is a tab separated table with these columns:
 | Position      | Position in the region |
 | Reference     | Base from the reference sequence |
 | Strand        | DNA strand (+, -, or \*) |
-| Coverage-q30  | How many reads had a quality of at least 30 |
+| Coverage      | How many reads passed quality thresholds |
 | MeanQ         | Mean read quality |
 | BaseCount[A,C,G,T] | Total count of each base found |
 | AllSubs       | All the detected substitutions |
 | Frequency     | Ratio of non-reference bases to reference bases |
-| gCoverage-q30 | Genomic Coverage-q30 (see `annotate`) |
+| gCoverage     | Genomic Coverage (see `annotate`) |
 | gMeanQ        | Genomic MeanQ (see `annotate`) |
 | gBaseCount[A,C,G,T] | Genomic BaseCount (see `annotate`) |
 | gAllSubs      | Genomic variants (see `annotate`) |
@@ -46,21 +46,21 @@ of the first file with positional matches from the second.
 
 For example, this RNA file:
 ```
-Region	Position	Reference	Strand	Coverage-q30	MeanQ	BaseCount[A,C,G,T]	AllSubs	Frequency	gCoverage-q30	gMeanQ	gBaseCount[A,C,G,T]	gAllSubs	gFrequency
+Region	Position	Reference	Strand	Coverage	MeanQ	BaseCount[A,C,G,T]	AllSubs	Frequency	gCoverage	gMeanQ	gBaseCount[A,C,G,T]	gAllSubs	gFrequency
 chr1	1115715	C	*	2	38.00	[0, 2, 0, 0]	-	0.00	-	-	-	-	-
 chr1	1115716	A	*	2	38.00	[2, 0, 0, 0]	-	0.00	-	-	-	-	-
 ```
 
 With this DNA file:
 ```
-Region	Position	Reference	Strand	Coverage-q30	MeanQ	BaseCount[A,C,G,T]	AllSubs	Frequency	gCoverage-q30	gMeanQ	gBaseCount[A,C,G,T]	gAllSubs	gFrequency
+Region	Position	Reference	Strand	Coverage	MeanQ	BaseCount[A,C,G,T]	AllSubs	Frequency	gCoverage	gMeanQ	gBaseCount[A,C,G,T]	gAllSubs	gFrequency
 chr1	1115716	A	*	2	38.00	[2, 0, 0, 0]	-	0.00	-	-	-	-	-
 chr1	1115717	C	*	2	38.00	[0, 2, 0, 0]	-	0.00	-	-	-	-	-
 ```
 
 Produces:
 ```
-Region	Position	Reference	Strand	Coverage-q30	MeanQ	BaseCount[A,C,G,T]	AllSubs	Frequency	gCoverage-q30	gMeanQ	gBaseCount[A,C,G,T]	gAllSubs	gFrequency
+Region	Position	Reference	Strand	Coverage	MeanQ	BaseCount[A,C,G,T]	AllSubs	Frequency	gCoverage	gMeanQ	gBaseCount[A,C,G,T]	gAllSubs	gFrequency
 chr1	1115715	C	*	2	38.00	[0, 2, 0, 0]	-	0.00	-	-	-	-	-
 chr1    1115716 A       *       2       38.00   [2, 0, 0, 0]    -       0.00    2       38.00   [2, 0, 0, 0]    -       0.00
 ```
