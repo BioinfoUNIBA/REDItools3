@@ -422,6 +422,10 @@ class REDItools(object):
         self.reference = RTFastaFile(reference_fname)
 
     def _get_column(self, position, bases, region):
+        past_stop = position + 1 >= (region.stop or 0)
+        before_start = position + 1 < region.start
+        if before_start or past_stop:
+            return None
         strand = bases.get_strand(threshold=self.strand_confidence_threshold)
         if self._use_strand_correction:
             bases.filter_by_strand(strand)
@@ -431,9 +435,7 @@ class REDItools(object):
         if strand == '-':
             bases.complement()
 
-        past_stop = region.stop is not None and position + 1 >= region.stop
-        if past_stop or bases is None:
-            self.log(Logger.debug_level, 'Position outside defined region')
+        if bases is None:
             return None
 
         return RTResult(bases, strand, region.contig, position)
