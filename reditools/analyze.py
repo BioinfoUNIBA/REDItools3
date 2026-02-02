@@ -22,12 +22,12 @@ fieldnames = [
     'Position',
     'Reference',
     'Strand',
-    'Coverage-q30',
+    'Coverage',
     'MeanQ',
     'BaseCount[A,C,G,T]',
     'AllSubs',
     'Frequency',
-    'gCoverage-q30',
+    'gCoverage',
     'gMeanQ',
     'gBaseCount[A,C,G,T]',
     'gAllSubs',
@@ -467,6 +467,20 @@ def check_dead(processes):
 def main():
     """Perform RNA editing analysis."""
     options = parse_options()
+
+    if options.debug:
+        log = Logger(Logger.debug_level)
+    elif options.verbose:
+        log = Logger(Logger.info_level)
+    else:
+        log = Logger(Logger.silent_level)
+    log.log(Logger.info_level, "Starting REDItools")
+    log.log(
+        Logger.info_level,
+        "Summary of command line parameters: {}",
+        ", ".join([f"{_}:{getattr(options, _)}" for _ in vars(options)]),
+    )
+
     options.output_format = {'delimiter': '\t', 'lineterminator': '\n'}
     options.encoding = 'utf-8'
     if options.exclude_reads:
@@ -495,10 +509,15 @@ def main():
             args=(options, in_queue, out_queue),
         ) for _ in range(options.threads)
     ]
+    log.log(
+        Logger.info_level,
+        "All processes complete. Concatenating temporary files.",
+    )
     concat_output(
         options,
         monitor(processes, out_queue, in_queue.qsize()),
     )
+    log.log(Logger.info_level, "Analysis Complete!")
 
 
 def monitor(processes, out_queue, chunks):
