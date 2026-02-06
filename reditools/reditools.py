@@ -429,8 +429,8 @@ class REDItools(object):
         self.reference = FastaFile(reference_fname)
 
     def _get_column(self, position, bases, region):
-        past_stop = position + 1 >= (region.stop or 0)
-        before_start = position + 1 < region.start
+        past_stop = position >= (region.stop or 0)
+        before_start = position < region.start
         if before_start or past_stop:
             self.log(
                 Logger.debug_level,

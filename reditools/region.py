@@ -12,11 +12,12 @@ class Region(object):
 
         Parameters:
             **kwargs (dict):
-                string (str): String representation of a region
+                string (str): String representation of a region in
+                              samtools-compatible notation
                 OR
                 contig (str): Contig name
-                start (int): Genomic start
-                stop (int): Genomic stop
+                start (int): Genomic start (zero index, inclusive)
+                stop (int): Genomic stop (zero index, exclusive)
 
         Raises:
             ValueError: The contig is missing
@@ -24,17 +25,14 @@ class Region(object):
         if 'string' in kwargs:
             region = self._parse_string(kwargs['string'])  # noqa:WPS529
             self.contig = region[0]
-            self.start = region[1]
-            self.stop = region[2]
+            self.start = region[1] - 1
+            self.stop = region[2] - 1
         else:
             if 'contig' not in kwargs:
                 raise ValueError('Region constructor requires a contig.')
             self.contig = kwargs['contig']
-            self.start = self._to_int(kwargs.get('start', 1)) - 1
-            if 'stop' in kwargs:
-                self.stop = self._to_int(kwargs['stop']) - 1
-            else:
-                self.stop = None
+            self.start = self._to_int(kwargs.get('start', 0))
+            self.stop = self._to_int(kwargs.get('stop', None))
 
     def __str__(self):
         """
@@ -43,10 +41,10 @@ class Region(object):
         Returns:
             (str): contig:start-stop
         """
-        if self.start > 0:
-            if self.stop:
-                return f'{self.contig}:{self.start}-{self.stop + 1}'
-            return f'{self.contig}:{self.start}'
+        if self.start >= 0:
+            if self.stop is not None:
+                return f'{self.contig}:{self.start + 1}-{self.stop + 1}'
+            return f'{self.contig}:{self.start + 1}'
         return self.contig
 
     def split(self, window):
@@ -69,10 +67,9 @@ class Region(object):
         for offset in range(0, length + 1, window):
             sub_regions.append(Region(
                 contig=self.contig,
-                start=self.start + offset - 1,
+                start=self.start + offset,
                 stop=min(self.start + offset + window, self.stop),
             ))
-        print([str(x) for x in sub_regions])
         return sub_regions
 
     def enumerate(self):
