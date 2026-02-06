@@ -24,9 +24,7 @@ class Region(object):
         """
         if 'string' in kwargs:
             region = self._parse_string(kwargs['string'])  # noqa:WPS529
-            self.contig = region[0]
-            self.start = region[1] - 1
-            self.stop = region[2] - 1
+            self.contig, self.start, self.stop = region
         else:
             if 'contig' not in kwargs:
                 raise ValueError('Region constructor requires a contig.')
@@ -103,7 +101,7 @@ class Region(object):
             return None
         region = re.split('[:-]', region_str)
         if not region:
-            return None
+            return [None, None, None]
         contig = region[0]
         start = 0
         stop = None
@@ -111,9 +109,9 @@ class Region(object):
         if len(region) > 3:
             raise ValueError(f'Unrecognized format: {region_str}.')
         if len(region) > 1:
-            start = self._to_int(region[1])
+            start = self._to_int(region[1]) - 1
             if len(region) == 3:
-                stop = self._to_int(region[2])
+                stop = self._to_int(region[2]) - 1
         return (contig, start, stop)
 
     def _to_int(self, number):
