@@ -69,15 +69,10 @@ class Region(object):
         for offset in range(0, length + 1, window):
             sub_regions.append(Region(
                 contig=self.contig,
-                start=self.start + offset,
-                stop=self.start + offset + window,
+                start=self.start + offset - 1,
+                stop=min(self.start + offset + window, self.stop),
             ))
-        if self.start < length:
-            sub_regions.append(Region(
-                contig=self.contig,
-                start=sub_regions[-1].stop,
-                stop=self.stop,
-            ))
+        print([str(x) for x in sub_regions])
         return sub_regions
 
     def enumerate(self):

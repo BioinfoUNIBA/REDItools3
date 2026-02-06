@@ -8,7 +8,7 @@ Authors:
 
 from reditools import utils
 from reditools.compiled_reads import CompiledReads
-from reditools.fasta_file import RTFastaFile
+from pysam import FastaFile
 from reditools.logger import Logger
 from reditools.rtchecks import RTChecks
 from reditools.region_collection import RegionCollection
@@ -348,7 +348,12 @@ class REDItools(object):
             self.min_base_quality,
         )
         if self.reference:
-            nucleotides.add_reference(self.reference.fetch(reference=region.contig, start=region.start, end=region.stop), region.start)
+            nucleotides.add_reference(
+                self.reference.fetch(
+                    reference=region.contig,
+                    start=region.start,
+                    end=region.stop),
+                region.start)
         total = 0
         while reads is not None or not nucleotides.is_empty():
             if nucleotides.is_empty():
@@ -421,7 +426,7 @@ class REDItools(object):
         Parameters:
             reference_fname (str): File path to FASTA reference
         """
-        self.reference = RTFastaFile(reference_fname)
+        self.reference = FastaFile(reference_fname)
 
     def _get_column(self, position, bases, region):
         past_stop = position + 1 >= (region.stop or 0)

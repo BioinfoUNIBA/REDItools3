@@ -48,7 +48,7 @@ class CompiledReads(object):
         Add a reference FASTA file to use.
 
         Parameters:
-            ref (RTFastaFile): Reference sequence
+            refseq (string): Reference sequence
             offset (int): Genomic offset
         """
         self._ref_seq = refseq
@@ -110,9 +110,10 @@ class CompiledReads(object):
     def _get_ref_from_fasta(self, read):
         pairs = read.get_aligned_pairs(matches_only=True)
         for _, pos in pairs:
-            try:
-                yield self._ref_seq[pos - self._ref_offset]
-            except IndexError:
+            idx = pos - self._ref_offset
+            if 0 <= idx < len(self._ref_seq):
+                yield self._ref_seq[idx]
+            else:
                 yield "N"
 
     def _qc_base_position(self, read, position):
