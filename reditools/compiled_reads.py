@@ -34,8 +34,8 @@ class CompiledReads(object):
         else:
             self.get_strand = self._get_strand_two
 
-        self._ref = None
-        self._ref_seq = self._get_ref_from_read
+        self._ref_seq = None
+        self._get_ref = self._get_ref_from_read
 
         self._qc = {
             'min_base_quality': min_base_quality,
@@ -43,15 +43,17 @@ class CompiledReads(object):
             'max_base_position': max_base_position,
         }
 
-    def add_reference(self, ref):
+    def add_reference(self, refseq, offset):
         """
         Add a reference FASTA file to use.
 
         Parameters:
-            ref (RTFastaFile): Reference sequence
+            refseq (string): Reference sequence
+            offset (int): Genomic offset
         """
-        self._ref = ref
-        self._ref_seq = self._get_ref_from_fasta
+        self._ref_seq = refseq
+        self._ref_offset = offset
+        self._get_ref = self._get_ref_from_fasta
 
     def add_reads(self, reads):
         """
@@ -100,15 +102,19 @@ class CompiledReads(object):
         return not self._nucleotides
 
     def _get_ref_from_read(self, read):
-        return [_[2].upper() for _ in read.get_aligned_pairs(
+        return (_[2].upper() for _ in read.get_aligned_pairs(
             with_seq=True,
             matches_only=True,
-        )]
+        ))
 
     def _get_ref_from_fasta(self, read):
         pairs = read.get_aligned_pairs(matches_only=True)
-        indices = [ref for _, ref in pairs]
-        return self._ref.get_base(read.reference_name, *indices)
+        for _, pos in pairs:
+            idx = pos - self._ref_offset
+            if 0 <= idx < len(self._ref_seq):
+                yield self._ref_seq[idx]
+            else:
+                yield "N"
 
     def _qc_base_position(self, read, position):
         return read.query_length - position >= self._qc['max_base_position']
@@ -117,16 +123,16 @@ class CompiledReads(object):
         pairs = read.get_aligned_pairs(matches_only=True)
         seq = read.query_sequence.upper()
         qualities = read.query_qualities
-        ref_seq = self._ref_seq(read)
+        ref_gen = self._get_ref(read)
         while pairs and pairs[0][0] < self._qc['min_base_position']:
             pairs.pop(0)
-            ref_seq.pop(0)
+            next(ref_gen)
         if not pairs:
             return
 
         while pairs and self._qc_base_position(read, pairs[0][0]):
             offset, ref_pos = pairs.pop(0)
-            ref_base = ref_seq.pop(0)
+            ref_base = next(ref_gen)
             if ref_base != 'N' != seq[offset]:
                 if qualities[offset] >= self._qc['min_base_quality']:
                     yield (ref_pos, seq[offset], qualities[offset], ref_base)
