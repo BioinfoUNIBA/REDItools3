@@ -348,7 +348,7 @@ class REDItools(object):
             self.min_base_quality,
         )
         if self.reference:
-            nucleotides.add_reference(self.reference)
+            nucleotides.add_reference(self.reference.fetch(reference=region.contig, start=region.start, end=region.stop), region.start)
         total = 0
         while reads is not None or not nucleotides.is_empty():
             if nucleotides.is_empty():
