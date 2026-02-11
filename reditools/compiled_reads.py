@@ -100,10 +100,10 @@ class CompiledReads(object):
         return not self._nucleotides
 
     def _get_ref_from_read(self, read):
-        return [_[2].upper() for _ in read.get_aligned_pairs(
+        return (_[2].upper() for _ in read.get_aligned_pairs(
             with_seq=True,
             matches_only=True,
-        )]
+        ))
 
     def _get_ref_from_fasta(self, read):
         pairs = read.get_aligned_pairs(matches_only=True)
@@ -120,13 +120,13 @@ class CompiledReads(object):
         ref_seq = self._ref_seq(read)
         while pairs and pairs[0][0] < self._qc['min_base_position']:
             pairs.pop(0)
-            ref_seq.pop(0)
+            next(ref_seq)
         if not pairs:
             return
 
         while pairs and self._qc_base_position(read, pairs[0][0]):
             offset, ref_pos = pairs.pop(0)
-            ref_base = ref_seq.pop(0)
+            ref_base = next(ref_seq)
             if ref_base != 'N' != seq[offset]:
                 if qualities[offset] >= self._qc['min_base_quality']:
                     yield (ref_pos, seq[offset], qualities[offset], ref_base)

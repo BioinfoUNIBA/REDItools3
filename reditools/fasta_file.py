@@ -49,7 +49,7 @@ class RTFastaFile(PysamFastaFile):
         if contig != self._contig_name:
             self._update_contig_cache(contig)
         try:
-            return [self._contig_cache[idx] for idx in position]
+            return (self._contig_cache[idx] for idx in position)
         except IndexError as exc:
             raise IndexError(
                 f'Base position {position} is outside the bounds of ' +
