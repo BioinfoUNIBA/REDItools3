@@ -32,6 +32,16 @@ class RTResult(object):
         self.bases = bases
         self.strand = strand
         self._variants = bases.get_variants()
+        self._genomic_bases = None
+
+    @property
+    def genomic_bases(self):
+        return self._genomic_bases
+
+    @genomic_bases.setter
+    def genomic_bases(self, genomic_bases):
+        self._genomic_bases = genomic_bases
+        self._genomic_variants = genomic_bases.get_variants()
 
     @property
     def variants(self):
@@ -43,6 +53,13 @@ class RTResult(object):
         """
         ref = self.bases.ref
         return [f'{ref}{base}' for base in self._variants]
+
+    @property
+    def genomic_variants(self):
+        if self._genomic_bases is None:
+            return []
+        ref = self._genomic_bases.ref
+        return [f'{ref}{base}' for base in self._genomic_variants]
 
     @property
     def mean_quality(self):
@@ -57,6 +74,12 @@ class RTResult(object):
         return 0
 
     @property
+    def mean_genomic_quality(self):
+        if self.genomic_bases:
+            return sum(self.genomic_bases.qualities) / len(self.bases)
+        return None
+
+    @property
     def edit_ratio(self):
         """
         Edit ratio.
@@ -69,6 +92,16 @@ class RTResult(object):
         else:
             max_edits = 0
         return max_edits / (max_edits + self.bases['REF'])
+
+    @property
+    def genomic_variant_ratio(self):
+        if self.genomic_bases is None:
+            return None
+        if self._genomic_variants:
+            max_edits = max(self.genomic_bases[base] for base in self._genomic_variants)
+            return max_edits / (max_edits + self._genomic_bases['REF'])
+        else:
+            return 0
 
     @property
     def reference(self):
@@ -91,6 +124,10 @@ class RTResult(object):
         return len(self.bases)
 
     @property
+    def genomic_depth(self):
+        return len(self.genomic_bases)
+
+    @property
     def per_base_depth(self):
         """
         How many reads had each base for this position.
@@ -99,6 +136,12 @@ class RTResult(object):
             list
         """
         return list(iter(self.bases))
+
+    @property
+    def genomic_per_base_depth(self):
+        if self.genomic_bases is None:
+            return None
+        return list(iter(self.genomic_bases))
 
 
 class REDItools(object):
@@ -119,7 +162,7 @@ class REDItools(object):
 
         self.min_base_quality = 30
         self.min_base_position = 0
-        self.max_base_position = float('inf')
+        self.max_base_position = 0
 
         self._rtqc = RTChecks()
 
@@ -467,3 +510,79 @@ class REDItoolsDNA(REDItools):
             ValueError: You cannot call this method for DNA analyses.
         """
         raise ValueError('Cannot set strand value if DNA is True')
+
+class REDItoolsCombo(REDItools):
+    """
+    Analyzes DNA and RNA together.
+    """
+
+    def __init__(self):
+        #self._dna_tools = REDItoolsDNA()
+        self._dna_tools = REDItoolsDNA()
+        self._dna_tools.min_column_length = 0
+        self._dna_tools.min_edits = 0
+        self._dna_tools.min_edits_per_nucleotide = 0
+        self._dna_tools.max_alts = 4
+        #self._dna_tools.log_level = Logger.debug_level
+        self._dna_tools.debug = True
+        REDItools.__init__(self)
+
+    @property
+    def genomic_max_base_position(self):
+        return self._dna_tools.max_base_position
+
+    @genomic_max_base_position.setter
+    def genomic_max_base_position(self, value):
+        self._dna_tools.max_base_position = value
+
+    @property
+    def genomic_min_base_quality(self):
+        return self._dna_tools.min_base_quality
+
+    @genomic_min_base_quality.setter
+    def genomic_min_base_quality(self, value):
+        self._dna_tools.min_base_quality = value
+
+    @property
+    def genomic_min_column_length(self):
+        return self_dna_tools.min_column_length
+
+    @genomic_min_column_length.setter
+    def genomic_min_column_length(self, value):
+        self._dna_tools.min_column_length = value
+
+    @property
+    def genomic_min_edits(self):
+        return self._dna_tools.min_edits
+
+    @genomic_min_edits.setter
+    def genomic_min_edits(self, value):
+        self._dna_tools.min_edits = value
+
+    @property
+    def genomic_min_edits_per_nucleotide(self):
+        return self._dna_tools.min_edits_per_nucleotide
+
+    @genomic_min_edits_per_nucleotide.setter
+    def genomic_min_edits_per_nucleotide(self, value):
+        self._dna_tools.min_edits_per_nucleotide = value
+
+    @property
+    def genomic_max_alts(self):
+        return self._dna_tools.max_editing_nucleotides
+
+    @genomic_max_alts.setter
+    def genomic_max_alts(self, value):
+        self._dna_tools.max_editing_nucleotides = value
+
+    def analyze(self, rna_alignment_manager, dna_alignment_manager, region=None):  # noqa:WPS231,WPS213
+        rna_results = REDItools.analyze(self, rna_alignment_manager, region)
+        dna_results = self._dna_tools.analyze(dna_alignment_manager, region)
+
+        dna = next(dna_results, None)
+        for result in rna_results:
+            while dna is not None and dna.position < result.position:
+                dna = next(dna_results, None)
+            if dna is not None:
+                result.genomic_bases = dna.bases
+            yield result 
