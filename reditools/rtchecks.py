@@ -177,48 +177,6 @@ class RTChecks(object):
             return False
         return True
 
-    def check_target_positions(self, bases, rtools):
-        """
-        Check if the bases object is in a target region.
-
-        Parameters:
-            bases (CompiledPosition): Data for analysis
-            rtools (REDItools): Object running the analysis
-
-        Returns:
-            (bool): True if the position is in a target region
-        """
-        in_targets = rtools.target_regions.contains(
-            bases.contig,
-            bases.position,
-        )
-        if not in_targets:
-            rtools.log(
-                Logger.debug_level,
-                'DISCARD COLUMN not in target regions',
-            )
-        return in_targets
-
-    def check_exclusions(self, bases, rtools):
-        """
-        Check if the bases object is in an excluded position.
-
-        Parameters:
-            bases (CompiledPosition): Data for analysis
-            rtools (REDItools): Object running the analysis
-
-        Returns:
-            (bool): True if the position is not excluded
-        """
-        in_exclusions = rtools.exclude_regions.contains(
-            bases.contig,
-            bases.position,
-        )
-        if in_exclusions:
-            rtools.log(Logger.debug_level, 'DISCARD COLUMN in excluded region')
-            return False
-        return True
-
     def check_max_alts(self, bases, rtools):
         """
         Check that there are no more than a max number of alts.

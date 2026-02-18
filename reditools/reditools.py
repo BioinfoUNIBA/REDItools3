@@ -11,8 +11,6 @@ from reditools.compiled_reads import CompiledReads
 from reditools.fasta_file import RTFastaFile
 from reditools.logger import Logger
 from reditools.rtchecks import RTChecks
-from reditools.region_collection import RegionCollection
-
 
 class RTResult(object):
     """RNA editing analysis for a single base position."""
@@ -125,8 +123,6 @@ class REDItools(object):
 
         self._min_read_quality = 0
 
-        self._target_regions = RegionCollection()
-        self._exclude_regions = RegionCollection()
         self._specific_edits = None
 
         self.reference = None
@@ -172,27 +168,6 @@ class REDItools(object):
         if alt[0] not in 'ATCG' and alt[1] not in 'ATCG':
             return False
         return True
-
-    @property
-    def target_regions(self):
-        """
-        Only report results for these locations.
-
-        Returns:
-            list
-        """
-        return self._target_regions
-
-    def add_target_regions(self, regions):
-        """
-        Only report results for these locations.
-
-        Parameters:
-            regions (iterable): List of Region objects.
-        """
-        if regions:
-            self._target_regions.add_regions(regions)
-            self._rtqc.add(self._rtqc.check_target_positions)
 
     @property
     def log_level(self):
@@ -272,22 +247,6 @@ class REDItools(object):
             self._rtqc.discard(function)
 
     @property
-    def exclude_regions(self):
-        """Regions to exclude from analysis"""
-        return self._exclude_regions
-
-    def add_exclude_regions(self, regions):
-        """
-        Regions to exclude from analysis
-
-        Parameters:
-            regions (iterable): List of Region objects.
-        """
-        if regions:
-            self._exclude_regions.add_regions(regions)
-            self._rtqc.add(self._rtqc.check_exclusions)
-
-    @property
     def max_alts(self):
         """Maximum number of alternative bases for a position."""
         return self._max_alts
@@ -297,23 +256,6 @@ class REDItools(object):
         self._max_alts = max_alts
         function = self._rtqc.check_max_alts
         if max_alts < 3:
-            self._rtqc.add(function)
-        else:
-            self._rtqc.discard(function)
-
-    def exclude(self, regions):
-        """
-        Explicitly skip specified genomic regions.
-
-        Parameters:
-            regions (list): Regions to skip
-        """
-        for region in regions:
-            contig = region.contig
-            old_pos = self._exclude_regions.get(contig, set())
-            self._exclude_regions[contig] = old_pos | region.enumerate()
-        function = self._rtqc.check_exclusions
-        if self._exclude_regions:
             self._rtqc.add(function)
         else:
             self._rtqc.discard(function)
