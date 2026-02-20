@@ -495,6 +495,7 @@ def main():
         window=options.window,
     )
 
+    # Check thread count
     if len(regions) < options.threads:
         log.log(
             Logger.warn_level,
@@ -503,6 +504,7 @@ def main():
             options.threads,
             len(regions),
         )
+        options.threads = len(regions)
 
     in_queue = Queue()
     for args in enumerate(regions):
