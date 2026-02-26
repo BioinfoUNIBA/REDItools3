@@ -375,7 +375,9 @@ def parse_options():  # noqa:WPS213
         '--strand-correction',
         default=False,
         help='Strand correction. Once the strand has been inferred, ' +
-        'only bases according to this strand will be selected.',
+        'only bases according to this strand will be selected. If ' +
+        'edits are detected on the reverse strand, the base complements ' +
+        'will be reported.',
         action='store_true',
     )
     parser.add_argument(
