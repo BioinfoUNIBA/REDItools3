@@ -380,6 +380,8 @@ class REDItools(object):
             if bases is not None and self._use_strand_correction:
                 strand = bases.get_strand(threshold=self.strand_confidence_threshold)
                 bases.filter_by_strand(strand)
+                if strand == '-':
+                    bases.complement()
             if not self._rtqc.check(self, bases):
                 continue
             column = self._get_column(position, bases, region)
@@ -435,9 +437,6 @@ class REDItools(object):
                 region.stop,
             )
             return None
-        strand = bases.get_strand(threshold=self.strand_confidence_threshold)
-        if strand == '-':
-            bases.complement()
 
         return RTResult(bases, strand, region.contig, position)
 
