@@ -14,7 +14,7 @@ class CompiledReads(object):
         self,
         strand=0,
         min_base_position=0,
-        max_base_position=inf,
+        max_base_position=0,
         min_base_quality=0,
     ):
         """
@@ -111,7 +111,7 @@ class CompiledReads(object):
         return self._ref.get_base(read.reference_name, *indices)
 
     def _qc_base_position(self, read, position):
-        return read.query_length - position >= self._qc['max_base_position']
+        return read.query_length - position > self._qc['max_base_position']
 
     def _prep_read(self, read):
         pairs = read.get_aligned_pairs(matches_only=True)
@@ -123,7 +123,6 @@ class CompiledReads(object):
             ref_seq.pop(0)
         if not pairs:
             return
-
         while pairs and self._qc_base_position(read, pairs[0][0]):
             offset, ref_pos = pairs.pop(0)
             ref_base = ref_seq.pop(0)
