@@ -495,6 +495,17 @@ def main():
         window=options.window,
     )
 
+    # Check thread count
+    if len(regions) < options.threads:
+        log.log(
+            Logger.warn_level,
+            "You are using more threads ({}) than there are " +
+            "genomic ranges ({})",
+            options.threads,
+            len(regions),
+        )
+        options.threads = len(regions)
+
     in_queue = Queue()
     for args in enumerate(regions):
         in_queue.put(args)

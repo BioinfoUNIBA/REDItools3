@@ -8,6 +8,7 @@ from datetime import datetime
 class Logger(object):
     """Fast logger for REDItools."""
 
+    warn_level = 'WARN'
     silent_level = 'SILENT'
     info_level = 'INFO'
     debug_level = 'DEBUG'
@@ -29,7 +30,7 @@ class Logger(object):
         elif level.upper() == self.info_level:
             self.log = self._log_info
         else:
-            self.log = lambda *_: None
+            self.log = self._log_base
 
     def _log_all(self, level, message, *args):
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -40,5 +41,9 @@ class Logger(object):
         )
 
     def _log_info(self, level, message, *args):
-        if level == self.info_level:
+        if level == self.info_level or level == self.warn_level:
+            self._log_all(level, message, *args)
+
+    def _log_base(self, level, message, *args):
+        if level == self.warn_level:
             self._log_all(level, message, *args)
