@@ -6,6 +6,9 @@ from gzip import open as gzip_open
 
 from reditools.region import Region
 
+from pyranges import PyRanges, read_bed
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
 def open_stream(path, mode='rt', encoding='utf-8'):
     """
@@ -73,8 +76,8 @@ def load_splicing_file(splicing_file, splicing_span):
         splicing_file (str): File path
         splicing_span(int): Width of splice sites
 
-    Yeilds:
-        Splicing file contents as Regions.
+    Returns:
+        PyRanges object of splice regions
     """
     strand_map = {'-': 'D', '+': 'A'}
 
@@ -83,8 +86,11 @@ def load_splicing_file(splicing_file, splicing_span):
         filter(lambda row: row[0] != '#', stream),
         delimiter=' ',
     )
+    contigs = []
+    starts = []
+    stops = []
     for row in reader:
-        contig = row[0]
+        contigs.append(row[0])
         span = int(row[1])
         splice = row[3]
         strand = row[4]
@@ -94,7 +100,10 @@ def load_splicing_file(splicing_file, splicing_span):
         stop = start + splicing_span * coe
         if start > stop:
             start, stop = stop, start
-        yield Region(contig=contig, start=start, stop=stop)
+        starts.append(start)
+        stops.append(stop)
+
+    return PyRanges(chromosomes=contigs, starts=starts, stops=stops)
 
 
 def load_text_file(file_name):
