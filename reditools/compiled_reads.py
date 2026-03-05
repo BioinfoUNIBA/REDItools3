@@ -2,8 +2,6 @@
 
 from reditools.compiled_position import CompiledPosition
 
-inf = float('inf')
-
 
 class CompiledReads(object):
     """Manager for CompiledPositions."""
@@ -14,7 +12,7 @@ class CompiledReads(object):
         self,
         strand=0,
         min_base_position=0,
-        max_base_position=inf,
+        max_base_position=0,
         min_base_quality=0,
     ):
         """

@@ -118,7 +118,7 @@ class REDItools(object):
 
         self.min_base_quality = 30
         self.min_base_position = 0
-        self.max_base_position = float('inf')
+        self.max_base_position = 0
 
         self._rtqc = RTChecks()
 
