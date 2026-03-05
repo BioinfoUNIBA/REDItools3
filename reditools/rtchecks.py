@@ -152,7 +152,7 @@ class RTChecks(object):
             (bool): True if there is zero or one alt
         """
         alts = bases.get_variants()
-        if len(alts) < 2:
+        if len(alts) > 1:
             rtools.log(
                 Logger.debug_level,
                 'DISCARD COLUMN alts={} > 1',
