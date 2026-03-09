@@ -468,18 +468,12 @@ def main():
     """Perform RNA editing analysis."""
     options = parse_options()
 
-    if options.debug:
-        log = Logger(Logger.debug_level)
-    elif options.verbose:
-        log = Logger(Logger.info_level)
-    else:
-        log = Logger(Logger.silent_level)
-    log.log(Logger.info_level, "Starting REDItools")
-    log.log(
-        Logger.info_level,
-        "Summary of command line parameters: {}",
-        ", ".join([f"{_}:{getattr(options, _)}" for _ in vars(options)]),
-    )
+    is_verbose = options.debug or options.verbose
+
+    if is_verbose:
+        sys.stderr.write("Starting REDItools\n")
+        sys.stderr.write("Summary of command line parameters: {}" +
+            ", ".join([f"{_}:{getattr(options, _)}" for _ in vars(options)]) + "\n")
 
     options.output_format = {'delimiter': '\t', 'lineterminator': '\n'}
     options.encoding = 'utf-8'
@@ -497,13 +491,9 @@ def main():
 
     # Check thread count
     if len(regions) < options.threads:
-        log.log(
-            Logger.warn_level,
-            "You are using more threads ({}) than there are " +
-            "genomic ranges ({})",
-            options.threads,
-            len(regions),
-        )
+        sys.stderr.write("[WARNING] You have assigned more threads " +
+            f"({options.threads}) than there are genomic ranges "
+            f"({len(regions)})\n")
         options.threads = len(regions)
 
     in_queue = Queue()
@@ -520,15 +510,15 @@ def main():
             args=(options, in_queue, out_queue),
         ) for _ in range(options.threads)
     ]
-    log.log(
-        Logger.info_level,
-        "All processes complete. Concatenating temporary files.",
-    )
+    if is_verbose:
+        sys.stderr.write("All processes complete. Concatenating temporary " +
+        "files.\n")
     concat_output(
         options,
         monitor(processes, out_queue, in_queue.qsize()),
     )
-    log.log(Logger.info_level, "Analysis Complete!")
+    if is_verbose:
+        sys.stderr.write("Analaysis Complete!\n")
 
 
 def monitor(processes, out_queue, chunks):
