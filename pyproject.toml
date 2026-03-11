@@ -13,6 +13,7 @@ authors = [
 readme = "README.md"
 dependencies = [
     "pysam>=0.22.0",
+    "pyranges=>0.0.129",
     "sortedcontainers>=2.4.0",
 ]
 keywords = ["bioinformatics", "RNA", "RNA-editing"]

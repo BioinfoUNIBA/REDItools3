@@ -10,8 +10,13 @@ from tempfile import NamedTemporaryFile
 
 from reditools import file_utils, reditools, utils
 from reditools.alignment_manager import AlignmentManager
+from pysam import AlignmentFile
 from reditools.logger import Logger
 from reditools.region import Region
+
+from pyranges import PyRanges, read_bed
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
 _contig = 'contig'
 _start = 'start'
@@ -78,33 +83,14 @@ def setup_rtools(options):  # noqa:WPS213,WPS231
     elif options.verbose:
         rtools.log_level = Logger.info_level
 
-    if options.load_omopolymeric_file:
-        regions = file_utils.read_bed_file(options.load_omopolymeric_file)
-        rtools.add_exclude_regions(regions)
-
     if options.variants:
         rtools.specific_edits = [_.upper() for _ in options.variants]
 
     if options.variants:
         rtools.specific_edits = [_.upper() for _ in options.variants]
 
-    if options.bed_file:
-        for fname in options.bed_file:
-            regions = file_utils.read_bed_file(fname)
-            rtools.add_target_regions(regions)
-    if options.exclude_regions:
-        for fname in options.exclude_regions:
-            regions = file_utils.read_bed_file(fname)
-            rtools.add_exclude_regions(regions)
     if options.reference:
         rtools.add_reference(options.reference)
-
-    if options.splicing_file:
-        rtools.splice_positions = file_utils.load_splicing_file(
-            options.splicing_file,
-            options.splicing_span,
-        )
-        rtools.add_exclude_regions(regions)
 
     rtools.min_base_position = options.min_base_position
     rtools.max_base_position = options.max_base_position
@@ -125,33 +111,75 @@ def setup_rtools(options):  # noqa:WPS213,WPS231
 
     return rtools
 
+def setup_regions(options):
+    regions = PyRanges()
 
-def region_args(bam_fname, region, window):
-    """
-    Split a region into segments for paralllel processing.
+    if options.region is not None:
+        region = Region(string=options.region)
+        regions = PyRanges(
+            chromosomes=[region.contig],
+            starts=[region.start],
+            ends=[region.stop],
+        )
+    else:
+        with AlignmentFile(
+            options.file[0],
+            ignore_truncation=True,
+        ) as sam_file:
+            contigs = sam_file.references
+            lengths = [sam_file.get_reference_length(_) for _ in contigs]
+            regions = PyRanges(
+                chromosomes=contigs,
+                starts=[0] * len(contigs),
+                ends=lengths,
+            )
 
-    Parameters:
-        bam_fname (str): BAM file to collect contig info from
-        region (Region): Genomic region to split
-        window (int): How large the sub regions should be.
+    if options.bed_file is not None:
+        bed_regions = PyRanges()
+        for bed_file in options.bed_file:
+            bed_regions = bed_regions.set_union(
+                read_bed(bed_file).unstrand(),
+                nb_cpu=options.threads,
+            )
+        regions = regions.intersect(bed_regions)
 
-    Returns:
-        (list): Sub regions
-    """
-    if region is not None:
-        if window:
-            return region.split(window)
-        return [region]
+    if options.load_omopolymeric_file is not None:
+        bed_regions = read_bed(options.load_omopolymeric_file)
+        regions = regions.subtract(
+            bed_regions,
+            nb_cpu=options.threads,
+        )
 
-    args = []
-    for contig, size in utils.get_contigs(bam_fname):
-        region = Region(contig=contig, start=1, stop=size+1)
-        if window:
-            args.extend(region.split(window))
-        else:
-            args.append(region)
-    return args
+    if options.exclude_regions is not None:
+        for bed_file in options.exclude_regions:
+            regions = regions.subtract(
+                read_bed(bed_file).unstrand(),
+                nb_cpu=options.threads,
+            )
 
+    if options.splicing_file:
+        splice_regions = file_utils.load_splicing_file(
+            options.splicing_file,
+            options.splicing_span,
+        )
+        regions = regions.subtract(
+            splice_regions,
+            nb_cpu=options.threads,
+        )
+
+    regions = regions.merge().sort(nb_cpu=options.threads)
+    if options.window:
+        regions = regions.window(
+            options.window,
+            nb_cpus=options.threads,
+        )
+    region_list = [
+        Region(
+            contig=regions.Chromosome[_],
+            start=regions.Start[_],
+            stop=regions.End[_],
+        ) for _ in range(len(regions)) ]
+    return region_list
 
 def write_results(rtools, sam_manager, file_name, region, output_format,
                   temp_dir):
@@ -483,11 +511,7 @@ def main():
         )
 
     # Put analysis chunks into queue
-    regions = region_args(
-        options.file[0],
-        Region(string=options.region) if options.region else None,
-        window=options.window,
-    )
+    regions = setup_regions(options)
 
     # Check thread count
     if len(regions) < options.threads:
