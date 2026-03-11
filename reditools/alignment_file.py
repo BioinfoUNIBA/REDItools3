@@ -1,6 +1,7 @@
 """Wrappers for pysam files."""
 
 from pysam.libcalignmentfile import AlignmentFile as PysamAlignmentFile
+from reditools.region import Region
 
 
 class RTAlignmentFile(PysamAlignmentFile):
@@ -75,8 +76,12 @@ class RTAlignmentFile(PysamAlignmentFile):
         Yields:
             Reads
         """
-        if 'region' in kwargs:
-            kwargs['region'] = str(kwargs['region'])  # noqa:WPS529
+        if 'region' in kwargs and isinstance(kwargs['region'], Region):
+            kwargs = {
+                'reference': kwargs['region'].contig,
+                'start': kwargs['region'].start,
+                'end': kwargs['region'].stop,
+            }
         try:
             iterator = super().fetch(*args, **kwargs)
         except ValueError:
