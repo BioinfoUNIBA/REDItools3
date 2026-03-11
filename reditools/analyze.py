@@ -35,7 +35,7 @@ fieldnames = [
 ]
 
 
-def setup_alignment_manager(options):
+def setup_alignment_manager(files, min_read_quality, min_read_length, exclude_reads=None):
     """
     Create an AlignmentManager for REDItools.
 
@@ -48,12 +48,12 @@ def setup_alignment_manager(options):
     sam_manager = AlignmentManager(
         ignore_truncation=True,
     )
-    sam_manager.min_quality = options.min_read_quality
-    sam_manager.min_length = options.min_read_length
-    for sam in options.file:
+    sam_manager.min_quality = min_read_quality
+    sam_manager.min_length = min_read_length
+    for sam in files:
         sam_manager.add_file(
             sam,
-            options.exclude_reads,
+            exclude_reads,
         )
     return sam_manager
 
@@ -70,6 +70,15 @@ def setup_rtools(options):  # noqa:WPS213,WPS231
     """
     if options.dna:
         rtools = reditools.REDItoolsDNA()
+    elif options.combo:
+        rtools = reditools.REDItoolsCombo()
+        rtools.genomic_min_base_position = options.genomic_min_base_position
+        rtools.genomic_max_base_position = options.genomic_max_base_position
+        rtools.genomic_min_base_quality = options.genomic_min_base_quality
+        rtools.genomic_min_column_length = options.genomic_min_read_depth
+        rtools.genomic_min_edits = options.genomic_min_edits
+        rtools.genomic_min_edits_per_nucleotide = options.genomic_min_edits_per_nucleotide
+        rtools.genomic_max_alts = options.genomic_max_editing_nucleotides
     else:
         rtools = reditools.REDItools()
 
@@ -153,14 +162,14 @@ def region_args(bam_fname, region, window):
     return args
 
 
-def write_results(rtools, sam_manager, file_name, region, output_format,
-                  temp_dir):
+def write_results(rtools, rna_manager, file_name, region, output_format,
+                  temp_dir, dna_manager=None):
     """
     Write the results from a REDItools analysis to a temporary file.
 
     Parameters:
         rtools (REDItools): REDItools instance
-        sam_manager (AlignmentManager): Source of reads
+        rna_manager (AlignmentManager): Source of reads
         file_name (string): Input file name for analysis
         region: Region to analyze
         output_format (dict): keyword arguments for csv.writer constructor.
@@ -170,9 +179,13 @@ def write_results(rtools, sam_manager, file_name, region, output_format,
     """
     with NamedTemporaryFile(mode='w', delete=False, dir=temp_dir) as stream:
         writer = csv.writer(stream, **output_format)
-        for rt_result in rtools.analyze(sam_manager, region):
+        if dna_manager is None:
+            results = rtools.analyze(rna_manager, region)
+        else:
+            results = rtools.analyze(rna_manager, dna_manager, region)
+        for rt_result in results:
             variants = rt_result.variants
-            writer.writerow([
+            row = [
                 rt_result.contig,
                 rt_result.position,
                 rt_result.reference,
@@ -182,8 +195,19 @@ def write_results(rtools, sam_manager, file_name, region, output_format,
                 rt_result.per_base_depth,
                 ' '.join(sorted(variants)) if variants else '-',
                 f'{rt_result.edit_ratio:.2f}',
-                '-', '-', '-', '-', '-',
-            ])
+            ]
+            if rt_result.genomic_bases is None:
+                row.extend(['-', '-', '-', '-'])
+            else:
+                g_variants = rt_result.genomic_variants
+                row.extend([
+                    f'{rt_result.mean_genomic_quality:.2f}',
+                    rt_result.genomic_per_base_depth,
+                    ' '.join(sorted(g_variants)) if g_variants else '-',
+                    f'{rt_result.genomic_variant_ratio:.2f}',
+                ])
+            writer.writerow(row)
+
         return stream.name
 
 
@@ -205,15 +229,30 @@ def run(options, in_queue, out_queue):
             args = in_queue.get()
             if args is None:
                 return True
-            sam_manager = setup_alignment_manager(options)
+            rna_manager = setup_alignment_manager(
+                options.file,
+                options.min_read_quality,
+                options.min_read_length,
+                options.exclude_reads,
+            )
+            if options.combo:
+                dna_manager = setup_alignment_manager(
+                    options.combo,
+                    options.genomic_min_read_quality,
+                    options.genomic_min_read_length,
+                    options.exclude_reads,
+                )
+            else:
+                dna_manager = None
             idx, region = args
             file_name = write_results(
                 rtools,
-                sam_manager,
+                rna_manager,
                 options.file,
                 region,
                 options.output_format,
                 options.temp_dir,
+                dna_manager,
             )
             out_queue.put((idx, file_name))
     except Exception as exc:
@@ -297,6 +336,13 @@ def parse_options():  # noqa:WPS213
         help='Reads with length below -mrl will be discarded.',
     )
     parser.add_argument(
+        '-gmrl',
+        '--genomic-min-read-length',
+        type=int,
+        default=30,
+        help='Genomic reads with length below -gmrl will be discarded.',
+    )
+    parser.add_argument(
         '-q',
         '--min-read-quality',
         type=int,
@@ -304,11 +350,26 @@ def parse_options():  # noqa:WPS213
         help='Reads with mapping quality below -q will be discarded.',
     )
     parser.add_argument(
+        '-gq',
+        '--genomic-min-read-quality',
+        type=int,
+        default=20,  # noqa:WPS432
+        help='Genomic reads with mapping quality below -gq will be discarded.',
+    )
+
+    parser.add_argument(
         '-bq',
         '--min-base-quality',
         type=int,
         default=30,  # noqa:WPS432
         help='Base quality below -bq will bed discarded.',
+    )
+    parser.add_argument(
+        '-gbq',
+        '--genomic-min-base-quality',
+        type=int,
+        default=30,  # noqa:WPS432
+        help='Genomic base quality below -gbq will bed discarded.',
     )
     parser.add_argument(
         '-mbp',
@@ -318,6 +379,13 @@ def parse_options():  # noqa:WPS213
         help='Ignores the first -mbp bases in each read.',
     )
     parser.add_argument(
+        '-gmbp',
+        '--genomic-min-base-position',
+        type=int,
+        default=0,
+        help='Ignores the first -gmbp genomic bases in each read.',
+    )
+    parser.add_argument(
         '-Mbp',
         '--max-base-position',
         type=int,
@@ -325,11 +393,25 @@ def parse_options():  # noqa:WPS213
         help='Ignores the last -Mpb bases in each read.',
     )
     parser.add_argument(
+        '-gMbp',
+        '--genomic-max-base-position',
+        type=int,
+        default=0,
+        help='Ignores the last -gMpb genomic bases in each read.',
+    )
+    parser.add_argument(
         '-l',
         '--min-read-depth',
         type=int,
         default=1,
         help='Only report on positions with at least -l read depth',
+    )
+    parser.add_argument(
+        '-gl',
+        '--genomic-min-read-depth',
+        type=int,
+        default=1,
+        help='Only report on genomic positions with at least -gl read depth',
     )
     parser.add_argument(
         '-e',
@@ -346,6 +428,13 @@ def parse_options():  # noqa:WPS213
         help='Positions with fewer than -men edits will not be discarded.',
     )
     parser.add_argument(
+        '-gmen',
+        '--genomic-min-edits-per-nucleotide',
+        type=int,
+        default=0,
+        help='Genomic positions with fewer than -men edits will not be discarded.',
+    )
+    parser.add_argument(
         '-me',
         '--min-edits',
         type=int,
@@ -354,11 +443,28 @@ def parse_options():  # noqa:WPS213
         'Positions with fewer than -me edits will be discarded.',
     )
     parser.add_argument(
+        '-gme',
+        '--genomic-min-edits',
+        type=int,
+        default=1,
+        help='The minimum number of genomic variant events (per position). ' +
+        'Positions with fewer than -me edits will be discarded.',
+    )
+    parser.add_argument(
         '-Men',
         '--max-editing-nucleotides',
         type=int,
         default=4,  # noqa:WPS432
         help='The maximum number of editing nucleotides, from 0 to 3 ' +
+        '(per position). Positions whose columns have more than ' +
+        '"max-editing-nucleotides" will not be included in the analysis.',
+    )
+    parser.add_argument(
+        '-gMen',
+        '--genomic-max-editing-nucleotides',
+        type=int,
+        default=4,  # noqa:WPS432
+        help='The maximum number of genomic variant nucleotides, from 0 to 3 ' +
         '(per position). Positions whose columns have more than ' +
         '"max-editing-nucleotides" will not be included in the analysis.',
     )
@@ -391,6 +497,13 @@ def parse_options():  # noqa:WPS213
         default=False,
         help='Run REDItools on DNA-Seq data.',
         action='store_true',
+    )
+    parser.add_argument(
+        '-D',
+        '--combo',
+        default=None,
+        nargs='+',
+        help='Run REDItools DNA in parallel',
     )
     parser.add_argument(
         '-B',
