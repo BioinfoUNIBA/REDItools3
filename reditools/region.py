@@ -30,9 +30,9 @@ class Region(object):
             if 'contig' not in kwargs:
                 raise ValueError('Region constructor requires a contig.')
             self.contig = kwargs['contig']
-            self.start = self._to_int(kwargs.get('start', 1)) - 1
+            self.start = self._to_int(kwargs.get('start', 1))
             if 'stop' in kwargs:
-                self.stop = self._to_int(kwargs['stop']) - 1
+                self.stop = self._to_int(kwargs['stop'])
             else:
                 self.stop = None
 
@@ -43,11 +43,11 @@ class Region(object):
         Returns:
             (str): contig:start-stop
         """
-        if self.start > 0:
-            if self.stop:
-                return f'{self.contig}:{self.start}-{self.stop + 1}'
-            return f'{self.contig}:{self.start}'
-        return self.contig
+        if self.stop is None:
+            if self.start > 0:
+                return f'{self.contig}:{self.start + 1}'
+            return self.contig
+        return f'{self.contig}:{self.start + 1}-{self.stop + 1}'
 
     def split(self, window):
         """
@@ -64,20 +64,12 @@ class Region(object):
         """
         if self.stop is None or self.start is None:
             raise IndexError('Can only split a region with a start and stop.')
-        length = self.stop - self.start
         sub_regions = []
-        for offset in range(0, length + 1, window):
+        for new_start in range(self.start, self.stop, window):
             sub_regions.append(Region(
                 contig=self.contig,
-                start=self.start + offset,
-                stop=self.start + offset + window,
-            ))
-        if self.start < length:
-            sub_regions.append(Region(
-                contig=self.contig,
-                start=sub_regions[-1].stop,
-                stop=self.stop,
-            ))
+                start=new_start,
+                stop=min(new_start + window, self.stop)))
         return sub_regions
 
     def enumerate(self):
@@ -119,9 +111,9 @@ class Region(object):
         if len(region) > 3:
             raise ValueError(f'Unrecognized format: {region_str}.')
         if len(region) > 1:
-            start = self._to_int(region[1])
+            start = self._to_int(region[1]) - 1
             if len(region) == 3:
-                stop = self._to_int(region[2])
+                stop = self._to_int(region[2]) - 1
         return (contig, start, stop)
 
     def _to_int(self, number):

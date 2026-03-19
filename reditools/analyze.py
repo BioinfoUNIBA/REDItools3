@@ -145,7 +145,7 @@ def region_args(bam_fname, region, window):
 
     args = []
     for contig, size in utils.get_contigs(bam_fname):
-        region = Region(contig=contig, start=1, stop=size+1)
+        region = Region(contig=contig, start=0, stop=size)
         if window:
             args.extend(region.split(window))
         else:
