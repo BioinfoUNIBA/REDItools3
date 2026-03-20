@@ -112,8 +112,18 @@ class Region(object):
             raise ValueError(f'Unrecognized format: {region_str}.')
         if len(region) > 1:
             start = self._to_int(region[1]) - 1
+            if start < 0:
+                raise ValueError(
+                    f'Start position ({region[1]}) must be greater than or '
+                    'equal to one.',
+                )
             if len(region) == 3:
                 stop = self._to_int(region[2]) - 1
+                if stop <= start:
+                    raise ValueError(
+                        f'Stop position ({region[2]}) must be greater than or '
+                        f'equal to start ({region[1]}).',
+                    )
         return (contig, start, stop)
 
     def _to_int(self, number):
