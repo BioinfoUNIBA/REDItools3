@@ -8,10 +8,12 @@ from multiprocessing import Process, Queue
 from queue import Empty as EmptyQueueException
 from tempfile import NamedTemporaryFile
 
-from reditools import file_utils, reditools, utils
+from reditools import file_utils, reditools
 from reditools.alignment_manager import AlignmentManager
 from reditools.logger import Logger
 from reditools.region import Region
+
+from pysam import AlignmentFile
 
 _contig = 'contig'
 _start = 'start'
@@ -126,31 +128,39 @@ def setup_rtools(options):  # noqa:WPS213,WPS231
     return rtools
 
 
-def region_args(bam_fname, region, window):
+def region_args(bam_fname, region_string, window):
     """
     Split a region into segments for paralllel processing.
 
     Parameters:
         bam_fname (str): BAM file to collect contig info from
-        region (Region): Genomic region to split
+        region_string (str): Genomic region to split
         window (int): How large the sub regions should be.
 
     Returns:
         (list): Sub regions
     """
-    if region is not None:
-        if window:
-            return region.split(window)
-        return [region]
-
-    args = []
-    for contig, size in utils.get_contigs(bam_fname):
-        region = Region(contig=contig, start=1, stop=size+1)
-        if window:
-            args.extend(region.split(window))
+    regions = []
+    with AlignmentFile(bam_fname) as bam:
+        if region_string is None:
+            for contig, length in zip(bam.references, bam.lengths):
+                regions.append(Region(contig, 0, length))
         else:
-            args.append(region)
-    return args
+            try:
+                regions.append(Region.from_string(region_string, bam))
+            except (ValueError, KeyError) as e:
+                sys.stderr.write(
+                    f'[ERROR] Unable to parse region ({region_string}): {e}\n',
+                )
+                sys.exit(1)
+
+    if window is None or window <= 0:
+        return regions
+
+    sub_regions = []
+    for region in regions:
+        sub_regions.extend(region.split(window))
+    return sub_regions
 
 
 def write_results(rtools, sam_manager, file_name, region, output_format,
@@ -471,9 +481,11 @@ def main():
     is_verbose = options.debug or options.verbose
 
     if is_verbose:
+        args_str = ", ".join(
+            [f"{_}:{getattr(options, _)}" for _ in vars(options)],
+        )
         sys.stderr.write("Starting REDItools\n")
-        sys.stderr.write("Summary of command line parameters: {}" +
-            ", ".join([f"{_}:{getattr(options, _)}" for _ in vars(options)]) + "\n")
+        sys.stderr.write(f"Summary of command line parameters: {args_str}\n")
 
     options.output_format = {'delimiter': '\t', 'lineterminator': '\n'}
     options.encoding = 'utf-8'
@@ -485,15 +497,17 @@ def main():
     # Put analysis chunks into queue
     regions = region_args(
         options.file[0],
-        Region(string=options.region) if options.region else None,
-        window=options.window,
+        options.region,
+        options.window,
     )
 
     # Check thread count
     if len(regions) < options.threads:
-        sys.stderr.write("[WARNING] You have assigned more threads " +
+        sys.stderr.write(
+            "[WARNING] You have assigned more threads "
             f"({options.threads}) than there are genomic ranges "
-            f"({len(regions)})\n")
+            f"({len(regions)})\n",
+        )
         options.threads = len(regions)
 
     in_queue = Queue()
@@ -511,8 +525,10 @@ def main():
         ) for _ in range(options.threads)
     ]
     if is_verbose:
-        sys.stderr.write("All processes complete. Concatenating temporary " +
-        "files.\n")
+        sys.stderr.write(
+            "All processes complete. Concatenating temporary "
+            "files.\n",
+        )
     concat_output(
         options,
         monitor(processes, out_queue, in_queue.qsize()),

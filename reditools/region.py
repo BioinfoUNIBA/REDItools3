@@ -6,35 +6,26 @@ import re
 class Region(object):
     """Genomic Region."""
 
-    def __init__(self, **kwargs):
+    def __init__(self, contig, start, stop):
         """
         Create a new genomic region.
 
         Parameters:
-            **kwargs (dict):
-                string (str): String representation of a region
-                OR
-                contig (str): Contig name
-                start (int): Genomic start
-                stop (int): Genomic stop
-
-        Raises:
-            ValueError: The contig is missing
+            contig (str): Contig name
+            start (int): Genomic start
+            stop (int): Genomic stop
         """
-        if 'string' in kwargs:
-            region = self._parse_string(kwargs['string'])  # noqa:WPS529
-            self.contig = region[0]
-            self.start = region[1]
-            self.stop = region[2]
-        else:
-            if 'contig' not in kwargs:
-                raise ValueError('Region constructor requires a contig.')
-            self.contig = kwargs['contig']
-            self.start = self._to_int(kwargs.get('start', 1)) - 1
-            if 'stop' in kwargs:
-                self.stop = self._to_int(kwargs['stop']) - 1
-            else:
-                self.stop = None
+        self.contig = contig
+        self.start = start
+        self.stop = stop
+        if None in (contig, start, stop):
+            raise ValueError('None cannot be argument list.')
+        if start < 0:
+            raise ValueError(f'Start ({start}) cannot be less than zero.')
+        if stop is not None and stop <= start:
+            raise ValueError(
+                f'Stop ({stop}) must be greater than start ({start}).',
+            )
 
     def __str__(self):
         """
@@ -43,11 +34,11 @@ class Region(object):
         Returns:
             (str): contig:start-stop
         """
-        if self.start > 0:
-            if self.stop:
-                return f'{self.contig}:{self.start}-{self.stop + 1}'
-            return f'{self.contig}:{self.start}'
-        return self.contig
+        if self.stop is None:
+            if self.start > 0:
+                return f'{self.contig}:{self.start + 1}'
+            return self.contig
+        return f'{self.contig}:{self.start + 1}-{self.stop}'
 
     def split(self, window):
         """
@@ -64,20 +55,12 @@ class Region(object):
         """
         if self.stop is None or self.start is None:
             raise IndexError('Can only split a region with a start and stop.')
-        length = self.stop - self.start
         sub_regions = []
-        for offset in range(0, length + 1, window):
+        for new_start in range(self.start, self.stop, window):
             sub_regions.append(Region(
                 contig=self.contig,
-                start=self.start + offset,
-                stop=self.start + offset + window,
-            ))
-        if self.start < length:
-            sub_regions.append(Region(
-                contig=self.contig,
-                start=sub_regions[-1].stop,
-                stop=self.stop,
-            ))
+                start=new_start,
+                stop=min(new_start + window, self.stop)))
         return sub_regions
 
     def enumerate(self):
@@ -100,13 +83,17 @@ class Region(object):
         Returns:
             bool
         """
-        if self.contig != contig:
-            return False
-        left = self.start is None or self.start <= position
-        right = self.stop is None or position < self.stop
-        return left and right
+        return self.contig == contig and self.start <= position < self.stop
 
-    def _parse_string(self, region_str):
+    @staticmethod
+    def from_string(region_str, alignment_file):
+        contig, start, stop = Region.parse_string(region_str)
+        if stop is None:
+            stop = alignment_file.get_reference_length(contig)
+        return Region(contig, start, stop)
+
+    @staticmethod
+    def parse_string(region_str):
         if region_str is None:
             return None
         region = re.split('[:-]', region_str)
@@ -119,12 +106,23 @@ class Region(object):
         if len(region) > 3:
             raise ValueError(f'Unrecognized format: {region_str}.')
         if len(region) > 1:
-            start = self._to_int(region[1])
+            start = Region._to_int(region[1]) - 1
+            if start < 0:
+                raise ValueError(
+                    f'Start position ({region[1]}) must be greater than or '
+                    'equal to one.',
+                )
             if len(region) == 3:
-                stop = self._to_int(region[2])
+                stop = Region._to_int(region[2])
+                if stop <= start:
+                    raise ValueError(
+                        f'Stop position ({region[2]}) must be greater than or '
+                        f'equal to start ({region[1]}).',
+                    )
         return (contig, start, stop)
 
-    def _to_int(self, number):
+    @staticmethod
+    def _to_int(number):
         if isinstance(number, str):
             return int(re.sub(r'[\s,]', '', number))
         if number is None:

@@ -113,7 +113,10 @@ class Index(object):
         if '*' != self.strand != row[_strand]:
             return True
         if self.region:
-            if not self.region.contains(row[_contig], row[_position]):
+            position = int(row[_position])
+            if self.region[0] != row[_contig] or \
+                    self.region[1] > position or \
+                    self.region[2] is not None and self.region[2] < position:
                 return True
         if self.in_exclusions(row[_contig], row[_position]):
             return True
@@ -218,7 +221,7 @@ def main():
     """Perform RNA editing analysis."""
     options = parse_options()
     if options.region:
-        indexer = Index(Region(string=options.region))
+        indexer = Index(Region.parse_string(options.region))
     else:
         indexer = Index()
 

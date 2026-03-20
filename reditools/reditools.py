@@ -377,7 +377,9 @@ class REDItools(object):
             # Process edits
             bases = nucleotides.pop(position)
             if bases is not None and self._use_strand_correction:
-                strand = bases.get_strand(threshold=self.strand_confidence_threshold)
+                strand = bases.get_strand(
+                    threshold=self.strand_confidence_threshold,
+                )
                 bases.filter_by_strand(strand)
             if not self._rtqc.check(self, bases):
                 continue
