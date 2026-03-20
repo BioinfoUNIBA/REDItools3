@@ -83,9 +83,7 @@ class Region(object):
         Returns:
             bool
         """
-        return self.contig == contig and \
-            position >= self.start and \
-            position < self.stop
+        return self.contig == contig and self.start <= position < self.stop
 
     @staticmethod
     def from_string(region_str, alignment_file):

@@ -48,7 +48,7 @@ class RegionCollection(object):
             region = self._regions[contig][self._index]
             if position < region.start:
                 return False
-            if position >= region.start and position < region.stop:
+            if region.start <= position < region.stop:
                 return True
         self._index += 1
 

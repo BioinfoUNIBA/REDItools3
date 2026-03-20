@@ -498,7 +498,7 @@ def main():
     regions = region_args(
         options.file[0],
         options.region,
-        window=options.window,
+        options.window,
     )
 
     # Check thread count

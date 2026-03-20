@@ -39,12 +39,12 @@ def read_bed_file(path):
         filter(lambda row: row[0] != '#', stream),
         delimiter='\t',
     )
-    yield from (Region(
-        contig=row[0],
-        start=int(row[1]),
-        stop=int(row[2]),
-        ) for row in reader
-    )
+    for row in reader:
+        yield Region(
+            contig=row[0],
+            start=int(row[1]),
+            stop=int(row[2]),
+        )
 
 
 def concat(output, *fnames, clean_up=True, encoding='utf-8'):
