@@ -89,13 +89,13 @@ class Region(object):
 
     @staticmethod
     def from_string(region_str, alignment_file):
-        contig, start, stop = Region._parse_string(region_str)
+        contig, start, stop = Region.parse_string(region_str)
         if stop is None:
             stop = alignment_file.get_reference_length(contig)
         return Region(contig, start, stop)
 
     @staticmethod
-    def _parse_string(region_str):
+    def parse_string(region_str):
         if region_str is None:
             return None
         region = re.split('[:-]', region_str)
