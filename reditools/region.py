@@ -23,7 +23,9 @@ class Region(object):
         if start < 0:
             raise ValueError(f'Start ({start}) cannot be less than zero.')
         if stop is not None and stop <= start:
-            raise ValueError(f'Stop ({stop}) must be greater than start ({start}).')
+            raise ValueError(
+                f'Stop ({stop}) must be greater than start ({start}).',
+            )
 
     def __str__(self):
         """
