@@ -13,6 +13,8 @@ from reditools.alignment_manager import AlignmentManager
 from reditools.logger import Logger
 from reditools.region import Region
 
+from pysam import AlignmentFile
+
 _contig = 'contig'
 _start = 'start'
 _stop = 'stop'
@@ -126,31 +128,39 @@ def setup_rtools(options):  # noqa:WPS213,WPS231
     return rtools
 
 
-def region_args(bam_fname, region, window):
+def region_args(bam_fname, region_string, window):
     """
     Split a region into segments for paralllel processing.
 
     Parameters:
         bam_fname (str): BAM file to collect contig info from
-        region (Region): Genomic region to split
+        region_string (str): Genomic region to split
         window (int): How large the sub regions should be.
 
     Returns:
         (list): Sub regions
     """
-    if region is not None:
-        if window:
-            return region.split(window)
-        return [region]
-
-    args = []
-    for contig, size in utils.get_contigs(bam_fname):
-        region = Region(contig=contig, start=0, stop=size)
-        if window:
-            args.extend(region.split(window))
+    regions = []
+    with AlignmentFile(bam_fname) as bam:
+        if region_string is None:
+            for contig, length in zip(bam.references, bam.lengths):
+                regions.append(Region(contig, 0, length))
         else:
-            args.append(region)
-    return args
+            try:
+                regions.append(Region.from_string(region_string, bam))
+            except (ValueError, KeyError) as e:
+                sys.stderr.write(
+                    f'[ERROR] Unable to parse region ({region_string}): {e}\n',
+                )
+                sys.exit(1)
+
+    if window is None or window <= 0:
+        return regions
+
+    sub_regions = []
+    for region in regions:
+        sub_regions.extend(region.split(window))
+    return sub_regions
 
 
 def write_results(rtools, sam_manager, file_name, region, output_format,
@@ -485,7 +495,7 @@ def main():
     # Put analysis chunks into queue
     regions = region_args(
         options.file[0],
-        Region(string=options.region) if options.region else None,
+        options.region,
         window=options.window,
     )
 

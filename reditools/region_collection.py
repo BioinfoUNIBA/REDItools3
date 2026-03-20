@@ -1,4 +1,5 @@
 """Genomic Region Collection."""
+from collections import defaultdict
 
 
 class RegionCollection(object):
@@ -11,8 +12,8 @@ class RegionCollection(object):
 
         """
 
-        self._regions = {}
-        self._last_index = None
+        self._regions = defaultdict(list)
+        self._index = None
         self._last_contig = None
         self._sorted = False
 
@@ -41,17 +42,15 @@ class RegionCollection(object):
 
         if contig != self._last_contig:
             self._last_contig = contig
-            self._last_index = 0
+            self._index = 0
 
-        for i in range(self._last_index, len(self._regions.get(contig, []))):
-            self._last_index = i
-            region = self._regions[contig][i]
+        for self._index in range(self._index, len(self._regions[contig])):
+            region = self._regions[contig][self._index]
             if position < region.start:
                 return False
-            if position >= region.start and \
-                    (region.stop is None or position < region.stop):
+            if position >= region.start and position < region.stop:
                 return True
-        self._last_index += 1
+        self._index += 1
 
         return False
 
@@ -63,8 +62,6 @@ class RegionCollection(object):
             region (Region): region to add.
         """
         self._sorted = False
-        if region.contig not in self._regions:
-            self._regions[region.contig] = []
         self._regions[region.contig].append(region)
 
     def add_regions(self, regions):
