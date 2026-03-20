@@ -41,8 +41,8 @@ def read_bed_file(path):
     )
     yield from (Region(
         contig=row[0],
-        start=row[1],
-        stop=row[2],
+        start=int(row[1]),
+        stop=int(row[2]),
         ) for row in reader
     )
 
