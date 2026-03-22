@@ -10,7 +10,7 @@ from reditools import utils
 from reditools.compiled_reads import CompiledReads
 from reditools.fasta_file import RTFastaFile
 from reditools.logger import Logger
-from reditools.rtchecks import RTChecks
+from reditools.rtchecks import *
 from reditools.region_collection import RegionCollection
 
 
@@ -191,7 +191,7 @@ class REDItools(object):
         """
         if regions:
             self._target_regions.add_regions(regions)
-            self._rtqc.add(self._rtqc.check_target_positions)
+            self._rtqc.add(CheckTargetPositions)
 
     @property
     def log_level(self):
@@ -222,11 +222,11 @@ class REDItools(object):
     @min_read_quality.setter
     def min_read_quality(self, threshold):
         self._min_read_quality = threshold
-        function = self._rtqc.check_column_quality
+        qc_check = CheckColumnQuality
         if self._min_read_quality > 0:
-            self._rtqc.add(function)
+            self._rtqc.add(qc_check)
         else:
-            self._rtqc.discard(function)
+            self._rtqc.discard(qc_check)
 
     @property
     def min_column_length(self):
@@ -236,11 +236,11 @@ class REDItools(object):
     @min_column_length.setter
     def min_column_length(self, threshold):
         self._min_column_length = threshold
-        function = self._rtqc.check_column_min_length
+        qc_check = CheckColumnMinLength
         if threshold > 1:
-            self._rtqc.add(function)
+            self._rtqc.add(qc_check)
         else:
-            self._rtqc.discard(function)
+            self._rtqc.discard(qc_check)
 
     @property
     def min_edits(self):
@@ -250,11 +250,11 @@ class REDItools(object):
     @min_edits.setter
     def min_edits(self, threshold):
         self._min_edits = threshold
-        function = self._rtqc.check_column_edit_frequency
+        qc_check = CheckColumnEditFrequency
         if threshold > 0:
-            self._rtqc.add(function)
+            self._rtqc.add(qc_check)
         else:
-            self._rtqc.discard(function)
+            self._rtqc.discard(qc_check)
 
     @property
     def min_edits_per_nucleotide(self):
@@ -264,11 +264,11 @@ class REDItools(object):
     @min_edits_per_nucleotide.setter
     def min_edits_per_nucleotide(self, threshold):
         self._min_edits_per_nucleotide = threshold
-        function = self._rtqc.check_column_min_edits
+        qc_check = CheckColumnMinEdits
         if threshold > 0:
-            self._rtqc.add(function)
+            self._rtqc.add(qc_check)
         else:
-            self._rtqc.discard(function)
+            self._rtqc.discard(qc_check)
 
     @property
     def exclude_regions(self):
@@ -284,7 +284,7 @@ class REDItools(object):
         """
         if regions:
             self._exclude_regions.add_regions(regions)
-            self._rtqc.add(self._rtqc.check_exclusions)
+            self._rtqc.add(CheckExclusions)
 
     @property
     def max_alts(self):
@@ -294,11 +294,11 @@ class REDItools(object):
     @max_alts.setter
     def max_alts(self, max_alts):
         self._max_alts = max_alts
-        function = self._rtqc.check_max_alts
+        qc_check = CheckMaxAlts
         if max_alts < 3:
-            self._rtqc.add(function)
+            self._rtqc.add(qc_check)
         else:
-            self._rtqc.discard(function)
+            self._rtqc.discard(qc_check)
 
     def exclude(self, regions):
         """
@@ -311,11 +311,11 @@ class REDItools(object):
             contig = region.contig
             old_pos = self._exclude_regions.get(contig, set())
             self._exclude_regions[contig] = old_pos | region.enumerate()
-        function = self._rtqc.check_exclusions
+        qc_check = CheckExclusions
         if self._exclude_regions:
-            self._rtqc.add(function)
+            self._rtqc.add(qc_check)
         else:
-            self._rtqc.discard(function)
+            self._rtqc.discard(qc_check)
 
     def analyze(self, alignment_manager, region=None):  # noqa:WPS231,WPS213
         """
@@ -411,7 +411,7 @@ class REDItools(object):
 
     def only_one_alt(self):
         """Only report a position if there is less than 2 alt bases."""
-        self._rtqc.add(self._rtqc.check_multiple_alts)
+        self._rtqc.add(CheckMultipleAlts)
 
     def add_reference(self, reference_fname):
         """
