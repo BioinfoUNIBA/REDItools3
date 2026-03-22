@@ -9,7 +9,7 @@ class RTChecks(object):
 
     def __init__(self):
         """Create a RTChecks object."""
-        self.check_list = [self.check_is_none]
+        self.check_list = []
 
     def add(self, function):
         """
@@ -161,21 +161,6 @@ class RTChecks(object):
             return False
         return True
 
-    def check_is_none(self, bases, rtools):
-        """
-        Check if the bases object is None.
-
-        Parameters:
-            bases (CompiledPosition): Data for analysis
-            rtools (REDItools): Object running the analysis
-
-        Returns:
-            (bool): True if bases is not None
-        """
-        if bases is None:
-            rtools.log(Logger.debug_level, 'DISCARD COLUMN no reads')
-            return False
-        return True
 
     def check_target_positions(self, bases, rtools):
         """
