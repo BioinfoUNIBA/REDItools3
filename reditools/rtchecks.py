@@ -161,7 +161,6 @@ class RTChecks(object):
             return False
         return True
 
-
     def check_target_positions(self, bases, rtools):
         """
         Check if the bases object is in a target region.
