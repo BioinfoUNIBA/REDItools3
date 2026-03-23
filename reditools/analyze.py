@@ -471,9 +471,13 @@ def main():
     is_verbose = options.debug or options.verbose
 
     if is_verbose:
+        options_string = ", ".join(
+            [f"{_}:{getattr(options, _)}" for _ in vars(options)],
+        )
         sys.stderr.write("Starting REDItools\n")
-        sys.stderr.write("Summary of command line parameters: {}" +
-            ", ".join([f"{_}:{getattr(options, _)}" for _ in vars(options)]) + "\n")
+        sys.stderr.write(
+            f"Summary of command line parameters: {options_string}\n",
+        )
 
     options.output_format = {'delimiter': '\t', 'lineterminator': '\n'}
     options.encoding = 'utf-8'
@@ -491,9 +495,11 @@ def main():
 
     # Check thread count
     if len(regions) < options.threads:
-        sys.stderr.write("[WARNING] You have assigned more threads " +
+        sys.stderr.write(
+            "[WARNING] You have assigned more threads "
             f"({options.threads}) than there are genomic ranges "
-            f"({len(regions)})\n")
+            f"({len(regions)})\n",
+        )
         options.threads = len(regions)
 
     in_queue = Queue()
@@ -511,8 +517,9 @@ def main():
         ) for _ in range(options.threads)
     ]
     if is_verbose:
-        sys.stderr.write("All processes complete. Concatenating temporary " +
-        "files.\n")
+        sys.stderr.write(
+            "All processes complete. Concatenating temporary files. \n",
+        )
     concat_output(
         options,
         monitor(processes, out_queue, in_queue.qsize()),
