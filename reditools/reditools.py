@@ -233,7 +233,7 @@ class REDItools(object):
         else:
             self._rtqc.discard(qc_check)
 
-    def analyze(self, alignment_manager, region=None):  # noqa:WPS231,WPS213
+    def analyze(self, alignment_manager, region):  # noqa:WPS231,WPS213
         """
         Detect RNA editing events.
 
@@ -244,18 +244,6 @@ class REDItools(object):
         Yields:
             Analysis results for each base position in region
         """
-        if region is None:
-            region = {}
-
-        # Open the iterator
-        self.log(
-            Logger.info_level,
-            'Fetching data from bams {} [REGION={}]',
-            alignment_manager.file_list,
-            region,
-        )
-        read_iter = alignment_manager.fetch_by_position(region=region)
-        reads = next(read_iter, None)
         nucleotides = CompiledReads(
             self.strand,
             self.min_base_position,
@@ -265,55 +253,70 @@ class REDItools(object):
         if self.reference:
             nucleotides.add_reference(self.reference)
         total = 0
-        while reads is not None or not nucleotides.is_empty():
-            if nucleotides.is_empty():
-                self.log(
-                    Logger.debug_level,
-                    'Nucleotides is empty: skipping ahead',
-                )
-                position = alignment_manager.position
-                contig = alignment_manager.contig
-            else:
-                position += 1
 
-            if region.stop and position >= region.stop:
-                break
+        self.log(
+            Logger.info_level,
+            'Fetching reads [FILELIST={}] [REGION={}]',
+            alignment_manager.file_list,
+            region,
+        )
+        read_iter = alignment_manager.fetch_by_position(region=region)
+
+        reads = next(read_iter, None)
+        while reads is not None:
+            position = reads[0].reference_start
             self.log(
                 Logger.debug_level,
-                'Analyzing position {} {}',
-                contig,
+                'Adding {} reads starting from {}:{}',
+                len(reads),
+                region.contig,
                 position,
             )
-            # Get all the read(s) starting at position
-            if reads and reads[0].reference_start == position:
-                self.log(Logger.debug_level, 'Adding {} reads', len(reads))
-                total += len(reads)
-                nucleotides.add_reads(reads)
-                reads = next(read_iter, None)
-            # Process edits
-            bases = nucleotides.pop(position)
-            if bases is not None and self._use_strand_correction:
-                strand = bases.get_strand(threshold=self.strand_confidence_threshold)
-                bases.filter_by_strand(strand)
-            if not self._rtqc.check(self, bases):
-                continue
-            column = self._get_column(position, bases, region)
-            if column is None:
-                continue
+            total += len(reads)
+            nucleotides.add_reads(reads)
 
-            if self._specific_edits and \
-                    not self._specific_edits & set(column.variants):
+            reads = next(read_iter, None)
+            if reads is None or reads[0].reference_start > region.stop:
+                next_read_start = region.stop
+            else:
+                next_read_start = reads[0].reference_start
+
+            for position in range(position, next_read_start):
+                bases = nucleotides.pop(position)
+                if position < region.start:
+                    continue
                 self.log(
                     Logger.debug_level,
-                    'Requested edits not found - skipping',
+                    'Analyzing position {} {}',
+                    region.contig,
+                    position,
                 )
-                continue
-            self.log(
-                Logger.debug_level,
-                'Yielding output for {} reads',
-                len(bases),
-            )
-            yield column
+                if bases is None:
+                    self.log(Logger.debug_level, 'DISCARD COLUMN no reads')
+                    continue
+                if self._use_strand_correction:
+                    strand = bases.get_strand(
+                        threshold=self.strand_confidence_threshold,
+                    )
+                    bases.filter_by_strand(strand)
+                if not self._rtqc.check(self, bases):
+                    continue
+                column = self._get_column(position, bases, region)
+
+                if self._specific_edits and \
+                        not self._specific_edits & set(column.variants):
+                    self.log(
+                        Logger.debug_level,
+                        'DISCARD COLUMN Requested edits {} not found',
+                        self._specific_edits,
+                    )
+                    continue
+                self.log(
+                    Logger.debug_level,
+                    'Yielding output for {} reads',
+                    len(bases),
+                )
+                yield column
         self.log(
             Logger.info_level,
             '[REGION={}] {} total reads',
@@ -339,21 +342,9 @@ class REDItools(object):
         self.reference = RTFastaFile(reference_fname)
 
     def _get_column(self, position, bases, region):
-        past_stop = position + 1 >= (region.stop or 0)
-        before_start = position + 1 < region.start
-        if before_start or past_stop:
-            self.log(
-                Logger.debug_level,
-                'DISCARDING COLUMN: outside query region {} < {} > {}',
-                region.start,
-                position,
-                region.stop,
-            )
-            return None
         strand = bases.get_strand(threshold=self.strand_confidence_threshold)
         if strand == '-':
             bases.complement()
-
         return RTResult(bases, strand, region.contig, position)
 
 
