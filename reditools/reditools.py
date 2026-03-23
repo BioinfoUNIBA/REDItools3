@@ -12,7 +12,8 @@ from reditools.fasta_file import RTFastaFile
 from reditools.logger import Logger
 from reditools.rtchecks import *
 from reditools.region_collection import RegionCollection
-from redtiools.rtresult import RTResult
+from reditools.rtresult import RTResult
+from reditools import rtchecks
 
 
 class REDItools(object):
@@ -35,7 +36,7 @@ class REDItools(object):
         self.min_base_position = 0
         self.max_base_position = 0
 
-        self._rtqc = RTChecks()
+        self._rtqc = rtchecks.RTChecks()
 
         self._min_read_quality = 0
 
@@ -106,7 +107,7 @@ class REDItools(object):
         """
         if regions:
             self._target_regions.add_regions(regions)
-            self._rtqc.add(CheckTargetPositions)
+            self._rtqc.add(rtchecks.check_target_positions)
 
     @property
     def log_level(self):
@@ -137,7 +138,7 @@ class REDItools(object):
     @min_read_quality.setter
     def min_read_quality(self, threshold):
         self._min_read_quality = threshold
-        qc_check = CheckColumnQuality
+        qc_check = rtchecks.check_column_quality
         if self._min_read_quality > 0:
             self._rtqc.add(qc_check)
         else:
@@ -151,7 +152,7 @@ class REDItools(object):
     @min_column_length.setter
     def min_column_length(self, threshold):
         self._min_column_length = threshold
-        qc_check = CheckColumnMinLength
+        qc_check = rtchecks.check_column_min_length
         if threshold > 1:
             self._rtqc.add(qc_check)
         else:
@@ -165,7 +166,7 @@ class REDItools(object):
     @min_edits.setter
     def min_edits(self, threshold):
         self._min_edits = threshold
-        qc_check = CheckColumnEditFrequency
+        qc_check = rtchecks.check_column_edit_frequency
         if threshold > 0:
             self._rtqc.add(qc_check)
         else:
@@ -179,7 +180,7 @@ class REDItools(object):
     @min_edits_per_nucleotide.setter
     def min_edits_per_nucleotide(self, threshold):
         self._min_edits_per_nucleotide = threshold
-        qc_check = CheckColumnMinEdits
+        qc_check = rtchecks.check_column_min_edits
         if threshold > 0:
             self._rtqc.add(qc_check)
         else:
@@ -199,7 +200,7 @@ class REDItools(object):
         """
         if regions:
             self._exclude_regions.add_regions(regions)
-            self._rtqc.add(CheckExclusions)
+            self._rtqc.add(rtchecks.check_exclusions)
 
     @property
     def max_alts(self):
@@ -209,7 +210,7 @@ class REDItools(object):
     @max_alts.setter
     def max_alts(self, max_alts):
         self._max_alts = max_alts
-        qc_check = CheckMaxAlts
+        qc_check = rtchecks.check_max_alts
         if max_alts < 3:
             self._rtqc.add(qc_check)
         else:
@@ -226,7 +227,7 @@ class REDItools(object):
             contig = region.contig
             old_pos = self._exclude_regions.get(contig, set())
             self._exclude_regions[contig] = old_pos | region.enumerate()
-        qc_check = CheckExclusions
+        qc_check = rtchecks.check_exclusions
         if self._exclude_regions:
             self._rtqc.add(qc_check)
         else:
@@ -326,7 +327,7 @@ class REDItools(object):
 
     def only_one_alt(self):
         """Only report a position if there is less than 2 alt bases."""
-        self._rtqc.add(CheckMultipleAlts)
+        self._rtqc.add(rtchecks.check_multiple_alts)
 
     def add_reference(self, reference_fname):
         """

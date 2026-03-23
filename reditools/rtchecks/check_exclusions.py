@@ -1,23 +1,24 @@
-from .qccheck import QCCheck
+from reditools.logger import Logger
 
-class CheckExclusions(QCCheck):
-    @staticmethod
-    def run_check(rtools, bases):
-        """
-        Check if the bases object is in an excluded position.
+def check_exclusions(rtools, bases):
+    """
+    Check if the bases object is in an excluded position.
 
-        Parameters:
-            rtools (REDItools): Object running the analysis
-            bases (CompiledPosition): Data for analysis
+    Parameters:
+        rtools (REDItools): Object running the analysis
+        bases (CompiledPosition): Data for analysis
 
-        Returns:
-            (bool): True if the position is not excluded
-        """
-        in_exclusions = rtools.exclude_regions.contains(
-            bases.contig,
-            bases.position,
+    Returns:
+        (bool): True if the position is not excluded
+    """
+    in_exclusions = rtools.exclude_regions.contains(
+        bases.contig,
+        bases.position,
+    )
+    if in_exclusions:
+        rtools.log(
+            Logger.debug_level,
+            'DISCARD COLUMN in excluded region',
         )
-        if in_exclusions:
-            self._log(rtools, 'DISCARD COLUMN in excluded region')
-            return False
-        return True
+        return False
+    return True

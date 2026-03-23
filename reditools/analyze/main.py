@@ -2,6 +2,7 @@
 
 import sys
 
+from multiprocessing import Process, Queue
 from reditools import file_utils
 
 from .concat_output import concat_output

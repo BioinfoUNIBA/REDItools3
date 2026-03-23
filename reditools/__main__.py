@@ -4,7 +4,7 @@ import sys
 
 from reditools import homopolymerics, index, annotate
 
-from reditools.analyze.main import main as analyze
+from reditools import analyze
 
 
 def usage():

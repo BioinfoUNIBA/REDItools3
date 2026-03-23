@@ -37,8 +37,6 @@ def concat_output(tfs, output_file=None, mode='w', encoding='utf-8', **format_ar
             mode,
             encoding,
         )
-    else:
-        stream = sys.stdout
 
     with stream:
         writer = csv.writer(stream, **format_args)
