@@ -36,10 +36,15 @@ def main():
         )
 
     # Put analysis chunks into queue
+    if options.region is None:
+        region = None
+    else:
+        region = Region.from_string(region_str=options.region, alignment_file=options.file[0])
+ 
     regions = region_args(
         options.file[0],
-        Region(string=options.region) if options.region else None,
-        window=options.window,
+        region,
+        options.window,
     )
 
     # Check thread count

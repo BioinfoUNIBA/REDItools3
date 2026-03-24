@@ -2,6 +2,7 @@
 
 import re
 from dataclasses import dataclass
+from pysam import AlignmentFile
 
 
 @dataclass(slots=True, order=True)
@@ -73,7 +74,8 @@ class Region:
     def from_string(region_str, alignment_file):
         contig, start, stop = Region.parse_string(region_str)
         if stop is None:
-            stop = alignment_file.get_reference_length(contig)
+            with AlignmentFile(alignment_file) as bam:
+                stop = bam.get_reference_length(contig)
         return Region(contig, start, stop)
 
     @staticmethod
