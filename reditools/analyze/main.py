@@ -41,11 +41,15 @@ def main():
     else:
         region = Region.from_string(options.region, options.file[0])
 
-    regions = region_args(
-        options.file[0],
-        region,
-        options.window,
-    )
+    try:
+        regions = region_args(
+            options.file[0],
+            region,
+            options.window,
+        )
+    except FileNotFoundError as e:
+        sys.stderr.write(f'[ERROR] {e}\n')
+        sys.exit(1)
 
     # Check thread count
     if len(regions) < options.threads:
