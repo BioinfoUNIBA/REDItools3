@@ -130,7 +130,4 @@ class AlignmentManager(object):
         iters = [bam.fetch_by_position(*args, **kwargs) for bam in self._bams]
         rgi = ReadGroupIter(iters)
         while not rgi.is_empty():
-            reads = list(chain(*rgi.next()))
-            self.position = reads[0].reference_start
-            self.contig = reads[0].reference_name
-            yield reads
+            yield list(chain(*rgi.next()))
