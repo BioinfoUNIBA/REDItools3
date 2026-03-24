@@ -2,7 +2,9 @@
 
 import sys
 
-from reditools import analyze, homopolymerics, index, annotate
+from reditools import homopolymerics, index, annotate
+
+from reditools import analyze
 
 
 def usage():
