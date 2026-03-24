@@ -65,6 +65,6 @@ def setup_rtools(options):  # noqa:WPS213,WPS231
     if options.strand_correction:
         rtools.use_strand_correction()
     if options.exclude_multis:
-        rtools.only_one_alt()
+        rtools.max_alts = 1
 
     return rtools

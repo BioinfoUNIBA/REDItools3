@@ -325,10 +325,6 @@ class REDItools(object):
         """Only reports reads/positions that match `strand`."""
         self._use_strand_correction = True
 
-    def only_one_alt(self):
-        """Only report a position if there is less than 2 alt bases."""
-        self._rtqc.add(rtchecks.check_multiple_alts)
-
     def add_reference(self, reference_fname):
         """
         Use a reference fasta file instead of reference from the BAM files.
