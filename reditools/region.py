@@ -1,31 +1,14 @@
 """Genomic Region."""
 
 import re
+from dataclasses import dataclass
 
-
-class Region(object):
+@dataclass(slots=True, order=True)
+class Region:
+    contig: str
+    start: int
+    stop: int
     """Genomic Region."""
-
-    def __init__(self, contig, start, stop):
-        """
-        Create a new genomic region.
-
-        Parameters:
-            contig (str): Contig name
-            start (int): Genomic start
-            stop (int): Genomic stop
-        """
-        self.contig = contig
-        self.start = start
-        self.stop = stop
-        if None in (contig, start, stop):
-            raise ValueError('None cannot be argument list.')
-        if start < 0:
-            raise ValueError(f'Start ({start}) cannot be less than zero.')
-        if stop is not None and stop <= start:
-            raise ValueError(
-                f'Stop ({stop}) must be greater than start ({start}).',
-            )
 
     def __str__(self):
         """
