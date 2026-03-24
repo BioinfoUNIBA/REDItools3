@@ -41,7 +41,7 @@ class RTResult(object):
         Returns:
             float
         """
-        variants = self.variants
+        variants = self.bases.get_variants()
         if variants:
             max_edits = max(self.bases[base] for base in variants)
             return max_edits / (max_edits + self.bases['REF'])
