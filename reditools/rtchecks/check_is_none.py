@@ -1,5 +1,6 @@
 from reditools.logger import Logger
 
+
 def check_is_none(rtools, bases):
     """
     Check if the bases object is None.

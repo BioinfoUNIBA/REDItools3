@@ -1,6 +1,7 @@
 from reditools import utils
 from reditools.region import Region
 
+
 def region_args(bam_fname, region, window):
     """
     Split a region into segments for paralllel processing.

@@ -1,5 +1,6 @@
 from reditools.alignment_manager import AlignmentManager
 
+
 def setup_alignment_manager(
     file_list,
     min_read_quality,

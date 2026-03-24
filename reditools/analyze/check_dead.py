@@ -1,5 +1,6 @@
 import sys
 
+
 def check_dead(processes):
     """
     Look through processes to determine if any have died unexpectedly.

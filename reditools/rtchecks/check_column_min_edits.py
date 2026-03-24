@@ -1,5 +1,6 @@
 from reditools.logger import Logger
 
+
 def check_column_min_edits(rtools, bases):
     """
     Check that there are sufficient edit events for each base.

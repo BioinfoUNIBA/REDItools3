@@ -2,6 +2,7 @@
 
 from .check_is_none import check_is_none
 
+
 class RTChecks(object):
     """Quality control for REDItools analyses."""
 

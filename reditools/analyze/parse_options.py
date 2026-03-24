@@ -1,5 +1,6 @@
 import argparse
 
+
 def parse_options():  # noqa:WPS213,WPS432
     """
     Parse commandline options for REDItools.

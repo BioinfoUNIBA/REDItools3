@@ -21,7 +21,14 @@ fieldnames = [
     'gFrequency',
 ]
 
-def concat_output(tfs, output_file=None, mode='w', encoding='utf-8', **format_args): 
+
+def concat_output(
+    tfs,
+    output_file=None,
+    mode='w',
+    encoding='utf-8',
+    **format_args,
+):
     """
     Write the output of a REDItools analysis.
 

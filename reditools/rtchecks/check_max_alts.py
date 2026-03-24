@@ -1,5 +1,6 @@
 from reditools.logger import Logger
 
+
 def check_max_alts(rtools, bases):
     """
     Check that there are no more than a max number of alts.

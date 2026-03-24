@@ -1,5 +1,6 @@
 from reditools.logger import Logger
 
+
 def check_column_min_length(rtools, bases):
     """
     Check read depth.

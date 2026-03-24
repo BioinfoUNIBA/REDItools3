@@ -6,6 +6,7 @@ from .setup_rtools import setup_rtools
 from .setup_alignment_manager import setup_alignment_manager
 from .write_results import write_results
 
+
 def run_proc(options, in_queue, out_queue):
     """
     Analyze a genomic segment using REDItools.

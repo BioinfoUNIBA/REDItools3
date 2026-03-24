@@ -1,6 +1,7 @@
 import csv
 from tempfile import NamedTemporaryFile
 
+
 def write_results(rtools, sam_manager, file_name, region, output_format,
                   temp_dir):
     """

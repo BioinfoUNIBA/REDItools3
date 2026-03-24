@@ -1,5 +1,6 @@
 from reditools.logger import Logger
 
+
 def check_target_positions(rtools, bases):
     """
     Check if the bases object is in a target region.

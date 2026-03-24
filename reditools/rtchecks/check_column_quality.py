@@ -1,5 +1,6 @@
 from reditools.logger import Logger
 
+
 # Really shouldn't use this one. I have to compute mean_q anyway
 def check_column_quality(rtools, bases):
     """

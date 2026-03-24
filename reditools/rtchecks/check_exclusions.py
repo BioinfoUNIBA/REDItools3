@@ -1,5 +1,6 @@
 from reditools.logger import Logger
 
+
 def check_exclusions(rtools, bases):
     """
     Check if the bases object is in an excluded position.

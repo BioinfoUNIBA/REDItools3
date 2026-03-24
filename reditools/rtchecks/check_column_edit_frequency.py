@@ -1,5 +1,6 @@
 from reditools.logger import Logger
 
+
 def check_column_edit_frequency(rtools, bases):
     """
     Check the number of edits at the site.

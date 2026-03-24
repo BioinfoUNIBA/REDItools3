@@ -10,7 +10,6 @@ from reditools import utils
 from reditools.compiled_reads import CompiledReads
 from reditools.fasta_file import RTFastaFile
 from reditools.logger import Logger
-from reditools.rtchecks import *
 from reditools.region_collection import RegionCollection
 from reditools.rtresult import RTResult
 from reditools import rtchecks

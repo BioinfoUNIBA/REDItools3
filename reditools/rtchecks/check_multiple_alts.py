@@ -1,5 +1,6 @@
 from reditools.logger import Logger
 
+
 def check_multiple_alts(rtools, bases):
     """
     Check that there is, at most, one alternate base.

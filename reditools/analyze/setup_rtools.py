@@ -1,6 +1,7 @@
 from reditools import file_utils, reditools
 from reditools.logger import Logger
 
+
 def setup_rtools(options):  # noqa:WPS213,WPS231
     """
     Create a REDItools object.

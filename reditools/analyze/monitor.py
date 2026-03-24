@@ -3,6 +3,7 @@
 from queue import Empty as EmptyQueueException
 from .check_dead import check_dead
 
+
 def monitor(processes, out_queue, chunks):
     """
     Monitor parallel REDItools jobs.
