@@ -342,7 +342,7 @@ class REDItools(object):
         strand = bases.get_strand(threshold=self.strand_confidence_threshold)
         if strand == '-':
             bases.complement()
-        return RTResult(bases, strand, region.contig, position)
+        return RTResult(bases, strand, region.contig, position + 1)
 
 
 class REDItoolsDNA(REDItools):
