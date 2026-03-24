@@ -3,6 +3,7 @@
 import re
 from dataclasses import dataclass
 
+
 @dataclass(slots=True, order=True)
 class Region:
     contig: str
