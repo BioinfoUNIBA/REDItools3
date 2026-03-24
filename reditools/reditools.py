@@ -339,30 +339,3 @@ class REDItools(object):
         if strand == '-':
             bases.complement()
         return RTResult(bases, strand, region.contig, position + 1)
-
-
-class REDItoolsDNA(REDItools):
-    """
-    Analysis system for editing events in DNA.
-
-    Raises:
-        ValueError: You cannot set the strand parameter using this class.
-    """
-
-    def __init__(self):
-        """Create a new REDItoolsDNA object."""
-        self.get_position_strand = lambda *_: '*'
-        self._get_strand = lambda *_: '*'
-        REDItools.__init__(self)
-
-    def set_strand(self, strand):
-        """
-        Not applicable for DNA analysis.
-
-        Parameters:
-            strand (int): N/A
-
-        Raises:
-            ValueError: You cannot call this method for DNA analyses.
-        """
-        raise ValueError('Cannot set strand value if DNA is True')

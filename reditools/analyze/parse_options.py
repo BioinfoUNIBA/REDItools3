@@ -22,15 +22,10 @@ def parse_options():  # noqa:WPS213
     parser.add_argument(
         '-r',
         '--reference',
-        help='Reference FASTA file. (Note: REDItools runs fastest when ' +
-        'BAM files have MD tags and -r is *not* used).',
-    )
-    parser.add_argument(
-        '-N',
-        '--dna',
-        default=False,
-        help='Run REDItools on DNA-Seq data.',
-        action='store_true',
+        help=(
+            'Reference FASTA file. (Note: REDItools runs fastest when BAM '
+            'files have MD tags and -r is *not* used).'
+        ),
     )
     output_group = parser.add_argument_group(
         title='Output Options',
@@ -267,6 +262,13 @@ def parse_options():  # noqa:WPS213
         type=int,
         default=4,
         help='The splicing span (used in conjunction with --splicing-file.)',
+    )
+    parser.add_argument(
+        '-N',
+        '--dna',
+        default=False,
+        help='Run REDItools on DNA-Seq data. (Equivalent to --strand 0)',
+        action='store_true',
     )
 
     print(parser.parse_args())

@@ -12,10 +12,7 @@ def setup_rtools(options):  # noqa:WPS213,WPS231
     Returns:
         A configured REDItools object
     """
-    if options.dna:
-        rtools = reditools.REDItoolsDNA()
-    else:
-        rtools = reditools.REDItools()
+    rtools = reditools.REDItools()
 
     if options.debug:
         rtools.log_level = Logger.debug_level
@@ -57,8 +54,12 @@ def setup_rtools(options):  # noqa:WPS213,WPS231
     rtools.min_column_length = options.min_read_depth
     rtools.min_edits = options.min_edits
     rtools.min_edits_per_nucleotide = options.min_edits_per_nucleotide
-    rtools.strand = options.strand
     rtools.max_alts = options.max_editing_nucleotides
+
+    if options.dna:
+        rtools.strand = 0
+    else:
+        rtools.strand = options.strand
 
     rtools.strand_confidence_threshold = options.strand_confidence_threshold
 
