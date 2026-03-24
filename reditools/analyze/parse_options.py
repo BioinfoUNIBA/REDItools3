@@ -47,6 +47,14 @@ def test_multis_conflict(options):
         )
 
 
+def test_edit_frequency(options):
+    if options.max_editing_nucleotides < options.min_edits:
+        raise Exception(
+            '-Men/--max-editing-nucleotides cannot be smaller than '
+            '-me/--min-edits.',
+        )
+
+
 def parse_options():  # noqa:WPS213
     """
     Parse commandline options for REDItools.
@@ -68,8 +76,8 @@ def parse_options():  # noqa:WPS213
         '-r',
         '--reference',
         help=(
-            'Reference FASTA file. (Note: REDItools runs fastest when BAM '
-            'files have MD tags and -r is *not* used).'
+            'Reference genome FASTA file. (Note: REDItools runs fastest when '
+            'BAM files have MD tags and -r is *not* used).'
         ),
     )
     output_group = parser.add_argument_group(
@@ -109,7 +117,7 @@ def parse_options():  # noqa:WPS213
         '--min-base-quality',
         type=int,
         default=30,  # noqa:WPS432
-        help='Bases Phred quality score below -bq will bed discarded.',
+        help='Bases with a Phred quality score below -bq will bed discarded.',
     )
     bqf_group.add_argument(
         '-mbp',
@@ -148,20 +156,18 @@ def parse_options():  # noqa:WPS213
         help=argparse.SUPPRESS,
     )
     gr_group.add_argument(
-        '-m',
-        '--load-omopolymeric-file',
-        help='BED file of omopolymeric positions.',
-    )
-    gr_group.add_argument(
         '-g',
         '--region',
-        help='Only analyzes the specified region.',
+        help=(
+            'Only analyzes the specified SAM region '
+            '(1-index, start and end inclusive).'
+        ),
     )
     gr_group.add_argument(
         '-B',
         '--bed-file',
         nargs='+',
-        help='Only analyze regions in the provided BED file.',
+        help='Only reports on regions in the provided BED file.',
     )
     gr_group.add_argument(
         '--bed_file',
@@ -171,27 +177,20 @@ def parse_options():  # noqa:WPS213
         title='Result Filters',
     )
     rf_group.add_argument(
-        '-l',
-        '--min-read-depth',
-        type=bounded_int(min=1),
-        default=1,
-        help='Only report on positions with at least -l read depth',
-    )
-    rf_group.add_argument(
         '-men',
         '--min-edits-per-nucleotide',
         type=int,
         default=0,
-        help='Positions with fewer than -men edits will be discarded.',
+        help='
     )
     rf_group.add_argument(
         '-me',
         '--min-edits',
-        type=int,
+        type=bounded_int(0, 4),
         default=1,
         help=(
-            'The minimum number of editing events (per position). '
-            'Positions with fewer than -me edits will be discarded.'
+            'Positions with fewer than -me unique variants (listed in the '
+            'AllSubs column) will be excluded from the results.'
         ),
     )
     rf_group.add_argument(
@@ -200,9 +199,8 @@ def parse_options():  # noqa:WPS213
         type=bounded_int(min=0, max=4),
         default=4,  # noqa:WPS432
         help=(
-            'The maximum number of editing nucleotides, from 0 to 4 '
-            '(per position). Positions whose columns have more than '
-            '"max-editing-nucleotides" will not be included in the analysis.'
+            'Positions with more than -Men unique variants (listed in the '
+            'AllSubs column) will be excluded from the results.'
         ),
     )
     rf_group.add_argument(
@@ -211,10 +209,23 @@ def parse_options():  # noqa:WPS213
         nargs='*',
         default=['all'],
         help=(
-            'Which editing events to report. Edits should be two characters, '
-            'separated by spaces. Use "all" to report all variants.'
+            'Which editing events to report. Each edit should be two '
+            'characters and separated by spaces (e.g. AG CT). Use "all" to '
+            'report all variants.'
         ),
     )
+    rf_group.add_argument(
+        '-l',
+        '--min-read-depth',
+        type=bounded_int(min=1),
+        default=1,
+        help=(
+            'Only report on positions with at least -l reads (corresponds to '
+            'the Coverage column.) This is calculated after all other filters '
+            'have been applied.'
+        ),
+    )
+
     strand_group = parser.add_argument_group(
         title='Strandedness Options',
     )
@@ -256,7 +267,12 @@ def parse_options():  # noqa:WPS213
     para_group.add_argument(
         '-t',
         '--threads',
-        help='Number of threads for parallel processing.',
+        help=(
+            'Number of threads for parallel processing. Note that the '
+            'maximum number of usable threads is equivalent to the number of '
+            'chromosomes in your alignment genome unless you use the --window '
+            'option.'
+        ),
         type=bounded_int(min=1),
         default=1,
     )
@@ -284,7 +300,11 @@ def parse_options():  # noqa:WPS213
         '-d',
         '--debug',
         default=False,
-        help='Run in debug mode.',
+        help=(
+            'Run in debug mode. Every step of REDItools logic will be printed '
+            'to STDERR. If REDItools crashes, debug mode will print the stack '
+            'trace as well.'
+        ),
         action='store_true',
     )
     tech_group.add_argument(
@@ -300,7 +320,7 @@ def parse_options():  # noqa:WPS213
         default=False,
         help=(
             'Do not report any position with more than one alternate base. '
-            '(Equivalent to --max-editing-nucleotides 1)'
+            '(Equivalent to -Men/--max-editing-nucleotides 1)'
         ),
         action='store_true',
     )
@@ -308,8 +328,17 @@ def parse_options():  # noqa:WPS213
         '-N',
         '--dna',
         default=False,
-        help='Run REDItools on DNA-Seq data. (Equivalent to --strand 0)',
+        help='Run REDItools on DNA-Seq data. (Equivalent to -s/--strand 0)',
         action='store_true',
+    )
+    leg_group.add_argument(
+        '-m',
+        '--load-omopolymeric-file',
+        help=(
+            'BED file of homopolymeric positions. Regions in the BED file '
+            'will be excluded from the analysis. (Same effect as providing '
+            'the BED file with the -k/--exclude-regions option.'
+        ),
     )
     leg_group.add_argument(
         '-sf',
@@ -334,6 +363,7 @@ def parse_options():  # noqa:WPS213
     try:
         test_dna_strand_conflict(options)
         test_multis_conflict(options)
+        test_edit_frequency(options)
     except Exception as e:
         parser.error(message=str(e))
 
