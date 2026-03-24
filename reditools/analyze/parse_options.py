@@ -1,6 +1,18 @@
 import argparse
 import sys
 
+__all__ = ('parse_options',)
+
+def test_dna_strand_conflict(options):
+    if options.strand !=0 and options.dna:
+        raise Exception('Options --dna and --strand are mutually exclusive.')
+
+def test_multis_conflict(options):
+    if options.exclude_multis and options.max_editing_nucleotides != 1:
+        raise Exception(
+            'Options --exclude-multis and --max-editing-nucleotides are '
+            'mutually exclusive.',
+        )
 
 def parse_options():  # noqa:WPS213
     """
@@ -271,7 +283,12 @@ def parse_options():  # noqa:WPS213
         action='store_true',
     )
 
-    print(parser.parse_args())
-    sys.exit(1)
+    options = parser.parse_args()
 
-    return parser.parse_args()
+    try:
+        test_dna_strand_conflict(options)
+        test_multis_conflict(options)
+    except Exception as e:
+        parser.error(message=str(e))
+
+    return options

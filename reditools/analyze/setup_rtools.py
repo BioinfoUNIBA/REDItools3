@@ -14,10 +14,10 @@ def setup_rtools(options):  # noqa:WPS213,WPS231
     """
     rtools = reditools.REDItools()
 
-    if options.debug:
-        rtools.log_level = Logger.debug_level
     elif options.verbose:
         rtools.log_level = Logger.info_level
+    if options.debug:
+        rtools.log_level = Logger.debug_level
 
     if options.load_omopolymeric_file:
         regions = file_utils.read_bed_file(options.load_omopolymeric_file)
