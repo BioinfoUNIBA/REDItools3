@@ -39,8 +39,8 @@ def main():
     if options.region is None:
         region = None
     else:
-        region = Region.from_string(region_str=options.region, alignment_file=options.file[0])
- 
+        region = Region.from_string(options.region, options.file[0])
+
     regions = region_args(
         options.file[0],
         region,
