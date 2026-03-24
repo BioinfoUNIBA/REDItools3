@@ -1,5 +1,6 @@
 from reditools import utils
 from reditools.region import Region
+from pysam import AlignmentFile
 
 
 def region_args(bam_fname, region, window):
@@ -19,11 +20,12 @@ def region_args(bam_fname, region, window):
             return region.split(window)
         return [region]
 
-    args = []
-    for contig, size in utils.get_contigs(bam_fname):
-        region = Region(contig=contig, start=1, stop=size+1)
-        if window:
-            args.extend(region.split(window))
-        else:
-            args.append(region)
-    return args
+    sub_regions = []
+    with AlignmentFile(bam_fname) as bam:
+        for contig, size in zip(bam.references, bam.lengths):
+            region = Region(contig=contig, start=1, stop=size+1)
+            if window:
+                sub_regions.extend(region.split(window))
+            else:
+                sub_regions.append(region)
+    return sub_regions
