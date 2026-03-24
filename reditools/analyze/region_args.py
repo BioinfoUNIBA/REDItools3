@@ -22,7 +22,7 @@ def region_args(bam_fname, region, window):
     sub_regions = []
     with AlignmentFile(bam_fname) as bam:
         for contig, size in zip(bam.references, bam.lengths):
-            region = Region(contig=contig, start=1, stop=size+1)
+            region = Region(contig=contig, start=0, stop=size)
             if window:
                 sub_regions.extend(region.split(window))
             else:
