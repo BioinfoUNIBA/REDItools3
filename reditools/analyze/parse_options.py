@@ -80,6 +80,14 @@ def parse_options():  # noqa:WPS213
             'BAM files have MD tags and -r is *not* used).'
         ),
     )
+    parser.add_argument(
+        '-g',
+        '--region',
+        help=(
+            'Only analyzes the specified SAM region '
+            '(1-index, start and end inclusive).'
+        ),
+    )
     output_group = parser.add_argument_group(
         title='Output Options',
     )
@@ -149,25 +157,17 @@ def parse_options():  # noqa:WPS213
         '-k',
         '--exclude-regions',
         nargs='+',
-        help='Skip regions in the provided BED file(s).',
+        help='Do not report on regions in the provided BED file(s).',
     )
     gr_group.add_argument(
         '--exclude_regions',
         help=argparse.SUPPRESS,
     )
     gr_group.add_argument(
-        '-g',
-        '--region',
-        help=(
-            'Only analyzes the specified SAM region '
-            '(1-index, start and end inclusive).'
-        ),
-    )
-    gr_group.add_argument(
         '-B',
         '--bed-file',
         nargs='+',
-        help='Only reports on regions in the provided BED file.',
+        help='Only reports on regions in the provided BED file(s).',
     )
     gr_group.add_argument(
         '--bed_file',
@@ -181,7 +181,11 @@ def parse_options():  # noqa:WPS213
         '--min-edits-per-nucleotide',
         type=int,
         default=0,
-        help='
+        help=(
+            'Position where any variant has a frequency less than -men but '
+            'more than zero will not be reported. (Corresponds to the '
+            'BaseCount column.)'
+        ),
     )
     rf_group.add_argument(
         '-me',
@@ -211,7 +215,7 @@ def parse_options():  # noqa:WPS213
         help=(
             'Which editing events to report. Each edit should be two '
             'characters and separated by spaces (e.g. AG CT). Use "all" to '
-            'report all variants.'
+            'report all variants. (Corresponds to the AllSubs column)'
         ),
     )
     rf_group.add_argument(
@@ -236,9 +240,12 @@ def parse_options():  # noqa:WPS213
         type=int,
         default=0,
         help=(
-            'Strand: this can be 0 (unstranded),'
-            '1 (second strand oriented) or '
-            '2 (first strand oriented).'
+            'Strand can be 0 (unstranded), 1 (read1 is original RNA), or '
+            '2 (read2 is original RNA). '
+            'From RSeQC infer_experiment.py, 1++,1--,2+-,2-+ should be run '
+            'as --strand 2 and 1+-,1-+,2++,2-- should be run as --strand 1. '
+            'All DNA sequencing experiments should be run as unstranded (0). '
+            'All single-end experiments should be run as unstranded (0).'
         ),
     )
     strand_group.add_argument(
@@ -346,8 +353,8 @@ def parse_options():  # noqa:WPS213
         help=(
             'The splicing file is a space delimited file with columns '
             'chromosome, start position (zero-index inclusive), splice '
-            '(either D or A), and strand (either + or -). A header is '
-            'optional, but must start with #.'
+            '(either A for acceptor or D for donor), and strand (either '
+            '+ or -). A header is optional, but must start with #.'
         ),
     )
     leg_group.add_argument(
