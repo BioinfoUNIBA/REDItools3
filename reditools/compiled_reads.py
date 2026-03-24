@@ -112,7 +112,7 @@ class CompiledReads(object):
         return read.query_length - position >= self._qc['max_base_position']
 
     def _prep_read(self, read):
-        pairs = read.get_aligned_paired(matches_only=True),
+        pairs = read.get_aligned_pairs(matches_only=True)
         data_iter = zip(
             (_[0] for _ in pairs),
             (_[1] for _ in pairs),
