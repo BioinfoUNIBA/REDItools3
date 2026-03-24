@@ -305,6 +305,13 @@ def parse_options():  # noqa:WPS213
         action='store_true',
     )
     leg_group.add_argument(
+        '-N',
+        '--dna',
+        default=False,
+        help='Run REDItools on DNA-Seq data. (Equivalent to --strand 0)',
+        action='store_true',
+    )
+    leg_group.add_argument(
         '-sf',
         '--splicing-file',
         help=(
@@ -320,14 +327,7 @@ def parse_options():  # noqa:WPS213
         type=bounded_int(min=1),
         default=4,
         help='The splicing span (used in conjunction with --splicing-file.)',
-    )
-    parser.add_argument(
-        '-N',
-        '--dna',
-        default=False,
-        help='Run REDItools on DNA-Seq data. (Equivalent to --strand 0)',
-        action='store_true',
-    )
+    ) 
 
     options = parser.parse_args()
 
