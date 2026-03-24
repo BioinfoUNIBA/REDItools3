@@ -156,25 +156,31 @@ def parse_options():  # noqa:WPS213
         '--min-edits',
         type=int,
         default=1,
-        help='The minimum number of editing events (per position). ' +
-        'Positions with fewer than -me edits will be discarded.',
+        help=(
+            'The minimum number of editing events (per position). '
+            'Positions with fewer than -me edits will be discarded.'
+        ),
     )
     rf_group.add_argument(
         '-Men',
         '--max-editing-nucleotides',
         type=int,
         default=4,  # noqa:WPS432
-        help='The maximum number of editing nucleotides, from 0 to 4 ' +
-        '(per position). Positions whose columns have more than ' +
-        '"max-editing-nucleotides" will not be included in the analysis.',
+        help=(
+            'The maximum number of editing nucleotides, from 0 to 4 '
+            '(per position). Positions whose columns have more than '
+            '"max-editing-nucleotides" will not be included in the analysis.'
+        ),
     )
     rf_group.add_argument(
         '-v',
         '--variants',
         nargs='*',
         default=['all'],
-        help='Which editing events to report. Edits should be two characters, '
-        'separated by spaces. Use "all" to report all variants.',
+        help=(
+            'Which editing events to report. Edits should be two characters, '
+            'separated by spaces. Use "all" to report all variants.'
+        ),
     )
     strand_group = parser.add_argument_group(
         title='Strandedness Options',
@@ -185,24 +191,30 @@ def parse_options():  # noqa:WPS213
         choices=(0, 1, 2),
         type=int,
         default=0,
-        help='Strand: this can be 0 (unstranded),' +
-        '1 (second strand oriented) or ' +
-        '2 (first strand oriented).',
+        help=(
+            'Strand: this can be 0 (unstranded),'
+            '1 (second strand oriented) or '
+            '2 (first strand oriented).'
+        ),
     )
     strand_group.add_argument(
         '-T',
         '--strand-confidence-threshold',
         type=float,
         default=0.7,  # noqa:WPS432
-        help='Only report the strandedness if at least -T proportion of ' +
-        'reads are of a given strand.',
+        help=(
+            'Only report the strandedness if at least -T proportion of '
+            'reads are of a given strand.'
+        ),
     )
     strand_group.add_argument(
         '-C',
         '--strand-correction',
         default=False,
-        help='Strand correction. Once the strand has been inferred, ' +
-        'only bases according to this strand will be selected.',
+        help=(
+            'Strand correction. Once the strand has been inferred, '
+            'only bases according to this strand will be selected.'
+        ),
         action='store_true',
     )
     para_group = parser.add_argument_group(
@@ -218,8 +230,10 @@ def parse_options():  # noqa:WPS213
     para_group.add_argument(
         '-w',
         '--window',
-        help='How many bp should be processed by each thread at a time. ' +
-        'Zero uses the full contig.',
+        help=(
+            'How many bp should be processed by each thread at a time. '
+            'Zero uses the full contig.'
+        ),
         type=int,
         default=0,
     )
