@@ -1,11 +1,43 @@
 import argparse
-import sys
 
 __all__ = ('parse_options',)
 
+
+def check_number_bounds(value, min=None, max=None):
+    if min is not None and value < min:
+        raise argparse.ArgumentTypeError(f'Value must be at least {min}.')
+    if max is not None and value > max:
+        raise argparse.ArgumentTypeError(
+            f'Value cannot be larger than {max}.',
+        )
+
+
+def bounded_int(min=None, max=None):
+    def subfn(value):
+        try:
+            value = int(value)
+        except ValueError:
+            raise argparse.ArgumentTypeError(f'invalid int value: {value}')
+        check_number_bounds(value, min, max)
+        return value
+    return subfn
+
+
+def bounded_float(min=None, max=None):
+    def subfn(value):
+        try:
+            value = float(value)
+        except ValueError:
+            raise argparse.ArgumentTypeError(f'invalid float value: {value}')
+        check_number_bounds(value, min, max)
+        return value
+    return subfn
+
+
 def test_dna_strand_conflict(options):
-    if options.strand !=0 and options.dna:
+    if options.strand != 0 and options.dna:
         raise Exception('Options --dna and --strand are mutually exclusive.')
+
 
 def test_multis_conflict(options):
     if options.exclude_multis and options.max_editing_nucleotides != 1:
@@ -13,6 +45,7 @@ def test_multis_conflict(options):
             'Options --exclude-multis and --max-editing-nucleotides are '
             'mutually exclusive.',
         )
+
 
 def parse_options():  # noqa:WPS213
     """
@@ -81,14 +114,14 @@ def parse_options():  # noqa:WPS213
     bqf_group.add_argument(
         '-mbp',
         '--min-base-position',
-        type=int,
+        type=bounded_int(min=0),
         default=0,
         help='Ignores the first -mbp bases in each read.',
     )
     bqf_group.add_argument(
         '-Mbp',
         '--max-base-position',
-        type=int,
+        type=bounded_int(min=0),
         default=0,
         help='Ignores the last -Mpb bases in each read.',
     )
@@ -140,7 +173,7 @@ def parse_options():  # noqa:WPS213
     rf_group.add_argument(
         '-l',
         '--min-read-depth',
-        type=int,
+        type=bounded_int(min=1),
         default=1,
         help='Only report on positions with at least -l read depth',
     )
@@ -164,7 +197,7 @@ def parse_options():  # noqa:WPS213
     rf_group.add_argument(
         '-Men',
         '--max-editing-nucleotides',
-        type=int,
+        type=bounded_int(min=0, max=4),
         default=4,  # noqa:WPS432
         help=(
             'The maximum number of editing nucleotides, from 0 to 4 '
@@ -200,7 +233,7 @@ def parse_options():  # noqa:WPS213
     strand_group.add_argument(
         '-T',
         '--strand-confidence-threshold',
-        type=float,
+        type=bounded_float(max=1),
         default=0.7,  # noqa:WPS432
         help=(
             'Only report the strandedness if at least -T proportion of '
@@ -224,7 +257,7 @@ def parse_options():  # noqa:WPS213
         '-t',
         '--threads',
         help='Number of threads for parallel processing.',
-        type=int,
+        type=bounded_int(min=1),
         default=1,
     )
     para_group.add_argument(
@@ -234,7 +267,7 @@ def parse_options():  # noqa:WPS213
             'How many bp should be processed by each thread at a time. '
             'Zero uses the full contig.'
         ),
-        type=int,
+        type=bounded_int(min=0),
         default=0,
     )
     tech_group = parser.add_argument_group(
@@ -271,7 +304,6 @@ def parse_options():  # noqa:WPS213
         ),
         action='store_true',
     )
-
     leg_group.add_argument(
         '-sf',
         '--splicing-file',
@@ -285,7 +317,7 @@ def parse_options():  # noqa:WPS213
     leg_group.add_argument(
         '-ss',
         '--splicing-span',
-        type=int,
+        type=bounded_int(min=1),
         default=4,
         help='The splicing span (used in conjunction with --splicing-file.)',
     )
