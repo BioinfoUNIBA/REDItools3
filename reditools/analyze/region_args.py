@@ -1,4 +1,3 @@
-from reditools import utils
 from reditools.region import Region
 from pysam import AlignmentFile
 

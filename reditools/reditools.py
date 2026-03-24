@@ -6,7 +6,6 @@ Authors:
     ahanden - 2022
 """
 
-from reditools import utils
 from reditools.compiled_reads import CompiledReads
 from reditools.fasta_file import RTFastaFile
 from reditools.logger import Logger
@@ -20,7 +19,6 @@ class REDItools(object):
 
     def __init__(self):
         """Create a new REDItools object."""
-        self.hostname_string = utils.get_hostname_string()
         self._min_column_length = 1
         self._min_edits = 0
         self._min_edits_per_nucleotide = 0
