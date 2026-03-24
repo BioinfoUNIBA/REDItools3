@@ -49,7 +49,7 @@ class RTFastaFile(PysamFastaFile):
         if contig != self._contig_name:
             self._update_contig_cache(contig)
         try:
-            return [self._contig_cache[idx] for idx in position]
+            return (self._contig_cache[idx].upper() for idx in position)
         except IndexError as exc:
             raise IndexError(
                 f'Base position {position} is outside the bounds of ' +
@@ -60,7 +60,7 @@ class RTFastaFile(PysamFastaFile):
         keys = (contig, f'chr{contig}', contig.replace('chr', ''))
         for ref in keys:
             if ref in self:
-                self._contig_cache = self.fetch(ref).upper()
+                self._contig_cache = self.fetch(ref)
                 self._contig_name = contig
                 return
         raise KeyError(f'Reference name {contig} not found in FASTA file.')
