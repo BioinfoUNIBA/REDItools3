@@ -1,6 +1,7 @@
 """Commandline tool for REDItools."""
 
 import sys
+import csv
 from reditools import file_utils
 
 fieldnames = [
@@ -42,4 +43,4 @@ def concat_output(tfs, output_file=None, mode='w', encoding='utf-8', **format_ar
         writer = csv.writer(stream, **format_args)
         if 'a' not in mode:
             writer.writerow(fieldnames)
-        file_utils.concat(stream, *tfs, encoding=options.encoding)
+        file_utils.concat(stream, *tfs, encoding=encoding)
