@@ -1,7 +1,7 @@
 import argparse
 import tempfile
 
-__all__ = ('parse_options',)
+__all__ = ('parse_args',)
 
 
 def check_number_bounds(value, min=None, max=None):
@@ -35,34 +35,7 @@ def bounded_float(min=None, max=None):
     return subfn
 
 
-def test_dna_strand_conflict(options):
-    if options.strand != 0 and options.dna:
-        raise Exception('Options --dna and --strand are mutually exclusive.')
-
-
-def test_multis_conflict(options):
-    if options.exclude_multis and options.max_editing_nucleotides != 1:
-        raise Exception(
-            'Options --exclude-multis and --max-editing-nucleotides are '
-            'mutually exclusive.',
-        )
-
-
-def test_edit_frequency(options):
-    if options.max_editing_nucleotides < options.min_edits:
-        raise Exception(
-            '-Men/--max-editing-nucleotides cannot be smaller than '
-            '-me/--min-edits.',
-        )
-
-def test_strand_options(options):
-    if options.strand == 0 and options.strand_correction:
-        raise Exception(
-            '-s/--strand 0 and -C/--strand-correction are mutually exclusive.'
-        )
-
-
-def parse_options():  # noqa:WPS213
+def build_argument_parser(): # noqa:WPS213
     """
     Parse commandline options for REDItools.
 
@@ -362,6 +335,14 @@ def parse_options():  # noqa:WPS213
         ),
     )
     leg_group.add_argument(
+        '-S',
+        '--strict',
+        help=(
+            'Activate strict mode: only sites with edits will be included in '
+            'the output. (Equivalent to -me/--min-edits 1)'
+        ),
+    )
+    leg_group.add_argument(
         '-sf',
         '--splicing-file',
         help=(
@@ -379,14 +360,56 @@ def parse_options():  # noqa:WPS213
         help='The splicing span (used in conjunction with --splicing-file.)',
     ) 
 
-    options = parser.parse_args()
+    return parser
 
+
+def check_dna_mode(args):
+    if args.strand != 0 and args.dna:
+        raise Exception('-N/--dna can only be used with -s/--strand 0.')
+    delattr(args, 'dna')
+
+
+def check_exclude_multis(args):
+    if args.exclude_multis:
+        setattr(args, 'max_editing_nucleotides', 1)
+        delattr(args, 'exclude_multis')
+
+
+def check_strict_mode(args):
+    if args.strict:
+        if args.min_edits != 1:
+            raise Exception(
+                '-S/--strict can only be used with -me/--min-edits 1.'
+            )
+        delattr(args, 'strict')
+
+
+def test_edit_frequency(args):
+    if args.max_editing_nucleotides < args.min_edits:
+        raise Exception(
+            '-Men/--max-editing-nucleotides cannot be smaller than '
+            '-me/--min-edits.',
+        )
+
+
+def test_strand_args(args):
+    if args.strand == 0 and args.strand_correction:
+        raise Exception(
+            '-s/--strand 0 and -C/--strand-correction are mutually exclusive.'
+        )
+
+
+def parse_args():
+    parser = build_argument_parser()
+    args = parser.parse_args()
     try:
-        test_dna_strand_conflict(options)
-        test_multis_conflict(options)
-        test_edit_frequency(options)
-        test_strand_options(options)
+        check_dna_mode(args)
+        check_exclude_multis(args)
+        check_strict_mode(args)
+
+        test_edit_frequency(args)
+        test_strand_args(args)
     except Exception as e:
         parser.error(message=str(e))
 
-    return options
+    return args
