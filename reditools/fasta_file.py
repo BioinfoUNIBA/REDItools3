@@ -46,6 +46,7 @@ class RTFastaFile(PysamFastaFile):
         Raises:
             IndexError: The position is not within the contig
         """
+        
         if contig != self._contig_name:
             self._update_contig_cache(contig)
         try:
@@ -57,10 +58,18 @@ class RTFastaFile(PysamFastaFile):
             ) from exc
 
     def _update_contig_cache(self, contig):
-        keys = (contig, f'chr{contig}', contig.replace('chr', ''))
-        for ref in keys:
-            if ref in self:
-                self._contig_cache = self.fetch(ref)
-                self._contig_name = contig
-                return
-        raise KeyError(f'Reference name {contig} not found in FASTA file.')
+        if contig in self:
+            self._contig_cache = self.fetch(contig)
+            self._contig_name = contig
+            return
+        if 'chr' in contig:
+            contig = contig.replace('chr', '')
+        else:
+            contig = f'chr{contig}'
+        try:
+            self._contig_cache = self.fetch(contig)
+            self._contig_name = contig
+        except KeyError as exc:
+            raise KeyError(
+                f'Reference name {contig} not found in FASTA file.',
+            ) from exc
