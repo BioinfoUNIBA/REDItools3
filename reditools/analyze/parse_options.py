@@ -54,6 +54,12 @@ def test_edit_frequency(options):
             '-me/--min-edits.',
         )
 
+def test_strand_options(options):
+    if options.strand == 0 and options.strand_correction:
+        raise Exception(
+            '-s/--strand 0 and -C/--strand-correction are mutually exclusive.'
+        )
+
 
 def parse_options():  # noqa:WPS213
     """
@@ -225,8 +231,7 @@ def parse_options():  # noqa:WPS213
         default=1,
         help=(
             'Only report on positions with at least -l reads (corresponds to '
-            'the Coverage column.) This is calculated after all other filters '
-            'have been applied.'
+            'the Coverage column.)'
         ),
     )
 
@@ -244,8 +249,10 @@ def parse_options():  # noqa:WPS213
             '2 (read2 is original RNA). '
             'From RSeQC infer_experiment.py, 1++,1--,2+-,2-+ should be run '
             'as --strand 2 and 1+-,1-+,2++,2-- should be run as --strand 1. '
-            'All DNA sequencing experiments should be run as unstranded (0). '
-            'All single-end experiments should be run as unstranded (0).'
+            'From Salmon, forward libraries (ISF, MSF, OSF) should be run as '
+            '--strand 2 and reverse libraries (ISR, MSR, OSR) as --strand 1. '
+            'All DNA sequencing experiments and single-end experiments should '
+            ' be run with --strand 0.'
         ),
     )
     strand_group.add_argument(
@@ -263,8 +270,8 @@ def parse_options():  # noqa:WPS213
         '--strand-correction',
         default=False,
         help=(
-            'Strand correction. Once the strand has been inferred, '
-            'only bases according to this strand will be selected.'
+            'Once the strand has been inferred, only bases according to this '
+            'strand will be selected.'
         ),
         action='store_true',
     )
@@ -371,6 +378,7 @@ def parse_options():  # noqa:WPS213
         test_dna_strand_conflict(options)
         test_multis_conflict(options)
         test_edit_frequency(options)
+        test_strand_options(options)
     except Exception as e:
         parser.error(message=str(e))
 
