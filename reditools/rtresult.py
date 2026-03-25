@@ -1,21 +1,14 @@
+from dataclasses import dataclass
+from reditools.compiled_position import CompiledPosition
+
+
+@dataclass(slots=True)
 class RTResult(object):
     """RNA editing analysis for a single base position."""
-
-    def __init__(self, bases, strand, contig, position):
-        """
-        RNA editing analysis for a single base position.
-
-        Parameters:
-            bases (compiledPosition): Bases found by REDItools
-            strand (str): Strand of the position
-            contig (str): Contig name
-            position (int): Genomic position
-        """
-        self.contig = contig
-        self.position = position + 1
-        self.bases = bases
-        self.strand = strand
-        self._variants = bases.get_variants()
+    bases: CompiledPosition
+    strand: str
+    contig: str
+    position: int
 
     @property
     def variants(self):
@@ -26,7 +19,7 @@ class RTResult(object):
             list
         """
         ref = self.bases.ref
-        return [f'{ref}{base}' for base in self._variants]
+        return [f'{ref}{base}' for base in self.bases.get_variants()]
 
     @property
     def mean_quality(self):
@@ -48,8 +41,9 @@ class RTResult(object):
         Returns:
             float
         """
-        if self._variants:
-            max_edits = max(self.bases[base] for base in self._variants)
+        variants = self.bases.get_variants()
+        if variants:
+            max_edits = max(self.bases[base] for base in variants)
             return max_edits / (max_edits + self.bases['REF'])
         return 0
 
