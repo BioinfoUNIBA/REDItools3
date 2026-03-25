@@ -19,13 +19,6 @@ def setup_rtools(options):  # noqa:WPS213,WPS231
     elif options.verbose:
         rtools.log_level = Logger.info_level
 
-    if options.load_omopolymeric_file:
-        regions = file_utils.read_bed_file(options.load_omopolymeric_file)
-        rtools.add_exclude_regions(regions)
-
-    if options.variants:
-        rtools.specific_edits = [_.upper() for _ in options.variants]
-
     if options.variants:
         rtools.specific_edits = [_.upper() for _ in options.variants]
 
@@ -56,16 +49,10 @@ def setup_rtools(options):  # noqa:WPS213,WPS231
     rtools.min_edits_per_nucleotide = options.min_edits_per_nucleotide
     rtools.max_alts = options.max_editing_nucleotides
 
-    if options.dna:
-        rtools.strand = 0
-    else:
-        rtools.strand = options.strand
-
+    rtools.strand = options.strand
     rtools.strand_confidence_threshold = options.strand_confidence_threshold
 
     if options.strand_correction:
         rtools.use_strand_correction()
-    if options.exclude_multis:
-        rtools.max_alts = 1
 
     return rtools
