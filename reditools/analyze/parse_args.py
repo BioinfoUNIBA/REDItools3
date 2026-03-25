@@ -67,7 +67,7 @@ def build_argument_parser(): # noqa:WPS213
         '-g',
         '--region',
         help=(
-            'Only analyzes the specified SAM region '
+            'Only analyzes the specified samtools formatted region. '
             '(1-index, start and end inclusive).'
         ),
     )
@@ -249,7 +249,7 @@ def build_argument_parser(): # noqa:WPS213
         default=False,
         help=(
             'Once the strand has been inferred, only bases according to this '
-            'strand will be selected. This option is only applicable if '
+            'strand will be reported. This option is only applicable if '
             '-s/--strand is not zero.'
         ),
         action='store_true',
