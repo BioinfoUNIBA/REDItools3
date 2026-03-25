@@ -1,4 +1,5 @@
 import argparse
+import tempfile
 
 __all__ = ('parse_options',)
 
@@ -76,7 +77,10 @@ def parse_options():  # noqa:WPS213
     parser.add_argument(
         'file',
         nargs='+',
-        help='The BAM file(s) to be analyzed.',
+        help=(
+            'The BAM file(s) to be analyzed. BAM files must be sorted and '
+            'indexed.'
+        ),
     )
     parser.add_argument(
         '-r',
@@ -247,12 +251,12 @@ def parse_options():  # noqa:WPS213
         help=(
             'Strand can be 0 (unstranded), 1 (read1 is original RNA), or '
             '2 (read2 is original RNA). '
-            'From RSeQC infer_experiment.py, 1++,1--,2+-,2-+ should be run '
-            'as --strand 2 and 1+-,1-+,2++,2-- should be run as --strand 1. '
-            'From Salmon, forward libraries (ISF, MSF, OSF) should be run as '
-            '--strand 2 and reverse libraries (ISR, MSR, OSR) as --strand 1. '
-            'All DNA sequencing experiments and single-end experiments should '
-            ' be run with --strand 0.'
+            'From RSeQC infer_experiment.py, 1+-,1-+,2++,2-- should be run '
+            'as --strand 1 and 1++,1--,2+-,2-+ should be run as --strand 2. '
+            'From Salmon, reverse libraries (ISR, MSR, OSR) should be run as '
+            '--strand 1 and forward libraries (ISF, MSF, OSF) as --strand 2. '
+            'All DNA sequencing experiments, single-end experiments, and '
+            'unpaired experiments should be run with --strand 0.'
         ),
     )
     strand_group.add_argument(
@@ -262,7 +266,8 @@ def parse_options():  # noqa:WPS213
         default=0.7,  # noqa:WPS432
         help=(
             'Only report the strandedness if at least -T proportion of '
-            'reads are of a given strand.'
+            'reads are of a given strand. This option is only applicable '
+            'if -s/--strand is not zero.'
         ),
     )
     strand_group.add_argument(
@@ -271,7 +276,8 @@ def parse_options():  # noqa:WPS213
         default=False,
         help=(
             'Once the strand has been inferred, only bases according to this '
-            'strand will be selected.'
+            'strand will be selected. This option is only applicable if '
+            '-s/--strand is not zero.'
         ),
         action='store_true',
     )
@@ -324,6 +330,7 @@ def parse_options():  # noqa:WPS213
     tech_group.add_argument(
         '--temp-dir',
         help='Location to save temporary files',
+        default=tempfile.gettempdir(),
     )
     leg_group = parser.add_argument_group(
         title='Legacy Options',
