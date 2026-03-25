@@ -372,7 +372,7 @@ def check_dna_mode(args):
 def check_exclude_multis(args):
     if args.exclude_multis:
         setattr(args, 'max_editing_nucleotides', 1)
-        delattr(args, 'exclude_multis')
+    delattr(args, 'exclude_multis')
 
 
 def check_strict_mode(args):
@@ -381,7 +381,15 @@ def check_strict_mode(args):
             raise Exception(
                 '-S/--strict can only be used with -me/--min-edits 1.'
             )
-        delattr(args, 'strict')
+    delattr(args, 'strict')
+
+def check_load_omopolymeric_file(args):
+    if args.load_omopolymeric_file:
+        if args.exclude_regions is None:
+            setattr(args, 'exclude_regions', [args.load_omopolymeric_file])
+        else:
+            args.exclude_regions.append(args.load_omopolymeric_file)
+    delattr(args, 'load_omopolymeric_file')
 
 
 def test_edit_frequency(args):
@@ -406,6 +414,7 @@ def parse_args():
         check_dna_mode(args)
         check_exclude_multis(args)
         check_strict_mode(args)
+        check_load_omopolymeric_file(args)
 
         test_edit_frequency(args)
         test_strand_args(args)
