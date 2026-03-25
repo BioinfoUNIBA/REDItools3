@@ -20,7 +20,7 @@ def region_args(bam_fname, region, window):
         return [region]
 
     sub_regions = []
-    with AlignmentFile(bam_fname) as bam:
+    with AlignmentFile(bam_fname, ignore_truncation=True) as bam:
         for contig, size in zip(bam.references, bam.lengths):
             region = Region(contig=contig, start=0, stop=size)
             if window:

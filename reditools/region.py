@@ -74,7 +74,7 @@ class Region:
     def from_string(region_str, alignment_file):
         contig, start, stop = Region.parse_string(region_str)
         if stop is None:
-            with AlignmentFile(alignment_file) as bam:
+            with AlignmentFile(alignment_file, ignore_truncation=True) as bam:
                 stop = bam.get_reference_length(contig)
         return Region(contig, start, stop)
 
