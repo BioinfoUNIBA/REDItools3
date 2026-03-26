@@ -81,9 +81,9 @@ class AlignmentManager(object):
         Create a new manager.
 
         Parameters:
-            *args (list): positional arguments for PysamFastaFile
+            *args (list): positional arguments for pysam.AlignmentFile
                 constructor
-            **kwargs (dict): named arguments for PysamFastaFile
+            **kwargs (dict): named arguments for pysam.AlignmentFile
                 constructor
         """
         self._bam_args = args

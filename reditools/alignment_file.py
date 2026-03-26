@@ -11,8 +11,8 @@ class RTAlignmentFile(PysamAlignmentFile):
         Create a wrapper for pysam.AlignmentFile.
 
         Parameters:
-            *args (list): Positional arguments for pysam.FastaFile()
-            **kwargs (dict): Keyword arguments for pysam.FastaFile()
+            *args (list): Positional arguments for pysam.AlignmentFile()
+            **kwargs (dict): Keyword arguments for pysam.AlignmentFile()
 
         Returns:
             PysamAlignmentFile
@@ -26,10 +26,10 @@ class RTAlignmentFile(PysamAlignmentFile):
         Create a wrapper for pysam.AlignmentFile.
 
         Parameters:
-            *args (list): Positional arguments for pysam.FastaFile()
+            *args (list): Positional arguments for pysam.AlignmentFile()
             min_quality (int): Minimum read quality
             min_length (int): Minimum read length
-            **kwargs (dict): Keyword arguments for pysam.FastaFile()
+            **kwargs (dict): Keyword arguments for pysam.AlignmentFile()
         """
         PysamAlignmentFile.__init__(self)
 
@@ -69,8 +69,8 @@ class RTAlignmentFile(PysamAlignmentFile):
         Fetch reads aligned in a region.
 
         Parameters:
-            *args (list): Positional arguments for pysam.FastaFile.fetch
-            *kwargs (list): Keyword arguments for pysam.FastaFile.fetch
+            *args (list): Positional arguments for pysam.AlignmentFile.fetch
+            *kwargs (list): Keyword arguments for pysam.AlignmentFile.fetch
 
         Yields:
             Reads

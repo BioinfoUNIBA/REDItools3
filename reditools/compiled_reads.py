@@ -98,10 +98,10 @@ class CompiledReads(object):
         return not self._nucleotides
 
     def _get_ref_from_read(self, read):
-        return [_[2].upper() for _ in read.get_aligned_pairs(
+        return (_[2].upper() for _ in read.get_aligned_pairs(
             with_seq=True,
             matches_only=True,
-        )]
+        ))
 
     def _get_ref_from_fasta(self, read):
         pairs = read.get_aligned_pairs(matches_only=True)
@@ -113,21 +113,16 @@ class CompiledReads(object):
 
     def _prep_read(self, read):
         pairs = read.get_aligned_pairs(matches_only=True)
-        seq = read.query_sequence.upper()
-        qualities = read.query_qualities
-        ref_seq = self._ref_seq(read)
-        while pairs and pairs[0][0] < self._qc['min_base_position']:
-            pairs.pop(0)
-            ref_seq.pop(0)
-        if not pairs:
-            return
-
-        while pairs and self._qc_base_position(read, pairs[0][0]):
-            offset, ref_pos = pairs.pop(0)
-            ref_base = ref_seq.pop(0)
-            if ref_base != 'N' != seq[offset]:
-                if qualities[offset] >= self._qc['min_base_quality']:
-                    yield (ref_pos, seq[offset], qualities[offset], ref_base)
+        for (read_pos, ref_pos), ref_base in zip(pairs, self._ref_seq(read)):
+            if ref_pos < self._qc['min_base_position']:
+                continue
+            read_base = read.query_sequence[read_pos]
+            if ref_base == 'N' or read_base == 'N':
+                continue
+            phred = read.query_qualities[read_pos]
+            if phred < self._qc['min_base_quality']:
+                continue
+            yield (ref_pos, read_base, phred, ref_base)
 
     def _get_strand_one(self, read):
         return read.is_read1 and not read.is_reverse or \
