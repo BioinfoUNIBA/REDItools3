@@ -8,14 +8,14 @@ from reditools.region import Region
 
 from .concat_output import concat_output
 from .monitor import monitor
-from .parse_options import parse_options
+from .parse_args import parse_args
 from .region_args import region_args
 from .run_proc import run_proc
 
 
 def main():
     """Perform RNA editing analysis."""
-    options = parse_options()
+    options = parse_args()
 
     is_verbose = options.debug or options.verbose
 
@@ -41,11 +41,15 @@ def main():
     else:
         region = Region.from_string(options.region, options.file[0])
 
-    regions = region_args(
-        options.file[0],
-        region,
-        options.window,
-    )
+    try:
+        regions = region_args(
+            options.file[0],
+            region,
+            options.window,
+        )
+    except FileNotFoundError as e:
+        sys.stderr.write(f'[ERROR] {e}\n')
+        sys.exit(1)
 
     # Check thread count
     if len(regions) < options.threads:
