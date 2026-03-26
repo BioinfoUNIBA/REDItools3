@@ -224,12 +224,12 @@ def build_argument_parser(): # noqa:WPS213
         help=(
             'Strand can be 0 (unstranded), 1 (read1 is original RNA), or '
             '2 (read2 is original RNA). '
-            'From RSeQC infer_experiment.py, 1+-,1-+,2++,2-- should be run '
-            'as --strand 1 and 1++,1--,2+-,2-+ should be run as --strand 2. '
-            'From Salmon, reverse libraries (ISR, MSR, OSR) should be run as '
-            '--strand 1 and forward libraries (ISF, MSF, OSF) as --strand 2. '
+            'From RSeQC infer_experiment.py, 1++,1--,2+-,2-+ should be run '
+            'as --strand 1 and 1+-,1-+,2++,2-- should be run as --strand 2. '
+            'From Salmon, forward libraries (ISF, MSF, OSF) should be run as '
+            '--strand 1 and reverse libraries (ISR, MSR, OSR) as --strand 2. '
             'All DNA sequencing experiments, single-end experiments, and '
-            'unpaired experiments should be run with --strand 0.'
+            'nonstranded experiments should be run with --strand 0.'
         ),
     )
     strand_group.add_argument(
