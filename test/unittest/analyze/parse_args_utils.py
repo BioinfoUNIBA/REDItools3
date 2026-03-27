@@ -4,6 +4,7 @@ from reditools.analyze.parse_args import (
     check_number_bounds, bounded_int, bounded_float
 )
 
+
 class TestParseArgsUtils(unittest.TestCase):
     def test_check_number_bounds_valid(self):
         # No error for value in bounds

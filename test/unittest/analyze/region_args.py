@@ -1,7 +1,7 @@
 import unittest
 from reditools.region import Region
-from pysam import AlignmentFile
 from reditools.analyze.region_args import region_args
+
 
 class TestRegionArgs(unittest.TestCase):
     def test_no_input(self):

@@ -5,6 +5,7 @@ import reditools.file_utils as file_utils
 from reditools.region import Region
 import gzip
 
+
 class TestFileUtils(unittest.TestCase):
     def test_open_stream_plain(self):
         with NamedTemporaryFile(delete=False,
@@ -125,5 +126,8 @@ class TestFileUtils(unittest.TestCase):
                 f.write(' '.join(entry))
                 f.write('\n')
         splice_sites = list(file_utils.load_splicing_file(fname, 5))
-        self.assertEqual(splice_sites, [Region(contig='chr1', start=0, stop=2)])
+        self.assertEqual(
+            splice_sites,
+            [Region(contig='chr1', start=0, stop=2)],
+        )
         os.remove(fname)

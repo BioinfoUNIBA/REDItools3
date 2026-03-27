@@ -17,3 +17,4 @@ per-file-ignores =
   reditools/utils.py: WPS515, WPS100
   reditools/reditools.py: WPS214
   reditools/rtchecks.py: WPS214
+  test/unittest/__main__.py: F401

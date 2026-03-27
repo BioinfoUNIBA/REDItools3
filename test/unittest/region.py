@@ -1,6 +1,6 @@
 import unittest
-from pysam import AlignmentFile
 from reditools.region import Region
+
 
 class TestRegion(unittest.TestCase):
 
@@ -24,7 +24,8 @@ class TestRegion(unittest.TestCase):
         self.assertEqual(windows[0], Region('chr1', 0, 300))
         self.assertEqual(windows[1], Region('chr1', 300, 600))
         self.assertEqual(windows[2], Region('chr1', 600, 900))
-        self.assertEqual(windows[3], Region('chr1', 900, 950))  # last window smaller than others
+        # last window smaller than others
+        self.assertEqual(windows[3], Region('chr1', 900, 950))
 
         # Edge case: very small region, window size larger than region
         region = Region('chr1', 0, 100)
@@ -58,9 +59,9 @@ class TestRegion(unittest.TestCase):
         region = Region.from_string('chr1:101-200', alignment_file)
         self.assertEqual(region, Region('chr1', 100, 200))
         region = Region.from_string('chr1:104', alignment_file)
-        self.assertEqual(region, Region('chr1', 103, 248956422))
+        self.assertEqual(region, Region('chr1', 103, chr1_len))
         region = Region.from_string('chr1', alignment_file)
-        self.assertEqual(region, Region('chr1', 0, 248956422))
+        self.assertEqual(region, Region('chr1', 0, chr1_len))
 
     def test_parse_string(self):
         region = Region.parse_string('chr1:101-200')

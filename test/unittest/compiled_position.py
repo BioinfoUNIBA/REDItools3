@@ -1,6 +1,7 @@
 import unittest
 from reditools.compiled_position import CompiledPosition
 
+
 class TestCompiledPosition(unittest.TestCase):
     def setUp(self):
         self.cp = CompiledPosition('A', 'chr1', 100)

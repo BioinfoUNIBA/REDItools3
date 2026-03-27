@@ -6,6 +6,7 @@ from reditools.analyze.parse_args import parse_args
 
 __all__ = ('TestParseArgs')
 
+
 @contextmanager
 def capture_sys_output():
     capture_out, capture_err = StringIO(), StringIO()
@@ -15,6 +16,7 @@ def capture_sys_output():
         yield capture_out, capture_err
     finally:
         sys.stdout, sys.stderr = current_out, current_err
+
 
 class TestParseArgs(unittest.TestCase):
     def test_legacy_pruning(self):
@@ -62,11 +64,14 @@ class TestParseArgs(unittest.TestCase):
             '--exclude-regions', 'example.bed',
             '--load-omopolymeric-file', 'test/test.bed',
         ])
-        self.assertEqual(args.exclude_regions, ['example.bed', 'test/test.bed'])
+        self.assertEqual(
+            args.exclude_regions,
+            ['example.bed', 'test/test.bed'],
+        )
         self.assertFalse(hasattr(args, 'load_omopolymeric_file'))
 
     def test_edit_frequency(self):
-        with self.assertRaises(SystemExit) as exc:
+        with self.assertRaises(SystemExit):
             with capture_sys_output() as (stdout, stderr):
                 parse_args([
                     'test/test.bam',
@@ -75,7 +80,7 @@ class TestParseArgs(unittest.TestCase):
                 ])
 
     def test_unstranded(self):
-        with self.assertRaises(SystemExit) as exc:
+        with self.assertRaises(SystemExit):
             with capture_sys_output() as (stdout, stderr):
                 parse_args([
                     'test/test.bam',
