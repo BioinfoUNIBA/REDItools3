@@ -122,6 +122,8 @@ class CompiledPosition(object):
         Parameters:
             strand (str): Either +, -, or *
         """
+        if strand == '*':
+            return
         keep = range(len(self.bases))
         keep = [idx for idx in keep if self.strands[idx] == strand]
         self.qualities = self._filter(self.qualities, keep)
