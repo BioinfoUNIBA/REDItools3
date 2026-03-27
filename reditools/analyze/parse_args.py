@@ -35,7 +35,7 @@ def bounded_float(min=None, max=None):
     return subfn
 
 
-def build_argument_parser(): # noqa:WPS213
+def build_argument_parser():  # noqa:WPS213
     """
     Parse commandline options for REDItools.
 
@@ -352,8 +352,8 @@ def build_argument_parser(): # noqa:WPS213
             'The splicing file is a space delimited file with five columns: '
             'chromosome, start position (one-index inclusive), stop '
             '(ignored),  splice (either A for acceptor or D for donor), and '
-            'strand (either + or -). A header is optional, but must start with '
-            '#. Used in conjunctions with -ss/--splicing-span.'
+            'strand (either + or -). A header is optional, but must start '
+            'with #. Used in conjunctions with -ss/--splicing-span.'
         ),
     )
     leg_group.add_argument(
@@ -361,8 +361,10 @@ def build_argument_parser(): # noqa:WPS213
         '--splicing-span',
         type=bounded_int(min=1),
         default=4,
-        help='The splicing span. Used in conjunction with -sf/--splicing-file.',
-    ) 
+        help=(
+            'The splicing span. Used in conjunction with -sf/--splicing-file.'
+        ),
+    )
 
     return parser
 
@@ -386,6 +388,7 @@ def check_strict_mode(args):
                 '-S/--strict can only be used with -me/--min-edits 1.'
             )
     delattr(args, 'strict')
+
 
 def check_load_omopolymeric_file(args):
     if args.load_omopolymeric_file:

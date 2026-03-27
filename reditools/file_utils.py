@@ -1,6 +1,5 @@
 """Miscellaneous utility functions."""
 
-import re
 import csv
 import os
 from gzip import open as gzip_open
@@ -87,7 +86,8 @@ def load_text_file(file_name):
     with open_stream(file_name, 'r') as stream:
         return [line.strip() for line in stream]
 
-def _read_redi_splice_sites(stream):
+
+def _read_splice_sites(stream):
     reader = csv.reader(stream, delimiter=' ')
     for idx, row in enumerate(reader, start=1):
         if len(row) == 0 or row[0].startswith('#'):
@@ -112,7 +112,7 @@ def _read_redi_splice_sites(stream):
             raise ValueError(
                 f'Strand must be + or - ({stream.name}:{idx})'
             )
-        
+
         yield (row[0], position, row[3], row[4])
 
 
@@ -130,7 +130,7 @@ def load_splicing_file(splicing_file, splicing_span):
     strand_map = {'-': 'D', '+': 'A'}
 
     with open_stream(splicing_file) as stream:
-        for contig, position, splice, strand in _read_redi_splice_sites(stream):
+        for contig, position, splice, strand in _read_splice_sites(stream):
             position = position - 1
             if strand_map[strand] == splice:
                 start = max(position - splicing_span, 0)
