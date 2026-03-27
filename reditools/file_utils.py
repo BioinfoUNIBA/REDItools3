@@ -1,10 +1,19 @@
 """Miscellaneous utility functions."""
 
+import re
 import csv
 import os
 from gzip import open as gzip_open
 
 from reditools.region import Region
+
+__all__ = (
+    'open_stream',
+    'read_bed_file',
+    'concat',
+    'load_splicing_file',
+    'load_text_file',
+)
 
 
 def open_stream(path, mode='rt', encoding='utf-8'):
@@ -65,6 +74,87 @@ def concat(output, *fnames, clean_up=True, encoding='utf-8'):
             os.remove(fname)
 
 
+def load_text_file(file_name):
+    """
+    Extract file contents to a list.
+
+    Parameters:
+        file_name (str): The file to open.
+
+    Returns:
+        List of content
+    """
+    with open_stream(file_name, 'r') as stream:
+        return [line.strip() for line in stream]
+
+def read_psl_splice_sites(stream):
+    splice_pa = re.compile(
+        '>\S+ (?P<contig>\S+):(?P<start>\d+)\.\.(?P<stop>\d+) '
+        '(?P<type>acceptor|donor)'
+    )
+    for idx, line in enumerate(stream, start=1):
+        if line.startswith('#'):
+            continue
+        match = splice_pa.match(line)
+        if match is None:
+            raise ValueError(
+                f'Cannot parse splice site ({stream.name}:{idx})'
+            )
+        start = int(match.group('start'))
+        stop = int(match.group('stop'))
+        if start < stop:
+            position = start
+            strand = '+' 
+        elif start > stop:
+            position = stop
+            strand = '-'
+        else:
+            raise ValueError(
+                'Start and stop position cannot be the same '
+                f'({stream.name}:{idx} start={start} stop={stop})'
+            )
+
+        if match.group('type') == 'acceptor':
+            span_type = 'A'
+        else:
+            span_type = 'D'
+
+        yield (
+            match.group('contig'),
+            position,
+            span_type,
+            strand,
+        )
+
+def read_redi_splice_sites(stream):
+    reader = csv.reader(stream, delimiter=' ')
+    for idx, row in enumerate(reader, start=1):
+        if len(row) == 0 or row[0].startswith('#'):
+            continue
+        if len(row) != 5:
+            raise ValueError(
+                'Cannot parse splcie site. Row must have 5 values '
+                f'({stream.name}:{idx})'
+            )
+        try:
+            position = int(row[1])
+        except ValueError as exc:
+            raise ValueError(
+                f'Splice site must be an integer ({stream.name}:{idx})'
+            ) from exc
+
+        if row[3] not in ('A', 'D'):
+            raise ValueError(
+                f'Splice type must be A or D ({stream.name}:{idx})'
+            )
+        if row[4] not in ('+', '-'):
+            raise ValueError(
+                f'Strand must be + or - ({stream.name}:{idx})'
+            )
+        
+        yield (row[0], position, row[3], row[4])
+
+
 def load_splicing_file(splicing_file, splicing_span):
     """
     Read splicing positions from a file.
@@ -79,45 +169,24 @@ def load_splicing_file(splicing_file, splicing_span):
     strand_map = {'-': 'D', '+': 'A'}
 
     with open_stream(splicing_file) as stream:
-        reader = csv.reader(
-            filter(lambda row: row[0] != '#', stream),
-            delimiter=' ',
-        )
-        for idx, row in enumerate(reader, start=1):
-            contig = row[0]
-            span = int(row[1]) - 1
-            splice = row[3]
-            strand = row[4]
+        line = next(stream, None)
+        while line is not None and line.startswith('#'):
+            line = next(stream, None)
+        if line is None:
+            return
+        if line.startswith('>'):
+            parser = read_psl_splice_sites
+        else:
+            parser = read_redi_splice_sites
 
-            if strand not in ('-', '+'):
-                raise ValueError(
-                    f'Strand must be either + or - (from splicing file line {idx})'
-                )
-            if splice not in ('A', 'D'):
-                raise ValueError(
-                    'Splice type must either be A or D (from splicing file line '
-                    f'{idx})'
-                ) 
-
-            start = span - 1
-            if strand_map[strand] == splice:
-                start = max(span - splicing_span, 0)
-                stop = span
+        stream.seek(0)
+        for contig, position, splice_type, strand in parser(stream):
+            position = position - 1
+            if strand_map[strand] == splice_type:
+                start = max(position - splicing_span, 0)
+                stop = position
             else:
-                start = span
-                stop = span + splicing_span
-            yield Region(contig=contig, start=start, stop=stop)
-
-
-def load_text_file(file_name):
-    """
-    Extract file contents to a list.
-
-    Parameters:
-        file_name (str): The file to open.
-
-    Returns:
-        List of content
-    """
-    with open_stream(file_name, 'r') as stream:
-        return [line.strip() for line in stream]
+                start = position
+                stop = position + splicing_span
+            if start != stop:
+                yield Region(contig=contig, start=start, stop=stop)
