@@ -350,7 +350,7 @@ def build_argument_parser(): # noqa:WPS213
             'chromosome, start position (one-index inclusive), stop '
             '(ignored),  splice (either A for acceptor or D for donor), and '
             'strand (either + or -). A header is optional, but must start with '
-            '#.'
+            '#. Used in conjunctions with -ss/--splicing-span.'
         ),
     )
     leg_group.add_argument(
@@ -358,7 +358,7 @@ def build_argument_parser(): # noqa:WPS213
         '--splicing-span',
         type=bounded_int(min=1),
         default=4,
-        help='The splicing span (used in conjunction with --splicing-file.)',
+        help='The splicing span. Used in conjunction with -sf/--splicing-file.',
     ) 
 
     return parser
