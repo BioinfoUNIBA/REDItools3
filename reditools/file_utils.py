@@ -87,46 +87,7 @@ def load_text_file(file_name):
     with open_stream(file_name, 'r') as stream:
         return [line.strip() for line in stream]
 
-def read_psl_splice_sites(stream):
-    splice_pa = re.compile(
-        '>\S+ (?P<contig>\S+):(?P<start>\d+)\.\.(?P<stop>\d+) '
-        '(?P<type>acceptor|donor)'
-    )
-    for idx, line in enumerate(stream, start=1):
-        if line.startswith('#'):
-            continue
-        match = splice_pa.match(line)
-        if match is None:
-            raise ValueError(
-                f'Cannot parse splice site ({stream.name}:{idx})'
-            )
-        start = int(match.group('start'))
-        stop = int(match.group('stop'))
-        if start < stop:
-            position = start
-            strand = '+' 
-        elif start > stop:
-            position = stop
-            strand = '-'
-        else:
-            raise ValueError(
-                'Start and stop position cannot be the same '
-                f'({stream.name}:{idx} start={start} stop={stop})'
-            )
-
-        if match.group('type') == 'acceptor':
-            span_type = 'A'
-        else:
-            span_type = 'D'
-
-        yield (
-            match.group('contig'),
-            position,
-            span_type,
-            strand,
-        )
-
-def read_redi_splice_sites(stream):
+def _read_redi_splice_sites(stream):
     reader = csv.reader(stream, delimiter=' ')
     for idx, row in enumerate(reader, start=1):
         if len(row) == 0 or row[0].startswith('#'):
@@ -169,20 +130,9 @@ def load_splicing_file(splicing_file, splicing_span):
     strand_map = {'-': 'D', '+': 'A'}
 
     with open_stream(splicing_file) as stream:
-        line = next(stream, None)
-        while line is not None and line.startswith('#'):
-            line = next(stream, None)
-        if line is None:
-            return
-        if line.startswith('>'):
-            parser = read_psl_splice_sites
-        else:
-            parser = read_redi_splice_sites
-
-        stream.seek(0)
-        for contig, position, splice_type, strand in parser(stream):
+        for contig, position, splice, strand in _read_redi_splice_sites(stream):
             position = position - 1
-            if strand_map[strand] == splice_type:
+            if strand_map[strand] == splice:
                 start = max(position - splicing_span, 0)
                 stop = position
             else:

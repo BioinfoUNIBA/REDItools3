@@ -127,36 +127,3 @@ class TestFileUtils(unittest.TestCase):
         splice_sites = list(file_utils.load_splicing_file(fname, 5))
         self.assertEqual(splice_sites, [Region(contig='chr1', start=0, stop=2)])
         os.remove(fname)
-
-    def test_splicing_psl_basic(self):
-        data = [
-            (
-                '>NM_005235.exon1/28 chr1:10..25 acceptor 2778',
-                Region(contig='chr1', start=4, stop=9),
-            ),
-            (
-                '>NM_005235.exon2/28 chr2:25..20 donor 413544',
-                Region(contig='chr2', start=14, stop=19),
-            ),
-            (
-                '>NM_005235.exon3/28 chr3:15..5 acceptor 413544',
-                Region(contig='chr3', start=4, stop=9),
-            ),
-            (
-                '>NM_005235.exon4/28 chr4:5..10 donor 177135',
-                Region(contig='chr4', start=4, stop=9),
-            ),
-        ]
-        with NamedTemporaryFile(delete=False,
-                                mode='w',
-                                encoding='utf-8') as f:
-            fname = f.name
-            f.write('#Header\n')
-            f.write('\n'.join([_[0] for _ in data]))
-        test_iter = zip(
-            file_utils.load_splicing_file(fname, 5),
-            data,
-        )
-        for splice_region, (_, test_region) in test_iter:
-            self.assertEqual(splice_region, test_region)
-        os.remove(fname)
