@@ -103,16 +103,19 @@ class CompiledPosition(object):
         Returns:
             '+', '-', or '*'
         """
-        strand_counts = {'+': 0, '-': 0, '*': 0}
-        for idx in self.strands:
-            strand_counts[idx] += 1
-        total = strand_counts['+'] + strand_counts['-']
-        if total == 0:
+        pos_count = 0
+        neg_count = 0
+        for strand in self.strands:
+            if strand == '+':
+                pos_count += 1
+            elif strand == '-':
+                neg_count += 1
+        if pos_count == neg_count:
             return '*'
-
-        strand = max(strand_counts, key=strand_counts.get)
-        if strand_counts[strand] / total >= threshold:
-            return strand
+        if pos_count / (pos_count + neg_count) >= threshold:
+            return '+'
+        if neg_count / (pos_count + neg_count) >= threshold:
+            return '-'
         return '*'
 
     def filter_by_strand(self, strand):
