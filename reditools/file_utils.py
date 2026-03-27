@@ -34,17 +34,17 @@ def read_bed_file(path):
     Yields:
         BED file contents as Regions.
     """
-    stream = open_stream(path)
-    reader = csv.reader(
-        filter(lambda row: row[0] != '#', stream),
-        delimiter='\t',
-    )
-    for row in reader:
-        yield Region(
-            contig=row[0],
-            start=int(row[1]),
-            stop=int(row[2]),
+    with open_stream(path) as stream:
+        reader = csv.reader(
+            filter(lambda row: row[0] != '#', stream),
+            delimiter='\t',
         )
+        for row in reader:
+            yield Region(
+                contig=row[0],
+                start=int(row[1]),
+                stop=int(row[2]),
+            )
 
 
 def concat(output, *fnames, clean_up=True, encoding='utf-8'):
@@ -78,35 +78,35 @@ def load_splicing_file(splicing_file, splicing_span):
     """
     strand_map = {'-': 'D', '+': 'A'}
 
-    stream = open_stream(splicing_file)
-    reader = csv.reader(
-        filter(lambda row: row[0] != '#', stream),
-        delimiter=' ',
-    )
-    for idx, row in enumerate(reader, start=1):
-        contig = row[0]
-        span = int(row[1])
-        splice = row[3]
-        strand = row[4]
+    with open_stream(splicing_file) as stream:
+        reader = csv.reader(
+            filter(lambda row: row[0] != '#', stream),
+            delimiter=' ',
+        )
+        for idx, row in enumerate(reader, start=1):
+            contig = row[0]
+            span = int(row[1]) - 1
+            splice = row[3]
+            strand = row[4]
 
-        if strand not in ('-', '+'):
-            raise ValueError(
-                f'Strand must be either + or - (from splicing file line {idx})'
-            )
-        if splice not in ('A', 'D'):
-            raise ValueError(
-                'Splice type must either be A or D (from splicing file line '
-                f'{idx})'
-            ) 
+            if strand not in ('-', '+'):
+                raise ValueError(
+                    f'Strand must be either + or - (from splicing file line {idx})'
+                )
+            if splice not in ('A', 'D'):
+                raise ValueError(
+                    'Splice type must either be A or D (from splicing file line '
+                    f'{idx})'
+                ) 
 
-        start = span - 1
-        if strand_map[strand] == splice:
-            start = span - splicing_span - 1
-            stop = span
-        else:
             start = span - 1
-            stop = span + splicing_span
-        yield Region(contig=contig, start=start, stop=stop)
+            if strand_map[strand] == splice:
+                start = max(span - splicing_span, 0)
+                stop = span
+            else:
+                start = span
+                stop = span + splicing_span
+            yield Region(contig=contig, start=start, stop=stop)
 
 
 def load_text_file(file_name):
