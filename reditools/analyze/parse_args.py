@@ -144,6 +144,7 @@ def build_argument_parser(): # noqa:WPS213
     )
     gr_group.add_argument(
         '--exclude_regions',
+        nargs='+',
         help=argparse.SUPPRESS,
     )
     gr_group.add_argument(
@@ -154,6 +155,7 @@ def build_argument_parser(): # noqa:WPS213
     )
     gr_group.add_argument(
         '--bed_file',
+        nargs='+',
         help=argparse.SUPPRESS,
     )
     rf_group = parser.add_argument_group(
@@ -341,6 +343,7 @@ def build_argument_parser(): # noqa:WPS213
             'Activate strict mode: only sites with edits will be included in '
             'the output. (Equivalent to -me/--min-edits 1)'
         ),
+        action='store_true',
     )
     leg_group.add_argument(
         '-sf',
@@ -408,9 +411,9 @@ def test_strand_args(args):
         )
 
 
-def parse_args():
+def parse_args(sys_args=None):
     parser = build_argument_parser()
-    args = parser.parse_args()
+    args = parser.parse_args(sys_args)
     try:
         check_dna_mode(args)
         check_exclude_multis(args)
