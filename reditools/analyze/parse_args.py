@@ -346,10 +346,11 @@ def build_argument_parser(): # noqa:WPS213
         '-sf',
         '--splicing-file',
         help=(
-            'The splicing file is a space delimited file with columns '
-            'chromosome, start position (zero-index inclusive), splice '
-            '(either A for acceptor or D for donor), and strand (either '
-            '+ or -). A header is optional, but must start with #.'
+            'The splicing file is a space delimited file with five columns: '
+            'chromosome, start position (one-index inclusive), stop '
+            '(ignored),  splice (either A for acceptor or D for donor), and '
+            'strand (either + or -). A header is optional, but must start with '
+            '#.'
         ),
     )
     leg_group.add_argument(

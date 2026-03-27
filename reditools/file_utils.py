@@ -83,17 +83,29 @@ def load_splicing_file(splicing_file, splicing_span):
         filter(lambda row: row[0] != '#', stream),
         delimiter=' ',
     )
-    for row in reader:
+    for idx, row in enumerate(reader, start=1):
         contig = row[0]
         span = int(row[1])
         splice = row[3]
         strand = row[4]
 
-        coe = -1 if strand_map.get(strand, None) == splice else 1
-        start = 1 + span
-        stop = start + splicing_span * coe
-        if start > stop:
-            start, stop = stop, start
+        if strand not in ('-', '+'):
+            raise ValueError(
+                f'Strand must be either + or - (from splicing file line {idx})'
+            )
+        if splice not in ('A', 'D'):
+            raise ValueError(
+                'Splice type must either be A or D (from splicing file line '
+                f'{idx})'
+            ) 
+
+        start = span - 1
+        if strand_map[strand] == splice:
+            start = span - splicing_span - 1
+            stop = span
+        else:
+            start = span - 1
+            stop = span + splicing_span
         yield Region(contig=contig, start=start, stop=stop)
 
 
