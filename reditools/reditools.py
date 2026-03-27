@@ -130,7 +130,7 @@ class REDItools(object):
     @property
     def min_read_quality(self):
         """Minimum read quality for inclusion."""
-        return self._min_read_quality  # noqa:DAR201
+        return self._min_read_quality
 
     @min_read_quality.setter
     def min_read_quality(self, threshold):
@@ -144,7 +144,7 @@ class REDItools(object):
     @property
     def min_column_length(self):
         """Minimum depth for a position to be reported."""
-        return self._min_column_length  # noqa:DAR201
+        return self._min_column_length
 
     @min_column_length.setter
     def min_column_length(self, threshold):
@@ -158,7 +158,7 @@ class REDItools(object):
     @property
     def min_edits(self):
         """Minimum number of editing events for reporting."""
-        return self._min_edits  # noqa:DAR201
+        return self._min_edits
 
     @min_edits.setter
     def min_edits(self, threshold):
@@ -172,7 +172,7 @@ class REDItools(object):
     @property
     def min_edits_per_nucleotide(self):
         """Minimum number of edits for a single nucleotide for reporting."""
-        return self._min_edits_per_nucleotide  # noqa:DAR201
+        return self._min_edits_per_nucleotide
 
     @min_edits_per_nucleotide.setter
     def min_edits_per_nucleotide(self, threshold):
@@ -230,7 +230,7 @@ class REDItools(object):
         else:
             self._rtqc.discard(qc_check)
 
-    def analyze(self, alignment_manager, region):  # noqa:WPS231,WPS213
+    def analyze(self, alignment_manager, region):
         """
         Detect RNA editing events.
 

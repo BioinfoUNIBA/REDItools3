@@ -35,7 +35,7 @@ def bounded_float(min=None, max=None):
     return subfn
 
 
-def build_argument_parser():  # noqa:WPS213
+def build_argument_parser():
     """
     Parse commandline options for REDItools.
 
@@ -93,21 +93,21 @@ def build_argument_parser():  # noqa:WPS213
         '-mrl',
         '--min-read-length',
         type=int,
-        default=30,  # noqa:WPS432
+        default=30,
         help='Reads shorter than -mrl will be discarded.',
     )
     bqf_group.add_argument(
         '-q',
         '--min-read-quality',
         type=int,
-        default=20,  # noqa:WPS432
+        default=20,
         help='Reads with MAPQ below -q will be discarded.',
     )
     bqf_group.add_argument(
         '-bq',
         '--min-base-quality',
         type=int,
-        default=30,  # noqa:WPS432
+        default=30,
         help='Bases with a Phred quality score below -bq will bed discarded.',
     )
     bqf_group.add_argument(
@@ -186,7 +186,7 @@ def build_argument_parser():  # noqa:WPS213
         '-Men',
         '--max-editing-nucleotides',
         type=bounded_int(min=0, max=4),
-        default=4,  # noqa:WPS432
+        default=4,
         help=(
             'Positions with more than -Men unique variants (listed in the '
             'AllSubs column) will be excluded from the results.'
@@ -238,7 +238,7 @@ def build_argument_parser():  # noqa:WPS213
         '-T',
         '--strand-confidence-threshold',
         type=bounded_float(max=1),
-        default=0.7,  # noqa:WPS432
+        default=0.7,
         help=(
             'Only report the strandedness if at least -T proportion of '
             'reads are of a given strand. This option is only applicable '
