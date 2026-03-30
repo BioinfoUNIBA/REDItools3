@@ -10,7 +10,6 @@ class CompiledReads(object):
 
     def __init__(
         self,
-        paired,
         strand=0,
         min_base_position=0,
         max_base_position=0,
@@ -28,16 +27,11 @@ class CompiledReads(object):
         self._nucleotides = {}
         if strand == 0:
             self.get_strand = lambda _: 2
-        if paired:
-            elif strand == 1:
-                self.get_strand = self._get_strand_one
-            else:
-                self.get_strand = self._get_strand_two
         elif strand == 1:
-            self.get_strand = lambda _: _.is_forward
+            self.get_strand = self._get_strand_one
         else:
-            self.get_strand = lambda _: _.is_reverse
-            
+            self.get_strand = self._get_strand_two
+
 
         self._ref = None
         self._ref_seq = self._get_ref_from_read
@@ -132,9 +126,13 @@ class CompiledReads(object):
             yield (ref_pos, read_base, phred, ref_base)
 
     def _get_strand_one(self, read):
-        return read.is_read1 and not read.is_reverse or \
-            read.is_read2 and read.is_reverse
+        if read.is_paired:
+            return read.is_read1 and not read.is_reverse or \
+                read.is_read2 and read.is_reverse
+        return read.is_forward
 
     def _get_strand_two(self, read):
-        return read.is_read1 and read.is_reverse or \
-            read.is_read2 and not read.is_reverse
+        if read.is_paired:
+            return read.is_read1 and read.is_reverse or \
+                read.is_read2 and not read.is_reverse
+        return read.is_reverse
