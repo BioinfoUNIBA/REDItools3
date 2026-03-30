@@ -10,6 +10,7 @@ class CompiledReads(object):
 
     def __init__(
         self,
+        paired,
         strand=0,
         min_base_position=0,
         max_base_position=0,
@@ -27,10 +28,16 @@ class CompiledReads(object):
         self._nucleotides = {}
         if strand == 0:
             self.get_strand = lambda _: 2
+        if paired:
+            elif strand == 1:
+                self.get_strand = self._get_strand_one
+            else:
+                self.get_strand = self._get_strand_two
         elif strand == 1:
-            self.get_strand = self._get_strand_one
+            self.get_strand = lambda _: _.is_forward
         else:
-            self.get_strand = self._get_strand_two
+            self.get_strand = lambda _: _.is_reverse
+            
 
         self._ref = None
         self._ref_seq = self._get_ref_from_read

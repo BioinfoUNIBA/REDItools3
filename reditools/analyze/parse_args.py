@@ -228,8 +228,8 @@ def build_argument_parser(): # noqa:WPS213
             'as --strand 1 and 1+-,1-+,2++,2-- should be run as --strand 2. '
             'From Salmon, forward libraries (ISF, MSF, OSF) should be run as '
             '--strand 1 and reverse libraries (ISR, MSR, OSR) as --strand 2. '
-            'All DNA sequencing experiments, single-end experiments, and '
-            'nonstranded experiments should be run with --strand 0.'
+            'All DNA sequencing experiments and non-stranded experiments '
+            'should be run with --strand 0.'
         ),
     )
     strand_group.add_argument(
