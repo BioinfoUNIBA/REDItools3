@@ -127,12 +127,12 @@ class CompiledReads(object):
 
     def _get_strand_one(self, read):
         if read.is_paired:
-            return read.is_read1 and not read.is_reverse or \
+            return read.is_read1 and read.is_forward or \
                 read.is_read2 and read.is_reverse
         return read.is_forward
 
     def _get_strand_two(self, read):
         if read.is_paired:
             return read.is_read1 and read.is_reverse or \
-                read.is_read2 and not read.is_reverse
+                read.is_read2 and read.is_forward
         return read.is_reverse
