@@ -1,5 +1,8 @@
 import unittest
+import os
 from reditools.region import Region
+from .sam_gen import SAM
+from tempfile import NamedTemporaryFile
 
 
 class TestRegion(unittest.TestCase):
@@ -54,14 +57,31 @@ class TestRegion(unittest.TestCase):
         self.assertFalse(region.contains('chr2', 150))
 
     def test_from_string(self):
-        alignment_file = 'test/test.bam'
-        chr1_len = 248956422
-        region = Region.from_string('chr1:101-200', alignment_file)
+        with NamedTemporaryFile(delete=False,
+                                mode='w',
+                                suffix='.fa') as fasta:
+            fasta_fname = fasta.name
+        with NamedTemporaryFile(delete=False,
+                                mode='w',
+                                suffix='.bam') as bam:
+            bam_fname = bam.name
+
+        sam_obj = SAM()
+        chr1_len = 600
+        sam_obj.add_contig('chr1', length=chr1_len)
+        
+        sam_obj.genome.save_to_fasta(fasta_fname)
+        sam_obj.save_to_sam(bam_fname, fasta_fname)
+
+        region = Region.from_string('chr1:101-200', bam_fname)
         self.assertEqual(region, Region('chr1', 100, 200))
-        region = Region.from_string('chr1:104', alignment_file)
+        region = Region.from_string('chr1:104', bam_fname)
         self.assertEqual(region, Region('chr1', 103, chr1_len))
-        region = Region.from_string('chr1', alignment_file)
+        region = Region.from_string('chr1', bam_fname)
         self.assertEqual(region, Region('chr1', 0, chr1_len))
+
+        os.remove(fasta_fname)
+        os.remove(bam_fname)
 
     def test_parse_string(self):
         region = Region.parse_string('chr1:101-200')
