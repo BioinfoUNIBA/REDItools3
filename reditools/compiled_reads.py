@@ -27,10 +27,13 @@ class CompiledReads(object):
         self._nucleotides = {}
         if strand == 0:
             self.get_strand = lambda _: 2
-        elif strand == 1:
-            self.get_strand = self._get_strand_one
         else:
-            self.get_strand = self._get_strand_two
+            if strand == 1:
+                self.forward_flags = {0, 99, 147}
+            else:
+                self.forward_flags = {16, 83, 163}
+            self.get_strand = lambda _: _ in self.forward_flags
+
 
         self._ref = None
         self._ref_seq = self._get_ref_from_read
@@ -123,11 +126,3 @@ class CompiledReads(object):
             if phred < self._qc['min_base_quality']:
                 continue
             yield (ref_pos, read_base, phred, ref_base)
-
-    def _get_strand_one(self, read):
-        return read.is_read1 and not read.is_reverse or \
-            read.is_read2 and read.is_reverse
-
-    def _get_strand_two(self, read):
-        return read.is_read1 and read.is_reverse or \
-            read.is_read2 and not read.is_reverse
