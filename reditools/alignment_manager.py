@@ -89,8 +89,6 @@ class AlignmentManager(object):
         self._bam_args = args
         self._bam_kwargs = kwargs
         self._bams = []
-        self.min_quality = 0
-        self.min_length = 0
         self.file_list = []
 
     def add_file(self, fname, exclude_reads=None):
@@ -104,8 +102,6 @@ class AlignmentManager(object):
         new_file = RTAlignmentFile(
             fname,
             *self._bam_args,
-            min_quality=self.min_quality,
-            min_length=self.min_length,
             **self._bam_kwargs,
         )
         new_file.check_index()

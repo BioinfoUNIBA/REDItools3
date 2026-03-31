@@ -21,14 +21,17 @@ class Genome:
     def __getitem__(self, contig_name):
         return self.contigs.get(contig_name, None)
 
-    def add_contig(self, name=None, length=120):
+    def add_contig(self, name=None, length=120, sequence=None):
         if name is None:
             n_contigs = len(self.contigs)
             name = f'contig{len(self.contigs)}'
             while name in self.contigs:
                 n_contigs += 1 
                 name = f'contig{len(self.contigs)}'
-        self.contigs[name] = self._random_seq(length)
+        if sequence is None:
+            self.contigs[name] = self._random_seq(length)
+        else:
+            self.contigs[name] = sequence
         return name
 
     def save_to_fasta(self, filename):
@@ -134,8 +137,8 @@ class SAM:
         header.append('@PG\tID:reditools\tPN:reditools\tCL:gen_sam.py')
         return '\n'.join(header)
 
-    def add_contig(self, contig_name=None, length=120):
-        contig_name = self.genome.add_contig(contig_name, length)
+    def add_contig(self, contig_name=None, length=120, sequence=None):
+        contig_name = self.genome.add_contig(contig_name, length, sequence)
         self.reads[contig_name] = []
         return contig_name
 
