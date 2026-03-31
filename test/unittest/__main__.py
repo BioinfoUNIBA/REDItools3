@@ -7,5 +7,6 @@ from .compiled_position import TestCompiledPosition
 from .analyze.region_args import TestRegionArgs
 from .analyze.parse_args_utils import TestParseArgsUtils
 from .analyze.parse_args import TestParseArgs
+from .alignment_file import TestRTAlignmentFile
 
 unittest.main()
