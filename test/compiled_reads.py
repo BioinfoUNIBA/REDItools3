@@ -6,6 +6,7 @@ from pysam import AlignmentFile
 from tempfile import NamedTemporaryFile
 from .sam_gen import SAM, Sequence
 
+
 class TestCompiledReads(unittest.TestCase):
     def setUp(self):
         with NamedTemporaryFile(delete=False, suffix='.fa') as f:
@@ -21,9 +22,11 @@ class TestCompiledReads(unittest.TestCase):
         sam_obj = SAM()
         sam_obj.add_contig('chr1', length=60)
         ref_seq = sam_obj.genome['chr1']
-        sam_obj.add_read('chr1', Sequence(ref_seq, 0, cigar_str='60M'))
+        normal_read = Sequence(ref_seq, 0, cigar_str='60M')
         splice_seq = ref_seq[0:20] + ref_seq[40:60]
-        sam_obj.add_read('chr1', Sequence(splice_seq, 0, cigar_str='20M20D20M'))
+        spliced_read = Sequence(splice_seq, 0, cigar_str='20M20D20M')
+        sam_obj.add_read('chr1', normal_read)
+        sam_obj.add_read('chr1', spliced_read)
 
         sam_obj.genome.save_to_fasta(self.fasta_fname)
         sam_obj.save_to_sam(self.bam_fname, self.fasta_fname)
@@ -46,8 +49,10 @@ class TestCompiledReads(unittest.TestCase):
         sam_obj = SAM()
         sam_obj.add_contig('chr1')
         ref_seq = sam_obj.genome['chr1']
-        sam_obj.add_read('chr1', Sequence(ref_seq, 0, flag=0, qname='read1'))
-        sam_obj.add_read('chr1', Sequence(ref_seq[1:], 1, flag=16, qname='read2'))
+        read1 = Sequence(ref_seq, 0, flag=0, qname='read1')
+        read2 = Sequence(ref_seq[1:], 1, flag=16, qname='read2')
+        sam_obj.add_read('chr1', read1)
+        sam_obj.add_read('chr1', read2)
 
         sam_obj.genome.save_to_fasta(self.fasta_fname)
         sam_obj.save_to_sam(self.bam_fname, self.fasta_fname)
@@ -85,11 +90,11 @@ class TestCompiledReads(unittest.TestCase):
             for read in af.fetch():
                 self.assertEqual(cr.get_strand(read), 2)
 
-            cr = CompiledReads(strand = 1)
+            cr = CompiledReads(strand=1)
             for read, strand in zip(af.fetch(), [True, True, False, False]):
                 self.assertEqual(cr.get_strand(read), strand)
 
-            cr = CompiledReads(strand = 2)
+            cr = CompiledReads(strand=2)
             for read, strand in zip(af.fetch(), [False, False, True, True]):
                 self.assertEqual(cr.get_strand(read), strand)
 
@@ -110,7 +115,8 @@ class TestCompiledReads(unittest.TestCase):
     def test_base_quality(self):
         sam_obj = SAM()
         sam_obj.add_contig('chr1', length=20)
-        sam_obj.add_read('chr1', Sequence(sam_obj.genome['chr1'], 0, phred=range(20)))
+        read = Sequence(sam_obj.genome['chr1'], 0, phred=range(20))
+        sam_obj.add_read('chr1', read)
         sam_obj.genome.save_to_fasta(self.fasta_fname)
         sam_obj.save_to_sam(self.bam_fname, self.fasta_fname)
 

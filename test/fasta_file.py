@@ -63,5 +63,5 @@ class TestRTFastaFile(unittest.TestCase):
                 seq_iter = rff.get_base(
                     self.contig1,
                     *positions,
-                ) 
+                )
                 list(seq_iter)

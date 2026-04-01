@@ -1,5 +1,4 @@
 import random
-from math import ceil
 from Bio.Align import PairwiseAligner
 import pysam.samtools as samtools
 import os
@@ -11,12 +10,13 @@ aligner = PairwiseAligner(
     query_internal_open_gap_score=-1,
 )
 
+
 class Genome:
     def __init__(self):
         self.contigs = {}
-    
+
     def _random_seq(self, length):
-        return ''.join([random.choice(['A', 'T', 'C', 'G']) for _ in range(length)])
+        return ''.join([random.choice('ACTG') for _ in range(length)])
 
     def __getitem__(self, contig_name):
         return self.contigs.get(contig_name, None)
@@ -26,7 +26,7 @@ class Genome:
             n_contigs = len(self.contigs)
             name = f'contig{len(self.contigs)}'
             while name in self.contigs:
-                n_contigs += 1 
+                n_contigs += 1
                 name = f'contig{len(self.contigs)}'
         if sequence is None:
             self.contigs[name] = self._random_seq(length)
@@ -43,7 +43,9 @@ class Genome:
 
 class Sequence:
     read_n = 0
-    def __init__(self, seq, start, flag=0, phred=None, mapq=None, cigar_str=None, qname=None, pnext=0):
+
+    def __init__(self, seq, start, flag=0, phred=None, mapq=None,
+                 cigar_str=None, qname=None, pnext=0):
         self.seq = list(seq)
         self.start = start
         self.flag = flag
@@ -53,7 +55,7 @@ class Sequence:
             self.qname = f'read{Sequence.read_n}'
             Sequence.read_n += 1
         else:
-            self.qname = qname 
+            self.qname = qname
         if phred is None:
             self.phred = [30 for _ in range(len(self.seq))]
         else:
@@ -69,7 +71,7 @@ class Sequence:
     def tlen(self, ref_seq):
         cigar = self.cigar_str(ref_seq)
         tlen = 0
-        for count, op in re.findall('(?P<count>\d+)(?P<op>[A-Z])', cigar):
+        for count, op in re.findall(r'(?P<count>\d+)(?P<op>[A-Z])', cigar):
             count = int(count)
             if op not in ('S', 'I'):
                 tlen += count
@@ -124,6 +126,7 @@ class Sequence:
         )
         self.pnext = self.start
 
+
 class SAM:
     def __init__(self):
         self.genome = Genome()
@@ -133,7 +136,9 @@ class SAM:
         header = ['@HD\tVN:1.5']
         for contig_name, seq in self.genome.contigs.items():
             header.append(f'@SQ\tSN:{contig_name}\tLN:{len(seq)}')
-        header.append('@RG\tID:1\tSM:1_AAAAA\tLB:default\tPU:xxx.1\tPL:ILLUMINA')
+        header.append(
+            '@RG\tID:1\tSM:1_AAAAA\tLB:default\tPU:xxx.1\tPL:ILLUMINA',
+        )
         header.append('@PG\tID:reditools\tPN:reditools\tCL:gen_sam.py')
         return '\n'.join(header)
 

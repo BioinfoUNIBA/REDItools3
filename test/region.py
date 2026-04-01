@@ -69,7 +69,7 @@ class TestRegion(unittest.TestCase):
         sam_obj = SAM()
         chr1_len = 600
         sam_obj.add_contig('chr1', length=chr1_len)
-        
+
         sam_obj.genome.save_to_fasta(fasta_fname)
         sam_obj.save_to_sam(bam_fname, fasta_fname)
 

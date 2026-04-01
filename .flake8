@@ -12,4 +12,4 @@ max-methods = 12
 max-attributes = 12
 
 per-file-ignores =
-  test/unittest/__main__.py: F401
+  test/__main__.py: F401

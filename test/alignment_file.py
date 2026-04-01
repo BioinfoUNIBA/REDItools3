@@ -5,6 +5,7 @@ from reditools.alignment_file import RTAlignmentFile
 from reditools.region import Region
 from .sam_gen import SAM, Sequence
 
+
 class TestRTAlignmentFile(unittest.TestCase):
     def setUp(self):
         self.sam_obj = SAM()
@@ -69,8 +70,14 @@ class TestRTAlignmentFile(unittest.TestCase):
             self.assertEqual(len(next(reads_iter)), 1)
 
     def test_exclude_reads(self):
-        self.sam_obj.add_read('chr1', Sequence(self.refseq, 0, qname='exclude_me'))
-        self.sam_obj.add_read('chr1', Sequence(self.refseq, 0, qname='include_me'))
+        self.sam_obj.add_read(
+            'chr1',
+            Sequence(self.refseq, 0, qname='exclude_me'),
+        )
+        self.sam_obj.add_read(
+            'chr1',
+            Sequence(self.refseq, 0, qname='include_me'),
+        )
 
         self.sam_obj.genome.save_to_fasta(self.genome_fname)
         self.sam_obj.save_to_sam(self.bam_fname, self.genome_fname)
@@ -82,8 +89,14 @@ class TestRTAlignmentFile(unittest.TestCase):
             self.assertEqual(reads[0].qname, 'include_me')
 
     def test_check_quality(self):
-        self.sam_obj.add_read('chr1', Sequence(self.refseq, 0, mapq=10))
-        self.sam_obj.add_read('chr1', Sequence(self.refseq, 0, mapq=30, qname='include_me'))
+        self.sam_obj.add_read(
+            'chr1',
+            Sequence(self.refseq, 0, mapq=10),
+        )
+        self.sam_obj.add_read(
+            'chr1',
+            Sequence(self.refseq, 0, mapq=30, qname='include_me'),
+        )
 
         self.sam_obj.genome.save_to_fasta(self.genome_fname)
         self.sam_obj.save_to_sam(self.bam_fname, self.genome_fname)
@@ -94,8 +107,14 @@ class TestRTAlignmentFile(unittest.TestCase):
             self.assertEqual(reads[0].qname, 'include_me')
 
     def test_check_length(self):
-        self.sam_obj.add_read('chr1', Sequence(self.refseq[:20], 0))
-        self.sam_obj.add_read('chr1', Sequence(self.refseq, 0, qname='include_me'))
+        self.sam_obj.add_read(
+            'chr1',
+            Sequence(self.refseq[:20], 0),
+        )
+        self.sam_obj.add_read(
+            'chr1',
+            Sequence(self.refseq, 0, qname='include_me'),
+        )
 
         self.sam_obj.genome.save_to_fasta(self.genome_fname)
         self.sam_obj.save_to_sam(self.bam_fname, self.genome_fname)
@@ -141,7 +160,8 @@ class TestRTAlignmentFile(unittest.TestCase):
             )
             self.sam_obj.add_read('chr1', read)
             self.sam_obj.add_read('chr1', read.make_pair())
-        for idx, flag in enumerate([73, 89, 137, 153, 329, 339, 345, 355, 393, 409]):
+        bad_flags = [73, 89, 137, 153, 329, 339, 345, 355, 393, 409]
+        for idx, flag in enumerate(bad_flags):
             read = Sequence(
                 self.refseq,
                 0,
@@ -158,4 +178,3 @@ class TestRTAlignmentFile(unittest.TestCase):
             reads = list(rtaf.fetch())
             self.assertEqual(len(reads), 4)
             self.assertTrue(all(_.qname.startswith('pe_good') for _ in reads))
-

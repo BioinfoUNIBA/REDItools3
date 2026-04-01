@@ -2,8 +2,8 @@ import unittest
 from tempfile import NamedTemporaryFile
 import os
 from reditools.alignment_manager import AlignmentManager
-from reditools.region import Region
 from .sam_gen import SAM, Sequence
+
 
 class TestAlignmentManager(unittest.TestCase):
 
@@ -63,7 +63,6 @@ class TestAlignmentManager(unittest.TestCase):
         sam_obj.add_read('chr1', Sequence(refseq[20:], 20, qname='2_1'))
         sam_obj.add_read('chr1', Sequence(refseq[50:], 50, qname='2_2'))
         sam_obj.save_to_sam(bam_fname_2, genome_fname)
-
 
         rtam = AlignmentManager(min_length=10, min_quality=30)
         rtam.add_file(bam_fname_1)

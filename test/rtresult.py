@@ -2,6 +2,7 @@ import unittest
 from reditools.compiled_position import CompiledPosition
 from reditools.rtresult import RTResult
 
+
 class TestRTResult(unittest.TestCase):
     def setUp(self):
         self.cp = CompiledPosition('A', 'chr1', 100)
@@ -16,7 +17,7 @@ class TestRTResult(unittest.TestCase):
         result = RTResult(self.cp, '+')
         self.assertEqual(result.variants, [])
 
-    def test_variants(self): 
+    def test_variants(self):
         self.cp.add_base(40, '+', 'A')
         self.cp.add_base(35, '-', 'C')
         self.cp.add_base(30, '+', 'G')

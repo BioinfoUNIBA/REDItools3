@@ -5,6 +5,7 @@ from reditools.analyze.region_args import region_args
 from ..sam_gen import SAM
 from tempfile import NamedTemporaryFile
 
+
 class TestRegionArgs(unittest.TestCase):
     def setUp(self):
         with NamedTemporaryFile(delete=False, suffix='.fa') as f:
@@ -15,7 +16,7 @@ class TestRegionArgs(unittest.TestCase):
         sam_obj = SAM()
         sam_obj.add_contig('chr1', length=120)
         sam_obj.add_contig('chr2', length=80)
-        sam_obj.add_contig('chr3', length=60)        
+        sam_obj.add_contig('chr3', length=60)
 
         sam_obj.genome.save_to_fasta(self.fasta_fname)
         sam_obj.save_to_sam(self.bam_fname, self.fasta_fname)
