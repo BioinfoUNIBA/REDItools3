@@ -32,7 +32,7 @@ class CompiledReads(object):
                 self.forward_flags = {0, 99, 147}
             else:
                 self.forward_flags = {16, 83, 163}
-            self.get_strand = lambda _: _ in self.forward_flags
+            self.get_strand = lambda _: _.flag in self.forward_flags
 
 
         self._ref = None
