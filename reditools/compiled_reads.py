@@ -32,7 +32,7 @@ class CompiledReads(object):
                 self.forward_flags = {0, 99, 147}
             else:
                 self.forward_flags = {16, 83, 163}
-            self.get_strand = lambda _: _ in self.forward_flags
+            self.get_strand = lambda _: _.flag in self.forward_flags
 
 
         self._ref = None
@@ -111,13 +111,12 @@ class CompiledReads(object):
         indices = [ref for _, ref in pairs]
         return self._ref.get_base(read.reference_name, *indices)
 
-    def _qc_base_position(self, read, position):
-        return read.query_length - position >= self._qc['max_base_position']
-
     def _prep_read(self, read):
         pairs = read.get_aligned_pairs(matches_only=True)
         for (read_pos, ref_pos), ref_base in zip(pairs, self._ref_seq(read)):
-            if ref_pos < self._qc['min_base_position']:
+            if read_pos > read.query_length - self._qc['max_base_position']:
+                break
+            if read_pos < self._qc['min_base_position']:
                 continue
             read_base = read.query_sequence[read_pos]
             if ref_base == 'N' or read_base == 'N':
