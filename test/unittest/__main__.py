@@ -9,5 +9,6 @@ from .analyze.parse_args_utils import TestParseArgsUtils
 from .analyze.parse_args import TestParseArgs
 from .alignment_file import TestRTAlignmentFile
 from .alignment_manager import TestAlignmentManager
+from .compiled_reads import TestCompiledReads
 
 unittest.main()

@@ -170,7 +170,7 @@ class SAM:
                     sequence.pnext + 1,
                     sequence.tlen(ref_seq),
                     str(sequence),
-                    'I' * len(sequence.seq),
+                    ''.join([chr(33 + _) for _ in sequence.phred]),
                 ]])
                 n += 1
 
