@@ -7,8 +7,14 @@ class RTResult(object):
     """RNA editing analysis for a single base position."""
     bases: CompiledPosition
     strand: str
-    contig: str
-    position: int
+
+    @property
+    def contig(self):
+        return self.bases.contig
+
+    @property
+    def position(self):
+        return self.bases.position + 1
 
     @property
     def variants(self):
