@@ -279,6 +279,8 @@ class REDItools(object):
                 next_read_start = reads[0].reference_start
 
             for position in range(position, next_read_start):
+                if nucleotides.is_empty():
+                    break
                 bases = nucleotides.pop(position)
                 if position < region.start:
                     continue
