@@ -138,20 +138,30 @@ def parse_options():
         help='The REDItools output from corresponding DNA data',
     )
     parser.add_argument(
-        '-b',
-        '--bam',
-        help='BAM file to get contig order from.',
-    )
-    parser.add_argument(
-        '-f',
-        '--fai',
-        help='FASTA Index file to get contig order from.',
-    )
-    parser.add_argument(
         '-d',
         '--debug',
         help='Report stack trace on crash.',
         action='store_true',
+    )
+    order_group = parser.add_argument_group(
+        title='Contig order options',
+        description=(
+            'By default, the annotate tool will determine the contig order '
+            'by reading through the rna_file once before performing the '
+            'annotation. Depending on the size of the rna_file, this could '
+            'take a while. To skip this time consuming step, you can provide '
+            'the contig order from another source.'
+        ),
+    )
+    order_group.add_argument(
+        '-b',
+        '--bam',
+        help='BAM file to get contig order from.',
+    )
+    order_group.add_argument(
+        '-f',
+        '--fai',
+        help='FASTA Index file to get contig order from.',
     )
     options = parser.parse_args()
 
