@@ -4,7 +4,7 @@ from itertools import chain
 from reditools.alignment_file import RTAlignmentFile
 
 
-class ReadGroupIter(object):
+class ReadGroupIter:
     """Manages multiple fetch iterators."""
 
     _iter_idx = 0
@@ -66,7 +66,7 @@ class ReadGroupIter(object):
         return min(group[self._start_idx] for group in self._read_groups)
 
 
-class AlignmentManager(object):
+class AlignmentManager:
     """
     Manage multiple RTAlignmentFiles with a single fetch.
 

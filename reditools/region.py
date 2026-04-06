@@ -48,15 +48,6 @@ class Region:
                 stop=min(new_start + window, self.stop)))
         return sub_regions
 
-    def enumerate(self):
-        """
-        Convert a list of regions into a list of individual positions.
-
-        Returns:
-            Set enumerating the individual positions.
-        """
-        return set(range(self.start, self.stop))
-
     def contains(self, contig, position):
         """
         Determines if a given genomic location is within the region.

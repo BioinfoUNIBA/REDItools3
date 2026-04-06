@@ -245,19 +245,5 @@ def main():
         stream.write(f'{nuc}\t{idx}\n')
 
 
-def update_region_dict(region_dict, region):
-    """
-    Add a region to a region dictionary.
-
-    Parameters:
-        region_dict (dict): Region dictionary
-        region (Region): Region to add
-
-    Returns:
-        An updated copy of region_dict
-    """
-    return region_dict.get(region.contig, set()) | region.enumerate()
-
-
 if __name__ == '__main__':
     main()

@@ -13,7 +13,7 @@ from reditools.region_collection import RegionCollection
 from reditools import rtchecks
 
 
-class REDItools(object):
+class REDItools:
     """Analysis system for RNA editing events."""
 
     def __init__(self):
@@ -216,23 +216,6 @@ class REDItools(object):
         self._max_alts = max_alts
         qc_check = rtchecks.check_max_alts
         if max_alts < 3:
-            self._rtqc.add(qc_check)
-        else:
-            self._rtqc.discard(qc_check)
-
-    def exclude(self, regions):
-        """
-        Explicitly skip specified genomic regions.
-
-        Parameters:
-            regions (list): Regions to skip
-        """
-        for region in regions:
-            contig = region.contig
-            old_pos = self._exclude_regions.get(contig, set())
-            self._exclude_regions[contig] = old_pos | region.enumerate()
-        qc_check = rtchecks.check_exclusions
-        if self._exclude_regions:
             self._rtqc.add(qc_check)
         else:
             self._rtqc.discard(qc_check)

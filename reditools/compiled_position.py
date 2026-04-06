@@ -1,7 +1,7 @@
 """Organizational structure for tracking base coverage of genomic positions."""
 
 
-class CompiledPosition(object):
+class CompiledPosition:
     """Tracks base frequency for a genomic position."""
 
     _bases = 'ACGT'
@@ -28,9 +28,6 @@ class CompiledPosition(object):
     def __len__(self):
         """
         Position depth.
-
-        Returns:
-            int
         """
         return len(self.bases)
 
@@ -54,10 +51,7 @@ class CompiledPosition(object):
 
     def __iter__(self):
         """
-        Iterate over each base frequency.
-
-        Returns:
-            iterator
+        Iterate over each base frequency in order A, C, G, T.
         """
         return (self[base] for base in self._bases)
 
@@ -68,7 +62,7 @@ class CompiledPosition(object):
         Parameters:
             quality (int): The quality of the read
             strand (str): The strand the base is on (+, -, or *)
-            base (str): The nucleotide at the position( A, C, G, or T)
+            base (str): The nucleotide at the position (A, C, G, or T)
         """
         self.qualities.append(quality)
         self.strands.append(strand)
@@ -89,41 +83,29 @@ class CompiledPosition(object):
     @property
     def reference(self):
         """
-        Get the reference base at this position.
+        str: Reference base at this position.
         (alias for ref)
-
-        Returns:
-            str: The reference base.
         """
         return self.ref
 
     @property
     def alts(self):
         """
-        List detected alternate bases.
-
-        Returns:
-            list
+        list: Detected alternate bases.
         """
         return [b for b in self._bases if self[b] and b != self.ref]
 
     @property
     def variants(self):
         """
-        Observed variant bases at this position.
-
-        Returns:
-            list: List of detected variants (e.g. AG)
+        list: Observed edits at this position (e.g. AG).
         """
         return [f'{self.ref}{base}' for base in self.alts]
 
     @property
     def mean_quality(self):
         """
-        Mean read quality of the base position.
-
-        Returns:
-            int
+        int: Mean read quality of the base position.
         """
         if len(self) == 0:
             return 0
@@ -132,11 +114,8 @@ class CompiledPosition(object):
     @property
     def edit_ratio(self):
         """
-        Edit ratio as most edited base frequency divided by sum of most
+        float: Edit ratio as most edited base frequency divided by sum of most
         edited base and reference base.
-
-        Returns:
-            float
         """
         max_edits = 0
         for base, count in zip(self._bases, self):
@@ -150,20 +129,15 @@ class CompiledPosition(object):
     @property
     def depth(self):
         """
-        Get the number of reads covering this position.
-
-        Returns:
-            int: The coverage depth of the position.
+        int: Number of reads covering this position.
+        (alias for __len__)
         """
         return len(self)
 
     @property
     def strand(self):
         """
-        Get the strand information for this position.
-
-        Returns:
-            str: '+', '-', or '*'
+        str: Get the strand information for this position ('+', '-', or '*')
 
         Raises:
             ValueError: If calculate_strand has not yet been run.
@@ -174,7 +148,7 @@ class CompiledPosition(object):
 
     def calculate_strand(self, threshold=0):
         """
-        Determine the mean strandedness of a position.
+        Determine the strandedness.
 
         Parameters:
             threshold (int): Confidence minimum for strand identification
@@ -218,9 +192,6 @@ class CompiledPosition(object):
     @property
     def per_base_depth(self):
         """
-        Get the depth per base for this position.
-
-        Returns:
-            list
+        list: Get the depth per base for this position in order A, C, G, T.
         """
         return list(self)

@@ -25,9 +25,12 @@ class RTAlignmentFile(PysamAlignmentFile):
         """
         Create a wrapper for pysam.AlignmentFile.
 
+        This wrapper will only yield aligned reads that pass internal quality
+        controls like minimum read length and minimum MAPQ.
+
         Parameters:
             *args (list): Positional arguments for pysam.AlignmentFile()
-            min_quality (int): Minimum read quality
+            min_quality (int): Minimum MAPQ
             min_length (int): Minimum read length
             **kwargs (dict): Keyword arguments for pysam.AlignmentFile()
         """
@@ -46,34 +49,25 @@ class RTAlignmentFile(PysamAlignmentFile):
     @property
     def exclude_reads(self):
         """
-        Names of reads not to be fetched.
-
-        Returns:
-            iterable
+        Set of read names not to be fetched.
         """
         return self._exclude_reads
 
     @exclude_reads.setter
     def exclude_reads(self, read_names):
-        """
-        Provide a list of read names to be skipped during fetch.
-
-        Parameters:
-            read_names (iterable): Reads to skip
-        """
         self._exclude_reads = set(read_names)
         self._checklist.append(self._check_read_name)
 
     def fetch(self, *args, **kwargs):
         """
-        Fetch reads aligned in a region.
+        Fetch reads that pass interal quality control filters.
 
         Parameters:
             *args (list): Positional arguments for pysam.AlignmentFile.fetch
             *kwargs (list): Keyword arguments for pysam.AlignmentFile.fetch
 
         Yields:
-            Reads
+             pysam.AlignedSegment
         """
         if 'region' in kwargs:
             kwargs['region'] = str(kwargs['region'])
@@ -94,7 +88,7 @@ class RTAlignmentFile(PysamAlignmentFile):
             **kwargs (dict): Named arguments for fetch
 
         Yields:
-            Lists containing reads
+            Lists of pysam.AlignedSegment
         """
         iterator = self.fetch(*args, **kwargs)
 

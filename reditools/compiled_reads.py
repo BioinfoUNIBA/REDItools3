@@ -3,7 +3,7 @@
 from reditools.compiled_position import CompiledPosition
 
 
-class CompiledReads(object):
+class CompiledReads:
     """Manager for CompiledPositions."""
 
     _strands = ('-', '+', '*')
