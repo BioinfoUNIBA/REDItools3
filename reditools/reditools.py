@@ -309,15 +309,6 @@ class REDItools(object):
                         bases.complement()
                 if not self._rtqc.check(self, bases):
                     continue
-
-                if self._specific_edits and \
-                        not self._specific_edits & set(bases.variants):
-                    self.log(
-                        Logger.debug_level,
-                        'DISCARD COLUMN Requested edits {} not found',
-                        self._specific_edits,
-                    )
-                    continue
                 self.log(
                     Logger.debug_level,
                     'Yielding output for {} reads',
