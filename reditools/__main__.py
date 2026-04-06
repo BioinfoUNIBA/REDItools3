@@ -1,7 +1,7 @@
 """Commandline tool for REDItools."""
 
 import sys
-from reditools import analyze, annotate, homopolymerics, index
+from reditools import analyze, annotate, find_repeats, index
 
 
 def usage():
@@ -29,7 +29,7 @@ if __name__ == '__main__':
             case 'analyze':
                 analyze.main()
             case 'find-repeats':
-                homopolymerics.main()
+                find_repeats.main()
             case 'index':
                 index.main()
             case 'annotate':
