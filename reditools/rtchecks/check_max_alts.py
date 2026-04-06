@@ -13,12 +13,11 @@ def check_max_alts(rtools, bases):
         (bool): True if there are n or fewer alts
     """
 
-    alts = bases.get_variants()
-    if len(alts) > rtools.max_alts:
+    if len(bases.alts) > rtools.max_alts:
         rtools.log(
             Logger.debug_level,
             'DISCARD COLUMN alts={} > {}',
-            len(alts),
+            len(bases.alts),
             rtools.max_alts,
         )
         return False

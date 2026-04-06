@@ -23,6 +23,7 @@ class CompiledPosition(object):
         self.ref = ref
         self.contig = contig
         self.position = position
+        self._strand = None
 
     def __len__(self):
         """
@@ -83,17 +84,64 @@ class CompiledPosition(object):
         complements = self._comp.items()
         self.counter = {sb: self.counter[bs] for bs, sb in complements}
 
-    def get_variants(self):
+    @property
+    def reference(self):
+        return self.ref
+
+    @property
+    def alts(self):
         """
-        List all detected variants.
+        List alternate bases.
 
         Returns:
             list
         """
-        alts = set(self._bases) - {self.ref}
-        return [base for base in alts if self[base]]
+        return [base for base in self._bases if self[base] and base != self.ref]
 
-    def get_strand(self, threshold=0):
+    @property
+    def variants(self):
+        return [f'{self.ref}{base}' for base in self.alts]
+
+    @property
+    def mean_quality(self):
+        """
+        Mean read quality of the base position.
+
+        Returns:
+            int
+        """
+        if len(self) == 0:
+            return 0
+        return sum(self.qualities) / len(self)
+
+    @property
+    def edit_ratio(self):
+        """
+        Edit ratio.
+
+        Returns:
+            float
+        """
+        max_edits = 0
+        for base, count in zip(self._bases, self):
+            if base != self.ref and count > max_edits:
+                max_edits = count
+        try:
+            return max_edits / (self['REF'] + max_edits)
+        except ZeroDivisionError:
+            return 0
+
+    @property
+    def depth(self):
+        return len(self)
+
+    @property
+    def strand(self):
+        if self._strand is None:
+            raise ValueError('Must run calculate_strand first.')
+        return self._strand
+
+    def calculate_strand(self, threshold=0):
         """
         Determine the mean strandedness of a position.
 
@@ -111,24 +159,23 @@ class CompiledPosition(object):
             elif strand == '-':
                 neg_count += 1
         if pos_count == neg_count:
-            return '*'
-        if pos_count / (pos_count + neg_count) >= threshold:
-            return '+'
-        if neg_count / (pos_count + neg_count) >= threshold:
-            return '-'
-        return '*'
+            self._strand = '*'
+        elif pos_count / (pos_count + neg_count) >= threshold:
+            self._strand = '+'
+        elif neg_count / (pos_count + neg_count) >= threshold:
+            self._strand = '-'
+        else:
+            self._strand = '*'
+        return self._strand
 
-    def filter_by_strand(self, strand):
+    def filter_by_strand(self):
         """
         Remove all bases not on the strand.
-
-        Parameters:
-            strand (str): Either +, -, or *
         """
-        if strand == '*':
+        if self.strand == '*':
             return
         keep = range(len(self.bases))
-        keep = [idx for idx in keep if self.strands[idx] == strand]
+        keep = [idx for idx in keep if self.strands[idx] == self.strand]
         self.qualities = self._filter(self.qualities, keep)
         self.strands = self._filter(self.strands, keep)
         self.bases = self._filter(self.bases, keep)
@@ -136,3 +183,7 @@ class CompiledPosition(object):
 
     def _filter(self, lst, indx):
         return [lst[idx] for idx in indx]
+
+    @property
+    def per_base_depth(self):
+        return list(self)

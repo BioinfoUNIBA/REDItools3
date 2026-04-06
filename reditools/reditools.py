@@ -10,7 +10,6 @@ from reditools.compiled_reads import CompiledReads
 from reditools.fasta_file import RTFastaFile
 from reditools.logger import Logger
 from reditools.region_collection import RegionCollection
-from reditools.rtresult import RTResult
 from reditools import rtchecks
 
 
@@ -67,14 +66,22 @@ class REDItools(object):
 
     @specific_edits.setter
     def specific_edits(self, edits):
-        if edits == ["ALL"]:
-            edits = []
-        for alt in edits:
+        if list(edits) == ["ALL"]:
+            self._specific_edits = set()
+        else:
+            self._specific_edits = set(edits)
+
+        for alt in self._specific_edits:
             if not self._verify_alt(alt):
                 raise Exception(
                         f'Specific edit "{alt}" is not valid. ' +
                         'Edits must be two character strings of ATCG.')
-        self._specific_edits = set(edits)
+
+        qc_check = rtchecks.check_specific_alts
+        if self._specific_edits:
+            self._rtqc.add(qc_check)
+        else:
+            self._rtqc.discard(qc_check)
 
     def _verify_alt(self, alt):
         if not isinstance(alt, str):
@@ -293,17 +300,18 @@ class REDItools(object):
                 if bases is None:
                     self.log(Logger.debug_level, 'DISCARD COLUMN no reads')
                     continue
+                bases.calculate_strand(
+                    threshold=self.strand_confidence_threshold,
+                )
                 if self._use_strand_correction:
-                    strand = bases.get_strand(
-                        threshold=self.strand_confidence_threshold,
-                    )
-                    bases.filter_by_strand(strand)
+                    bases.filter_by_strand()
+                    if bases.strand == '-':
+                        bases.complement()
                 if not self._rtqc.check(self, bases):
                     continue
-                column = self._get_column(position, bases, region)
 
                 if self._specific_edits and \
-                        not self._specific_edits & set(column.variants):
+                        not self._specific_edits & set(bases.variants):
                     self.log(
                         Logger.debug_level,
                         'DISCARD COLUMN Requested edits {} not found',
@@ -315,7 +323,7 @@ class REDItools(object):
                     'Yielding output for {} reads',
                     len(bases),
                 )
-                yield column
+                yield bases
         self.log(
             Logger.info_level,
             '[REGION={}] {} total reads',
@@ -335,9 +343,3 @@ class REDItools(object):
             reference_fname (str): File path to FASTA reference
         """
         self.reference = RTFastaFile(reference_fname)
-
-    def _get_column(self, position, bases, region):
-        strand = bases.get_strand(threshold=self.strand_confidence_threshold)
-        if strand == '-':
-            bases.complement()
-        return RTResult(bases, strand)

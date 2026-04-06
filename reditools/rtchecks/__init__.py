@@ -6,6 +6,7 @@ from .check_exclusions import check_exclusions
 from .check_is_none import check_is_none
 from .check_max_alts import check_max_alts
 from .check_target_positions import check_target_positions
+from .check_specific_alts import check_specific_alts
 from .rtchecks import RTChecks
 
 __all__ = (
@@ -17,5 +18,6 @@ __all__ = (
     'check_is_none',
     'check_max_alts',
     'check_target_positions',
+    'check_specific_alts',
     'RTChecks',
 )
