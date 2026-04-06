@@ -1,10 +1,7 @@
 """Commandline tool for REDItools."""
 
 import sys
-
-from reditools import homopolymerics, index, annotate
-
-from reditools import analyze
+from reditools import analyze, annotate, homopolymerics, index
 
 
 def usage():
