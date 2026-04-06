@@ -13,8 +13,8 @@ class RTAnnotater:
         self.contig_order = self._load_contig_order(dna_file)
 
         # Check that the sort order is the same
-        common_contigs = [rc for rc in self.contig_order if rc in dna_contig_order]
-        for last_contig, next_contig in zip(common_contigs, common_contigs[1:]):
+        cmn_contigs = [c for c in self.contig_order if c in dna_contig_order]
+        for last_contig, next_contig in zip(cmn_contigs, cmn_contigs[1:]):
             if dna_contig_order[last_contig] > dna_contig_order[next_contig]:
                 raise ValueError(
                     'DNA output file does not appear to be in the same order '
@@ -83,7 +83,11 @@ class RTAnnotater:
                     dna_entry = next(dna_reader, None)
                     pos_comp = self._cmp_position(rna_entry, dna_entry)
                 if pos_comp == 0:
-                    self._legacy_translate(dna_entry, 'Coverage-q30', 'Coverage')
+                    self._legacy_translate(
+                        dna_entry,
+                        'Coverage-q30',
+                        'Coverage',
+                    )
                     yield self._annotate_row(rna_entry, dna_entry)
                     dna_entry = next(dna_reader, None)
                 else:

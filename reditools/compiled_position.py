@@ -96,7 +96,7 @@ class CompiledPosition(object):
         Returns:
             list
         """
-        return [base for base in self._bases if self[base] and base != self.ref]
+        return [b for b in self._bases if self[b] and b != self.ref]
 
     @property
     def variants(self):
