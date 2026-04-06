@@ -9,25 +9,7 @@ class RTAnnotater:
     def __init__(self, rna_file, dna_file):
         self.rna_file = rna_file
         self.dna_file = dna_file
-        dna_contig_order = self._load_contig_order(rna_file)
-        self.contig_order = self._load_contig_order(dna_file)
-
-        # Check that the sort order is the same
-        cmn_contigs = [c for c in self.contig_order if c in dna_contig_order]
-        for last_contig, next_contig in zip(cmn_contigs, cmn_contigs[1:]):
-            if dna_contig_order[last_contig] > dna_contig_order[next_contig]:
-                raise ValueError(
-                    'DNA output file does not appear to be in the same order '
-                    'as the RNA output file.'
-                )
-
-        # Insert DNA contigs not in RNA output into contig order
-        last_idx = 0
-        for dna_contig in dna_contig_order:
-            if dna_contig not in self.contig_order:
-                self.contig_order[dna_contig] = last_idx + 0.5
-            else:
-                last_idx = self.contig_order[dna_contig]
+        self.contig_order = self._load_contig_order(rna_file)
 
     def _load_contig_order(self, fname):
         contigs = {}
@@ -49,7 +31,12 @@ class RTAnnotater:
         if dna_entry is None:
             return -1
         rna_contig_idx = self.contig_order[rna_entry['Region']]
-        dna_contig_idx = self.contig_order[dna_entry['Region']]
+        # If the DNA contig is not in the RNA file, assume its position is
+        # earlier than the current RNA contig to induce fast-forwarding.
+        dna_contig_idx = self.contig_order.get(
+            dna_entry['Region'],
+            0
+        )
         if rna_contig_idx == dna_contig_idx:
             return int(rna_entry['Position']) - int(dna_entry['Position'])
         return rna_contig_idx - dna_contig_idx
