@@ -94,7 +94,7 @@ def _read_splice_sites(stream):
             continue
         if len(row) != 5:
             raise ValueError(
-                'Cannot parse splcie site. Row must have 5 values '
+                'Cannot parse splice site. Row must have 5 values '
                 f'({stream.name}:{idx})'
             )
         try:

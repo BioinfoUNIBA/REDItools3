@@ -21,14 +21,13 @@ class ReadGroupIter(object):
         self._read_groups = []
         for itr in fetch_iters:
             reads = next(itr, None)
-            if reads is None:
-                continue
-            start = reads[0].reference_start
-            self._read_groups.append({
-                self._iter_idx: itr,
-                self._reads_idx: reads,
-                self._start_idx: start,
-            })
+            if reads is not None:
+                start = reads[0].reference_start
+                self._read_groups.append({
+                    self._iter_idx: itr,
+                    self._reads_idx: reads,
+                    self._start_idx: start,
+                })
 
     def is_empty(self):
         """

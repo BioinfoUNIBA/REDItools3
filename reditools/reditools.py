@@ -307,14 +307,13 @@ class REDItools(object):
                     bases.filter_by_strand()
                     if bases.strand == '-':
                         bases.complement()
-                if not self._rtqc.check(self, bases):
-                    continue
-                self.log(
-                    Logger.debug_level,
-                    'Yielding output for {} reads',
-                    len(bases),
-                )
-                yield bases
+                if self._rtqc.check(self, bases):
+                    self.log(
+                        Logger.debug_level,
+                        'Yielding output for {} reads',
+                        len(bases),
+                    )
+                    yield bases
         self.log(
             Logger.info_level,
             '[REGION={}] {} total reads',
