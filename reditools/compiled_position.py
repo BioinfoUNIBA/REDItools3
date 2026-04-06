@@ -76,7 +76,9 @@ class CompiledPosition(object):
         self.counter = False
 
     def complement(self):
-        """Modify all the summarized nucleotides to their complements."""
+        """
+        Modify all the summarized nucleotides to their complements.
+        """
         self.bases = [self._comp[base] for base in self.bases]
         self.ref = self._comp[self.ref]
         if not self.counter:
@@ -86,12 +88,19 @@ class CompiledPosition(object):
 
     @property
     def reference(self):
+        """
+        Get the reference base at this position.
+        (alias for ref)
+
+        Returns:
+            str: The reference base.
+        """
         return self.ref
 
     @property
     def alts(self):
         """
-        List alternate bases.
+        List detected alternate bases.
 
         Returns:
             list
@@ -100,6 +109,12 @@ class CompiledPosition(object):
 
     @property
     def variants(self):
+        """
+        Observed variant bases at this position.
+
+        Returns:
+            list: List of detected variants (e.g. AG)
+        """
         return [f'{self.ref}{base}' for base in self.alts]
 
     @property
@@ -117,7 +132,8 @@ class CompiledPosition(object):
     @property
     def edit_ratio(self):
         """
-        Edit ratio.
+        Edit ratio as most edited base frequency divided by sum of most
+        edited base and reference base.
 
         Returns:
             float
@@ -133,10 +149,25 @@ class CompiledPosition(object):
 
     @property
     def depth(self):
+        """
+        Get the number of reads covering this position.
+
+        Returns:
+            int: The coverage depth of the position.
+        """
         return len(self)
 
     @property
     def strand(self):
+        """
+        Get the strand information for this position.
+
+        Returns:
+            str: '+', '-', or '*'
+
+        Raises:
+            ValueError: If calculate_strand has not yet been run.
+        """
         if self._strand is None:
             raise ValueError('Must run calculate_strand first.')
         return self._strand
@@ -186,4 +217,10 @@ class CompiledPosition(object):
 
     @property
     def per_base_depth(self):
+        """
+        Get the depth per base for this position.
+
+        Returns:
+            list
+        """
         return list(self)
