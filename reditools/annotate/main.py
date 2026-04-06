@@ -3,29 +3,46 @@ from reditools import file_utils
 import csv
 import sys
 import traceback
+import pysam
 
+__all__ = ('main', 'RTAnnotater')
+
+def contig_order_from_bam(bam_fname):
+    contigs = {}
+    with pysam.AlignmentFile(bam_fname, ignore_truncation=True) as bam:
+        for idx, contig in enumerate(bam.references, start=1):
+            contigs[contig] = idx
+    return contigs
+
+def contig_order_from_fai(fai_fname):
+    contigs = {}
+    with file_utils.open_stream(fai_fname, 'r') as stream:
+        for idx, line in enumerate(stream, start=1):
+            contig = line.split('\t')[0]
+            contigs[contig] = idx
+    return contigs
+
+def contig_order_from_out(out_fname):
+    contigs = {}
+    with file_utils.open_stream(out_fname, 'r') as stream:
+        reader = csv.DictReader(stream, delimiter='\t')
+        last_contig = None
+        for row in reader:
+            if row['Region'] != last_contig:
+                if row['Region'] in contigs:
+                    raise ValueError(
+                        f'File {fname} does not appear to be in sorted '
+                        'order.'
+                    )
+                contigs[row['Region']] = len(contigs) + 1
+                last_contig = row['Region']
+    return contigs
 
 class RTAnnotater:
-    def __init__(self, rna_file, dna_file):
+    def __init__(self, rna_file, dna_file, contig_order):
         self.rna_file = rna_file
         self.dna_file = dna_file
-        self.contig_order = self._load_contig_order(rna_file)
-
-    def _load_contig_order(self, fname):
-        contigs = {}
-        with file_utils.open_stream(fname, 'r') as stream:
-            reader = csv.DictReader(stream, delimiter='\t')
-            last_contig = None
-            for row in reader:
-                if row['Region'] != last_contig:
-                    if row['Region'] in contigs:
-                        raise ValueError(
-                            f'File {fname} does not appear to be in sorted '
-                            'order.'
-                        )
-                    contigs[row['Region']] = len(contigs) + 1
-                    last_contig = row['Region']
-        return contigs
+        self.contig_order = contig_order
 
     def _cmp_position(self, rna_entry, dna_entry):
         if dna_entry is None:
@@ -121,18 +138,41 @@ def parse_options():
         help='The REDItools output from corresponding DNA data',
     )
     parser.add_argument(
+        '-b',
+        '--bam',
+        help='BAM file to get contig order from.',
+    )
+    parser.add_argument(
+        '-f',
+        '--fai',
+        help='FASTA Index file to get contig order from.',
+    )
+    parser.add_argument(
         '-d',
         '--debug',
         help='Report stack trace on crash.',
         action='store_true',
     )
-    return parser.parse_args()
+    options = parser.parse_args()
+
+    if options.bam and options.fai:
+        parser.error(
+            message='Options -b/--bam and -f/--fai are mutually exclusive.',
+        )
+
+    return options
 
 
 def main():
     options = parse_options()
     try:
-        x = RTAnnotater(options.rna_file, options.dna_file)
+        if options.fai:
+            contig_order = contig_order_from_fai(options.fai)
+        elif options.bam:
+            contig_order = contig_order_from_bam(options.bam)
+        else:
+            contig_order = contig_order_from_out(options.rna_file)
+        x = RTAnnotater(options.rna_file, options.dna_file, contig_order)
         x.annotate(sys.stdout)
     except Exception as exc:
         if options.debug:
