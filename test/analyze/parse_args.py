@@ -2,7 +2,7 @@ import sys
 import unittest
 from contextlib import contextmanager
 from io import StringIO
-from reditools.analyze.parse_args import parse_args
+from reditools.tools.analyze.parse_args import parse_args
 
 __all__ = ('TestParseArgs')
 
