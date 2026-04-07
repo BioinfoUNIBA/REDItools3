@@ -1,0 +1,16 @@
+
+on: [push, pull_request]
+
+jobs:
+  lint:
+    name: Python Format/Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup checkout
+        uses: actions/checkout@master
+      - name: ruff-action
+        uses: astral-sh/ruff-action@v3.6.1
+        with: 
+          src: >-
+            reditools/
+            test/
