@@ -4,10 +4,13 @@ jobs:
   unittest:
     name: Unit Tests
     runs-on: ubuntu-latest
+    env:
+      HTSLIB_LIBRARY_DIR: /usr/local/lib
+      HTSLIB_INCLUDE_DIR: /usr/local/include
     steps:
       - uses: ConorMacBride/install-package@v1
         with:
-          apt: bzip2 lbzip2 libhts3
+          apt: libhts3
       - uses: actions/checkout@v6
       - name: Checkout
         uses: actions/checkout@master
