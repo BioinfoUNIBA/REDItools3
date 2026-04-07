@@ -175,7 +175,7 @@ class TestRTChecks(unittest.TestCase):
     def test_rtchecks(self):
         rtc = rtchecks.RTChecks()
         true_fn = lambda a, b: True  # noqa: E731
-        false_fn = lambda a, b: False  #noqa: E731
+        false_fn = lambda a, b: False  # noqa: E731
 
         self.assertTrue(rtc.check(self.rtools, self.bases))
 
