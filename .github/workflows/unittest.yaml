@@ -7,7 +7,7 @@ jobs:
     steps:
       - uses: ConorMacBride/install-package@v1
         with:
-          apt: libhts3
+          apt: lbzip2 libhts3
       - uses: actions/checkout@v6
       - name: Checkout
         uses: actions/checkout@master
