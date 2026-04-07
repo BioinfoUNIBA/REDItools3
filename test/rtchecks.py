@@ -4,6 +4,7 @@ from reditools.compiled_position import CompiledPosition
 from reditools.reditools import REDItools
 from reditools.region import Region
 
+
 class TestRTChecks(unittest.TestCase):
     def setUp(self):
         self.bases = CompiledPosition(contig='chr1', position=1, ref='A')
@@ -143,7 +144,7 @@ class TestRTChecks(unittest.TestCase):
             rtchecks.check_max_alts(self.rtools, self.bases),
         )
 
-        self.rtools.max_alts=2
+        self.rtools.max_alts = 2
         self.assertTrue(
             rtchecks.check_max_alts(self.rtools, self.bases),
         )
@@ -173,8 +174,8 @@ class TestRTChecks(unittest.TestCase):
 
     def test_rtchecks(self):
         rtc = rtchecks.RTChecks()
-        true_fn = lambda a, b: True
-        false_fn = lambda a, b: False
+        true_fn = lambda a, b: True  # noqa: E731
+        false_fn = lambda a, b: False  #noqa: E731
 
         self.assertTrue(rtc.check(self.rtools, self.bases))
 
