@@ -1,12 +1,7 @@
 import argparse
-from reditools import file_utils
-import csv
-import sys
-import traceback
-import pysam
-from .rtannotater import RTAnnotater
 
 __all__ = ('parse_args')
+
 
 def parse_args():
     """

@@ -1,5 +1,6 @@
 import argparse
 
+
 def parse_args():
     """
     Parse commandline options for REDItools.

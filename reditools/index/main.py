@@ -6,6 +6,7 @@ from reditools.region import Region
 from .rtindexer import RTIndexer
 from .parse_args import parse_args
 
+
 def main():
     """Perform RNA editing analysis."""
     options = parse_args()
