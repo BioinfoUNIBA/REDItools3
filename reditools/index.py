@@ -173,7 +173,7 @@ class Index(object):
         return f'{ref}-{ref}'
 
 
-def parse_options():  # noqa:WPS213
+def parse_options():
     """
     Parse commandline options for REDItools.
 

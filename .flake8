@@ -4,9 +4,7 @@
 # WPS360 Found an unnecessary use of a raw string
 # RST213 Inline emphasis start-string without end-string.
 # RST210 Inline strong start-string without end-string.
-# P103   other string does contain unindexed parameters
 # WPS226 Found string literal over-use: {0}
-extend-ignore = WPS305,WPS360,RST213,RST210,P103,WPS226,WPS336
 max-try-body-length = 3
 max-module-members = 12
 max-local-variables = 12
@@ -14,6 +12,4 @@ max-methods = 12
 max-attributes = 12
 
 per-file-ignores =
-  reditools/utils.py: WPS515, WPS100
-  reditools/reditools.py: WPS214
-  reditools/rtchecks.py: WPS214
+  test/__main__.py: F401

@@ -35,7 +35,7 @@ def bounded_float(min=None, max=None):
     return subfn
 
 
-def build_argument_parser(): # noqa:WPS213
+def build_argument_parser():
     """
     Parse commandline options for REDItools.
 
@@ -93,21 +93,21 @@ def build_argument_parser(): # noqa:WPS213
         '-mrl',
         '--min-read-length',
         type=int,
-        default=30,  # noqa:WPS432
+        default=30,
         help='Reads shorter than -mrl will be discarded.',
     )
     bqf_group.add_argument(
         '-q',
         '--min-read-quality',
         type=int,
-        default=20,  # noqa:WPS432
+        default=20,
         help='Reads with MAPQ below -q will be discarded.',
     )
     bqf_group.add_argument(
         '-bq',
         '--min-base-quality',
         type=int,
-        default=30,  # noqa:WPS432
+        default=30,
         help='Bases with a Phred quality score below -bq will bed discarded.',
     )
     bqf_group.add_argument(
@@ -144,6 +144,7 @@ def build_argument_parser(): # noqa:WPS213
     )
     gr_group.add_argument(
         '--exclude_regions',
+        nargs='+',
         help=argparse.SUPPRESS,
     )
     gr_group.add_argument(
@@ -154,6 +155,7 @@ def build_argument_parser(): # noqa:WPS213
     )
     gr_group.add_argument(
         '--bed_file',
+        nargs='+',
         help=argparse.SUPPRESS,
     )
     rf_group = parser.add_argument_group(
@@ -184,7 +186,7 @@ def build_argument_parser(): # noqa:WPS213
         '-Men',
         '--max-editing-nucleotides',
         type=bounded_int(min=0, max=4),
-        default=4,  # noqa:WPS432
+        default=4,
         help=(
             'Positions with more than -Men unique variants (listed in the '
             'AllSubs column) will be excluded from the results.'
@@ -236,7 +238,7 @@ def build_argument_parser(): # noqa:WPS213
         '-T',
         '--strand-confidence-threshold',
         type=bounded_float(max=1),
-        default=0.7,  # noqa:WPS432
+        default=0.7,
         help=(
             'Only report the strandedness if at least -T proportion of '
             'reads are of a given strand. This option is only applicable '
@@ -341,15 +343,17 @@ def build_argument_parser(): # noqa:WPS213
             'Activate strict mode: only sites with edits will be included in '
             'the output. (Equivalent to -me/--min-edits 1)'
         ),
+        action='store_true',
     )
     leg_group.add_argument(
         '-sf',
         '--splicing-file',
         help=(
-            'The splicing file is a space delimited file with columns '
-            'chromosome, start position (zero-index inclusive), splice '
-            '(either A for acceptor or D for donor), and strand (either '
-            '+ or -). A header is optional, but must start with #.'
+            'The splicing file is a space delimited file with five columns: '
+            'chromosome, start position (one-index inclusive), stop '
+            '(ignored),  splice (either A for acceptor or D for donor), and '
+            'strand (either + or -). A header is optional, but must start '
+            'with #. Used in conjunctions with -ss/--splicing-span.'
         ),
     )
     leg_group.add_argument(
@@ -357,8 +361,10 @@ def build_argument_parser(): # noqa:WPS213
         '--splicing-span',
         type=bounded_int(min=1),
         default=4,
-        help='The splicing span (used in conjunction with --splicing-file.)',
-    ) 
+        help=(
+            'The splicing span. Used in conjunction with -sf/--splicing-file.'
+        ),
+    )
 
     return parser
 
@@ -382,6 +388,7 @@ def check_strict_mode(args):
                 '-S/--strict can only be used with -me/--min-edits 1.'
             )
     delattr(args, 'strict')
+
 
 def check_load_omopolymeric_file(args):
     if args.load_omopolymeric_file:
@@ -407,9 +414,9 @@ def test_strand_args(args):
         )
 
 
-def parse_args():
+def parse_args(sys_args=None):
     parser = build_argument_parser()
-    args = parser.parse_args()
+    args = parser.parse_args(sys_args)
     try:
         check_dna_mode(args)
         check_exclude_multis(args)

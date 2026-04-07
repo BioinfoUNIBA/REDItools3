@@ -6,6 +6,14 @@ from gzip import open as gzip_open
 
 from reditools.region import Region
 
+__all__ = (
+    'open_stream',
+    'read_bed_file',
+    'concat',
+    'load_splicing_file',
+    'load_text_file',
+)
+
 
 def open_stream(path, mode='rt', encoding='utf-8'):
     """
@@ -21,7 +29,7 @@ def open_stream(path, mode='rt', encoding='utf-8'):
     """
     if path.endswith('gz'):
         return gzip_open(path, mode, encoding=encoding)
-    return open(path, mode, encoding=encoding)  # noqa:WPS515
+    return open(path, mode, encoding=encoding)
 
 
 def read_bed_file(path):
@@ -34,17 +42,17 @@ def read_bed_file(path):
     Yields:
         BED file contents as Regions.
     """
-    stream = open_stream(path)
-    reader = csv.reader(
-        filter(lambda row: row[0] != '#', stream),
-        delimiter='\t',
-    )
-    for row in reader:
-        yield Region(
-            contig=row[0],
-            start=int(row[1]),
-            stop=int(row[2]),
+    with open_stream(path) as stream:
+        reader = csv.reader(
+            filter(lambda row: row[0] != '#', stream),
+            delimiter='\t',
         )
+        for row in reader:
+            yield Region(
+                contig=row[0],
+                start=int(row[1]),
+                stop=int(row[2]),
+            )
 
 
 def concat(output, *fnames, clean_up=True, encoding='utf-8'):
@@ -65,6 +73,49 @@ def concat(output, *fnames, clean_up=True, encoding='utf-8'):
             os.remove(fname)
 
 
+def load_text_file(file_name):
+    """
+    Extract file contents to a list.
+
+    Parameters:
+        file_name (str): The file to open.
+
+    Returns:
+        List of content
+    """
+    with open_stream(file_name, 'r') as stream:
+        return [line.strip() for line in stream]
+
+
+def _read_splice_sites(stream):
+    reader = csv.reader(stream, delimiter=' ')
+    for idx, row in enumerate(reader, start=1):
+        if len(row) == 0 or row[0].startswith('#'):
+            continue
+        if len(row) != 5:
+            raise ValueError(
+                'Cannot parse splcie site. Row must have 5 values '
+                f'({stream.name}:{idx})'
+            )
+        try:
+            position = int(row[1])
+        except ValueError as exc:
+            raise ValueError(
+                f'Splice site must be an integer ({stream.name}:{idx})'
+            ) from exc
+
+        if row[3] not in ('A', 'D'):
+            raise ValueError(
+                f'Splice type must be A or D ({stream.name}:{idx})'
+            )
+        if row[4] not in ('+', '-'):
+            raise ValueError(
+                f'Strand must be + or - ({stream.name}:{idx})'
+            )
+
+        yield (row[0], position, row[3], row[4])
+
+
 def load_splicing_file(splicing_file, splicing_span):
     """
     Read splicing positions from a file.
@@ -78,34 +129,14 @@ def load_splicing_file(splicing_file, splicing_span):
     """
     strand_map = {'-': 'D', '+': 'A'}
 
-    stream = open_stream(splicing_file)
-    reader = csv.reader(
-        filter(lambda row: row[0] != '#', stream),
-        delimiter=' ',
-    )
-    for row in reader:
-        contig = row[0]
-        span = int(row[1])
-        splice = row[3]
-        strand = row[4]
-
-        coe = -1 if strand_map.get(strand, None) == splice else 1
-        start = 1 + span
-        stop = start + splicing_span * coe
-        if start > stop:
-            start, stop = stop, start
-        yield Region(contig=contig, start=start, stop=stop)
-
-
-def load_text_file(file_name):
-    """
-    Extract file contents to a list.
-
-    Parameters:
-        file_name (str): The file to open.
-
-    Returns:
-        List of content
-    """
-    with open_stream(file_name, 'r') as stream:
-        return [line.strip() for line in stream]
+    with open_stream(splicing_file) as stream:
+        for contig, position, splice, strand in _read_splice_sites(stream):
+            position = position - 1
+            if strand_map[strand] == splice:
+                start = max(position - splicing_span, 0)
+                stop = position
+            else:
+                start = position
+                stop = position + splicing_span
+            if start != stop:
+                yield Region(contig=contig, start=start, stop=stop)
