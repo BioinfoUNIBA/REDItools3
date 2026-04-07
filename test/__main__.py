@@ -11,5 +11,6 @@ from .alignment_file import TestRTAlignmentFile
 from .alignment_manager import TestAlignmentManager
 from .compiled_reads import TestCompiledReads
 from .rtresult import TestRTResult
+from .rtchecks import TestRTChecks
 
 unittest.main()

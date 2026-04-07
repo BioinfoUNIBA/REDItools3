@@ -39,8 +39,9 @@ class RegionCollection(object):
         """
         if not self._sorted:
             self._sort()
-
-        if contig != self._last_contig:
+            self._last_contig = contig
+            self._index = 0
+        elif contig != self._last_contig:
             self._last_contig = contig
             self._index = 0
 
