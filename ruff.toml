@@ -1,0 +1,2 @@
+[per-file-ignores]
+"test/__main__.py" = ["F401"]
