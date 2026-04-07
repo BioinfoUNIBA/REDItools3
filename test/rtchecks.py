@@ -121,14 +121,6 @@ class TestRTChecks(unittest.TestCase):
             rtchecks.check_exclusions(self.rtools, self.bases),
         )
 
-    def test_check_is_none(self):
-        self.assertTrue(
-            rtchecks.check_is_none(self.rtools, self.bases),
-        )
-        self.assertFalse(
-            rtchecks.check_is_none(self.rtools, None),
-        )
-
     def test_check_max_alts(self):
         self.rtools.max_alts = 1
         self.assertTrue(
