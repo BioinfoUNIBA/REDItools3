@@ -1,7 +1,7 @@
 import os
 import unittest
 from reditools.region import Region
-from reditools.analyze.region_args import region_args
+from reditools.tools.analyze.region_args import region_args
 from ..sam_gen import SAM
 from tempfile import NamedTemporaryFile
 
