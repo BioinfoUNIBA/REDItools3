@@ -1,14 +1,12 @@
 """Quality control for REDItools analyses."""
 
-from .check_is_none import check_is_none
-
 
 class RTChecks(object):
     """Quality control for REDItools analyses."""
 
     def __init__(self):
         """Create a RTChecks object."""
-        self.check_list = [check_is_none]
+        self.check_list = []
 
     def add(self, qc_check_fn):
         """
