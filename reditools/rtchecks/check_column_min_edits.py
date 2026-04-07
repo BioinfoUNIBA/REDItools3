@@ -16,9 +16,8 @@ def check_column_min_edits(rtools, bases):
         (bool): True if there are sufficient edits
     """
     for base in _bases:
-        if base == bases.ref:
-            continue
-        if rtools.min_edits_per_nucleotide > bases[base] > 0:
+        if base != bases.ref and \
+                rtools.min_edits_per_nucleotide > bases[base] > 0:
             rtools.log(
                 Logger.debug_level,
                 'DISCARDING COLUMN edits={} < {}',

@@ -5,7 +5,7 @@ import sys
 from datetime import datetime
 
 
-class Logger(object):
+class Logger:
     """Fast logger for REDItools."""
 
     silent_level = 'SILENT'

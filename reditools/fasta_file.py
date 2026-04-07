@@ -7,7 +7,7 @@ class RTFastaFile(PysamFastaFile):
     """Wrapper for pysam.FastaFile to provide sequence cache."""
 
     def __new__(cls, *args, **kwargs):
-        r"""
+        """
         Create a wrapper for pysam.FastaFile.
 
         Parameters:
@@ -20,7 +20,7 @@ class RTFastaFile(PysamFastaFile):
         return PysamFastaFile.__new__(cls, *args, **kwargs)
 
     def __init__(self, *args, **kwargs):
-        r"""
+        """
         Create a wrapper for pysam.FastaFile.
 
         Parameters:

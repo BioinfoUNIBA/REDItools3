@@ -23,7 +23,7 @@ def write_results(rtools, sam_manager, file_name, region, output_format,
             variants = rt_result.variants
             writer.writerow([
                 rt_result.contig,
-                rt_result.position,
+                rt_result.position + 1,
                 rt_result.reference,
                 rt_result.strand,
                 rt_result.depth,

@@ -4,7 +4,7 @@ from itertools import chain
 from reditools.alignment_file import RTAlignmentFile
 
 
-class ReadGroupIter(object):
+class ReadGroupIter:
     """Manages multiple fetch iterators."""
 
     _iter_idx = 0
@@ -21,14 +21,13 @@ class ReadGroupIter(object):
         self._read_groups = []
         for itr in fetch_iters:
             reads = next(itr, None)
-            if reads is None:
-                continue
-            start = reads[0].reference_start
-            self._read_groups.append({
-                self._iter_idx: itr,
-                self._reads_idx: reads,
-                self._start_idx: start,
-            })
+            if reads is not None:
+                start = reads[0].reference_start
+                self._read_groups.append({
+                    self._iter_idx: itr,
+                    self._reads_idx: reads,
+                    self._start_idx: start,
+                })
 
     def is_empty(self):
         """
@@ -67,7 +66,7 @@ class ReadGroupIter(object):
         return min(group[self._start_idx] for group in self._read_groups)
 
 
-class AlignmentManager(object):
+class AlignmentManager:
     """
     Manage multiple RTAlignmentFiles with a single fetch.
 

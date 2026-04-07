@@ -2,7 +2,7 @@
 from collections import defaultdict
 
 
-class RegionCollection(object):
+class RegionCollection:
     """Collections of REDItools3 region objects. This class is meant to
     provide fast lookups of overlaps, and so behaves as a queue."""
 

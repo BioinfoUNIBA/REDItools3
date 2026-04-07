@@ -1,14 +1,11 @@
-"""Commandline tool for REDItools."""
-
-import argparse
 import csv
-import sys
 from itertools import permutations
 from json import loads as load_json
 
 from reditools.file_utils import open_stream, read_bed_file
-from reditools.region import Region
 from reditools.region_collection import RegionCollection
+
+__all__ = ('RTIndexer',)
 
 _ref = 'Reference'
 _position = 'Position'
@@ -19,7 +16,7 @@ _nucs = 'ACGT'
 _ref_set = {f'{nuc}-{nuc}' for nuc in _nucs}
 
 
-class Index(object):
+class RTIndexer(object):
     """Utility for calculating editing indices."""
 
     def __init__(self, region=None, strand=0):
@@ -171,93 +168,3 @@ class Index(object):
             A string in the format of {ref}-{ref}
         """
         return f'{ref}-{ref}'
-
-
-def parse_options():
-    """
-    Parse commandline options for REDItools.
-
-    Returns:
-        namespace: commandline args
-    """
-    parser = argparse.ArgumentParser(
-        prog="reditools index",
-        description='REDItools3',
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-    )
-    parser.add_argument(
-        'file',
-        nargs='+',
-        help='The REDItools output file to be analyzed',
-    )
-    parser.add_argument(
-        '-o',
-        '--output-file',
-        default='/dev/stdout',
-        help='The output statistics file',
-    )
-    parser.add_argument(
-        '-g',
-        '--region',
-        help='The genomic region to be analyzed',
-    )
-    parser.add_argument(
-        '-B',
-        '--bed_file',
-        nargs='+',
-        help='Path of BED file containing target regions',
-    )
-    parser.add_argument(
-        '-k',
-        '--exclude_regions',
-        nargs='+',
-        help='Path of BED file containing regions to exclude from analysis',
-    )
-
-    return parser.parse_args()
-
-
-def main():
-    """Perform RNA editing analysis."""
-    options = parse_options()
-    if options.region:
-        indexer = Index(Region.parse_string(options.region))
-    else:
-        indexer = Index()
-
-    if options.exclude_regions:
-        for exc_fname in options.exclude_regions:
-            indexer.add_exclusions_from_bed(exc_fname)
-
-    if options.bed_file:
-        for trg_fname in options.bed_file:
-            indexer.add_target_from_bed(trg_fname)
-
-    if options.output_file:
-        stream = open_stream(options.output_file, 'w')
-    else:
-        stream = sys.stdout
-
-    for fname in options.file:
-        indexer.add_rt_output(fname)
-
-    for nuc, idx in sorted(indexer.calc_index().items()):
-        stream.write(f'{nuc}\t{idx}\n')
-
-
-def update_region_dict(region_dict, region):
-    """
-    Add a region to a region dictionary.
-
-    Parameters:
-        region_dict (dict): Region dictionary
-        region (Region): Region to add
-
-    Returns:
-        An updated copy of region_dict
-    """
-    return region_dict.get(region.contig, set()) | region.enumerate()
-
-
-if __name__ == '__main__':
-    main()

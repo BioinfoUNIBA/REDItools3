@@ -1,7 +1,7 @@
 """Organizational structure for tracking base coverage of genomic positions."""
 
 
-class CompiledPosition(object):
+class CompiledPosition:
     """Tracks base frequency for a genomic position."""
 
     _bases = 'ACGT'
@@ -23,13 +23,11 @@ class CompiledPosition(object):
         self.ref = ref
         self.contig = contig
         self.position = position
+        self._strand = None
 
     def __len__(self):
         """
         Position depth.
-
-        Returns:
-            int
         """
         return len(self.bases)
 
@@ -53,10 +51,7 @@ class CompiledPosition(object):
 
     def __iter__(self):
         """
-        Iterate over each base frequency.
-
-        Returns:
-            iterator
+        Iterate over each base frequency in order A, C, G, T.
         """
         return (self[base] for base in self._bases)
 
@@ -67,7 +62,7 @@ class CompiledPosition(object):
         Parameters:
             quality (int): The quality of the read
             strand (str): The strand the base is on (+, -, or *)
-            base (str): The nucleotide at the position( A, C, G, or T)
+            base (str): The nucleotide at the position (A, C, G, or T)
         """
         self.qualities.append(quality)
         self.strands.append(strand)
@@ -75,7 +70,9 @@ class CompiledPosition(object):
         self.counter = False
 
     def complement(self):
-        """Modify all the summarized nucleotides to their complements."""
+        """
+        Modify all the summarized nucleotides to their complements.
+        """
         self.bases = [self._comp[base] for base in self.bases]
         self.ref = self._comp[self.ref]
         if not self.counter:
@@ -83,19 +80,75 @@ class CompiledPosition(object):
         complements = self._comp.items()
         self.counter = {sb: self.counter[bs] for bs, sb in complements}
 
-    def get_variants(self):
+    @property
+    def reference(self):
         """
-        List all detected variants.
+        str: Reference base at this position.
+        (alias for ref)
+        """
+        return self.ref
 
-        Returns:
-            list
+    @property
+    def alts(self):
         """
-        alts = set(self._bases) - {self.ref}
-        return [base for base in alts if self[base]]
+        list: Detected alternate bases.
+        """
+        return [b for b in self._bases if self[b] and b != self.ref]
 
-    def get_strand(self, threshold=0):
+    @property
+    def variants(self):
         """
-        Determine the mean strandedness of a position.
+        list: Observed edits at this position (e.g. AG).
+        """
+        return [f'{self.ref}{base}' for base in self.alts]
+
+    @property
+    def mean_quality(self):
+        """
+        int: Mean read quality of the base position.
+        """
+        if len(self) == 0:
+            return 0
+        return sum(self.qualities) / len(self)
+
+    @property
+    def edit_ratio(self):
+        """
+        float: Edit ratio as most edited base frequency divided by sum of most
+        edited base and reference base.
+        """
+        max_edits = 0
+        for base, count in zip(self._bases, self):
+            if base != self.ref and count > max_edits:
+                max_edits = count
+        try:
+            return max_edits / (self['REF'] + max_edits)
+        except ZeroDivisionError:
+            return 0
+
+    @property
+    def depth(self):
+        """
+        int: Number of reads covering this position.
+        (alias for __len__)
+        """
+        return len(self)
+
+    @property
+    def strand(self):
+        """
+        str: Get the strand information for this position ('+', '-', or '*')
+
+        Raises:
+            ValueError: If calculate_strand has not yet been run.
+        """
+        if self._strand is None:
+            raise ValueError('Must run calculate_strand first.')
+        return self._strand
+
+    def calculate_strand(self, threshold=0):
+        """
+        Determine the strandedness.
 
         Parameters:
             threshold (int): Confidence minimum for strand identification
@@ -111,24 +164,23 @@ class CompiledPosition(object):
             elif strand == '-':
                 neg_count += 1
         if pos_count == neg_count:
-            return '*'
-        if pos_count / (pos_count + neg_count) >= threshold:
-            return '+'
-        if neg_count / (pos_count + neg_count) >= threshold:
-            return '-'
-        return '*'
+            self._strand = '*'
+        elif pos_count / (pos_count + neg_count) >= threshold:
+            self._strand = '+'
+        elif neg_count / (pos_count + neg_count) >= threshold:
+            self._strand = '-'
+        else:
+            self._strand = '*'
+        return self._strand
 
-    def filter_by_strand(self, strand):
+    def filter_by_strand(self):
         """
         Remove all bases not on the strand.
-
-        Parameters:
-            strand (str): Either +, -, or *
         """
-        if strand == '*':
+        if self.strand == '*':
             return
         keep = range(len(self.bases))
-        keep = [idx for idx in keep if self.strands[idx] == strand]
+        keep = [idx for idx in keep if self.strands[idx] == self.strand]
         self.qualities = self._filter(self.qualities, keep)
         self.strands = self._filter(self.strands, keep)
         self.bases = self._filter(self.bases, keep)
@@ -136,3 +188,10 @@ class CompiledPosition(object):
 
     def _filter(self, lst, indx):
         return [lst[idx] for idx in indx]
+
+    @property
+    def per_base_depth(self):
+        """
+        list: Get the depth per base for this position in order A, C, G, T.
+        """
+        return list(self)
