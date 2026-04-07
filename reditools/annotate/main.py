@@ -4,7 +4,7 @@ import csv
 import sys
 import traceback
 import pysam
-from .rtannotater import RTAnnotater
+from reditools.rtannotater import RTAnnotater
 from .parse_args import parse_args
 
 __all__ = ('main')

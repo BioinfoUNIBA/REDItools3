@@ -3,7 +3,7 @@
 import sys
 from reditools.file_utils import open_stream
 from reditools.region import Region
-from .rtindexer import RTIndexer
+from reditools.rtindexer import RTIndexer
 from .parse_args import parse_args
 
 
