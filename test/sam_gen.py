@@ -1,22 +1,15 @@
 import random
 from Bio.Align import PairwiseAligner
-import pysam.samtools as samtools
+from pysam import samtools
 import os
 from tempfile import NamedTemporaryFile
 import re
-
-aligner = PairwiseAligner(
-    mismatch_score=-1,
-    query_internal_open_gap_score=-1,
-)
+from dataclasses import dataclass, InitVar
 
 
 class Genome:
     def __init__(self):
         self.contigs = {}
-
-    def _random_seq(self, length):
-        return ''.join([random.choice('ACTG') for _ in range(length)])
 
     def __getitem__(self, contig_name):
         return self.contigs.get(contig_name, None)
@@ -36,37 +29,50 @@ class Genome:
 
     def save_to_fasta(self, filename):
         with open(filename, 'w') as stream:
-            for n, (name, sequence) in enumerate(self.contigs.items(), 1):
-                stream.write(f'>{name} {n}\n{sequence}\n')
+            for idx, (name, sequence) in enumerate(self.contigs.items(), 1):
+                stream.write(f'>{name} {idx}\n{sequence}\n')
         samtools.faidx(filename)
 
+    @classmethod
+    def _random_seq(cls, length):
+        return ''.join([random.choice('ACTG') for _ in range(length)])
 
-class Sequence:
+
+@dataclass
+class Sequence: 
+    seq: str
+    start: int
+    flag: int = 0
+    phred: InitVar[list | None] = None
+    mapq: int = 255
+    _cigar_str: str | None = None
+    qname: InitVar[str | None] = None
+    pnext: int = 0
+    
     read_n = 0
+    flag_reverse_strand = 16
+    phred_default = 30
+    aligner = PairwiseAligner(
+        mismatch_score=-1,
+        query_internal_open_gap_score=-1,
+    )
 
-    def __init__(self, seq, start, flag=0, phred=None, mapq=None,
-                 cigar_str=None, qname=None, pnext=0):
-        self.seq = list(seq)
-        self.start = start
-        self.flag = flag
-        self._cigar_str = cigar_str
-        self.pnext = pnext
-        if qname is None:
-            self.qname = f'read{Sequence.read_n}'
-            Sequence.read_n += 1
-        else:
-            self.qname = qname
+    def __post_init__(self, phred, qname):
         if phred is None:
-            self.phred = [30 for _ in range(len(self.seq))]
+            self.phred = [self.phred_default for _ in range(len(self.seq))]
         else:
             self.phred = phred
-        self.mapq = mapq if mapq is not None else 255
+
+        if qname is None:
+            self.qname = self.next_read_name()
+        else:
+            self.qname = qname
 
     def __len__(self):
         return len(self.seq)
 
     def __str__(self):
-        return ''.join(self.seq)
+        return self.seq
 
     def tlen(self, ref_seq):
         cigar = self.cigar_str(ref_seq)
@@ -75,41 +81,19 @@ class Sequence:
             count = int(count)
             if op not in ('S', 'I'):
                 tlen += count
-        if self.flag & 16:
+        if self.flag & Sequence.flag_reverse_strand:
             return -tlen
         return tlen
 
     def cigar_str(self, ref_seq):
         if self._cigar_str is not None:
             return self._cigar_str
-        alignment = aligner.align(
+        alignment = Sequence.aligner.align(
             ref_seq[self.start:self.start + len(self)],
             str(self),
         )[0]
-        cigar_pieces = []
-        last_op = None
-        op_n = 0
-        for ref, query in zip(alignment[0], alignment[1]):
-            if ref == '-':
-                cigar_op = 'I'
-            elif query == '-':
-                if len(cigar_pieces) == 0:
-                    cigar_op = 'S'
-                else:
-                    cigar_op = 'D'
-            else:
-                cigar_op = 'M'
-
-            if cigar_op == last_op:
-                op_n += 1
-            else:
-                if last_op is not None:
-                    cigar_pieces.append(f'{op_n}{last_op}')
-                last_op = cigar_op
-                op_n = 1
-        if last_op == 'D':
-            last_op = 'S'
-        cigar_pieces.append(f'{op_n}{last_op}')
+        cigar_iter = self.assemble_cigar_list(alignment[0], alignment[1])
+        cigar_pieces = [f'{length}{op}' for length, op in cigar_iter]
         self._cigar_str = ''.join(cigar_pieces)
         return self._cigar_str
 
@@ -117,20 +101,56 @@ class Sequence:
         return Sequence(
             seq=self.seq,
             start=self.start,
-            flag=self.flag ^ 240,
+            flag=self.pair_flag(self.flag),
             phred=self.phred,
             mapq=self.mapq,
-            cigar_str=self._cigar_str,
+            _cigar_str=self._cigar_str,
             qname=self.qname,
             pnext=self.start,
         )
-        self.pnext = self.start
+
+    @classmethod
+    def pair_flag(cls, flag_value):
+        return flag_value ^ 240
+
+    @classmethod
+    def cigar_op(cls, ref_base, query_base):
+        if ref_base == '-':
+            return 'I'
+        if query_base == '-':
+            return 'D'
+        if query_base == ref_base:
+            return 'M'
+        return 'X'
+
+    @classmethod
+    def assemble_cigar_list(cls, algn_ref, algn_query):
+        last_op = None
+        op_n = 0
+        for ref_base, query_base in zip(algn_ref, algn_query):
+            cigar_op = cls.cigar_op(ref_base, query_base)
+            if cigar_op == last_op:
+                op_n += 1
+            else:
+                if last_op is not None:
+                    yield (op_n, cigar_op)
+                last_op = cigar_op
+                op_n = 1
+        yield (op_n, cigar_op)
+
+    @classmethod
+    def next_read_name(cls):
+        cls.read_n += 1
+        return f'read{cls.read_n}'
 
 
 class SAM:
     def __init__(self):
         self.genome = Genome()
         self.reads = {}
+
+    def __getitem__(self, contig_name):
+        return self.reads[contig_name]
 
     def header(self):
         header = ['@HD\tVN:1.5']
@@ -150,21 +170,15 @@ class SAM:
     def add_read(self, contig_name, sequence_obj):
         self.reads[contig_name].append(sequence_obj)
 
-    def __getitem__(self, contig_name):
-        return self.reads[contig_name]
-
-    def _covered_seqs(self, contig_name, position):
-        return [
-            idx for idx, seq in enumerate(self[contig_name])
-            if seq.start <= position < seq.stop
-        ]
+    def add_read_pair(self, contig_name, sequence_obj):
+        self.add_read(contig_name, sequence_obj)
+        self.add_read(contig_name, sequence_obj.make_pair())
 
     def sam_entries(self):
-        n = 0
         for contig, reads in self.reads.items():
             ref_seq = self.genome[contig]
             for idx, sequence in enumerate(reads):
-                yield '\t'.join([str(_) for _ in [
+                yield '\t'.join([str(_) for _ in (
                     sequence.qname,
                     sequence.flag,
                     contig,
@@ -175,9 +189,8 @@ class SAM:
                     sequence.pnext + 1,
                     sequence.tlen(ref_seq),
                     str(sequence),
-                    ''.join([chr(33 + _) for _ in sequence.phred]),
-                ]])
-                n += 1
+                    ''.join([self._phred(_) for _ in sequence.phred]),
+                )])
 
     def save_to_sam(self, bam_filename, genome_filename):
         with NamedTemporaryFile(
@@ -200,3 +213,23 @@ class SAM:
         samtools.sort('-o', bam_filename, sam_filename)
         samtools.index(bam_filename)
         os.remove(sam_filename)
+
+    def _covered_seqs(self, contig_name, position):
+        return [
+            idx for idx, seq in enumerate(self[contig_name])
+            if seq.start <= position < seq.stop
+        ]
+
+    @classmethod
+    def _phred(cls, int_value):
+        return chr(33 + int_value)
+
+def ntf(*args, **kwargs):
+    with NamedTemporaryFile(
+            *args,
+            delete=False,
+            mode='w',
+            **kwargs,
+    ) as stream:
+        filename = stream.name
+    return filename

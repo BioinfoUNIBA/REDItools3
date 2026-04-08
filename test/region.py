@@ -1,8 +1,7 @@
 import unittest
 import os
 from reditools.region import Region
-from .sam_gen import SAM
-from tempfile import NamedTemporaryFile
+from test.sam_gen import SAM, ntf
 
 
 class TestRegion(unittest.TestCase):
@@ -12,31 +11,29 @@ class TestRegion(unittest.TestCase):
         self.assertEqual(str(Region('chr1', 0, None)), 'chr1')
         self.assertEqual(str(Region('chr1', 50, None)), 'chr1:51')
 
-    def test_split(self):
-        # Standard case: evenly divisible
+    def test_even_split(self):
         region = Region('chr1', 0, 1000)
         windows = region.split(250)
         self.assertEqual(len(windows), 4)
         self.assertEqual(windows[0], Region('chr1', 0, 250))
         self.assertEqual(windows[-1], Region('chr1', 750, 1000))
 
-        # Edge case: region size not divisible by window size
+    def test_uneven_split(self):
         region = Region('chr1', 0, 950)
         windows = region.split(300)
         self.assertEqual(len(windows), 4)
         self.assertEqual(windows[0], Region('chr1', 0, 300))
         self.assertEqual(windows[1], Region('chr1', 300, 600))
         self.assertEqual(windows[2], Region('chr1', 600, 900))
-        # last window smaller than others
         self.assertEqual(windows[3], Region('chr1', 900, 950))
 
-        # Edge case: very small region, window size larger than region
+    def test_impossible_split(self):
         region = Region('chr1', 0, 100)
         windows = region.split(200)
         self.assertEqual(len(windows), 1)
         self.assertEqual(windows[0], Region('chr1', 0, 100))
 
-        # Edge case: region starts at nonzero, not divisible
+    def test_nonzero_split(self):
         region = Region('chr2', 5, 122)
         windows = region.split(50)
         self.assertEqual(len(windows), 3)
@@ -44,6 +41,7 @@ class TestRegion(unittest.TestCase):
         self.assertEqual(windows[1], Region('chr2', 55, 105))
         self.assertEqual(windows[2], Region('chr2', 105, 122))
 
+    def test_none_split(self):
         with self.assertRaises(IndexError):
             Region('chr1', None, 100).split(50)
         with self.assertRaises(IndexError):
@@ -57,14 +55,8 @@ class TestRegion(unittest.TestCase):
         self.assertFalse(region.contains('chr2', 150))
 
     def test_from_string(self):
-        with NamedTemporaryFile(delete=False,
-                                mode='w',
-                                suffix='.fa') as fasta:
-            fasta_fname = fasta.name
-        with NamedTemporaryFile(delete=False,
-                                mode='w',
-                                suffix='.bam') as bam:
-            bam_fname = bam.name
+        fasta_fname = ntf(suffix='.fa')
+        bam_fname = ntf(suffix='.bam')
 
         sam_obj = SAM()
         chr1_len = 600

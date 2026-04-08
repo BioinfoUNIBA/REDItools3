@@ -2,16 +2,13 @@ import os
 import unittest
 from reditools.region import Region
 from reditools.tools.analyze.region_args import region_args
-from ..sam_gen import SAM
-from tempfile import NamedTemporaryFile
+from test.sam_gen import SAM, ntf
 
 
 class TestRegionArgs(unittest.TestCase):
     def setUp(self):
-        with NamedTemporaryFile(delete=False, suffix='.fa') as f:
-            self.fasta_fname = f.name
-        with NamedTemporaryFile(delete=False, suffix='.bam') as f:
-            self.bam_fname = f.name
+        self.fasta_fname = ntf(suffix='.fa')
+        self.bam_fname = ntf(suffix='.bam')
 
         sam_obj = SAM()
         sam_obj.add_contig('chr1', length=120)

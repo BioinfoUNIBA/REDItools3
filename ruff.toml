@@ -1,2 +1,4 @@
+line-length = 80
+
 [per-file-ignores]
 "test/__main__.py" = ["F401"]
