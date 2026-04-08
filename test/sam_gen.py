@@ -164,7 +164,7 @@ class SAM:
         for contig, reads in self.reads.items():
             ref_seq = self.genome[contig]
             for idx, sequence in enumerate(reads):
-                yield "\t".join([str(_) for _ in [
+                yield '\t'.join([str(_) for _ in [
                     sequence.qname,
                     sequence.flag,
                     contig,
@@ -180,11 +180,16 @@ class SAM:
                 n += 1
 
     def save_to_sam(self, bam_filename, genome_filename):
-        with NamedTemporaryFile(delete=False, mode='w', dir='.') as stream:
+        with NamedTemporaryFile(
+                delete=False,
+                mode='w',
+                dir='.',
+                suffix='.sam',
+        ) as stream:
             sam_filename = stream.name
             stream.write(self.header())
             stream.write('\n')
-            stream.write("\n".join(self.sam_entries()))
+            stream.write('\n'.join(self.sam_entries()))
         md_sam = samtools.calmd(
             sam_filename,
             genome_filename,
