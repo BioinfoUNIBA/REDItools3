@@ -29,6 +29,10 @@ class ReadGroupIter:
                     self._start_idx: start,
                 })
 
+    def __iter__(self):
+        while not self.is_empty():
+            yield self.next()
+
     def is_empty(self):
         """
         Check if there are still reads left.
@@ -60,7 +64,7 @@ class ReadGroupIter:
                         self._reads_idx: next_reads,
                         self._start_idx: next_reads[0].reference_start,
                     }
-        return reads
+        return list(chain(*reads))
 
     def _find_start(self):
         return min(group[self._start_idx] for group in self._read_groups)
@@ -89,6 +93,7 @@ class AlignmentManager:
         self._bam_kwargs = kwargs
         self._bams = []
         self.file_list = []
+        self.next_read_start = None
 
     def add_file(self, fname, exclude_reads=None):
         """
@@ -124,5 +129,12 @@ class AlignmentManager:
         """
         iters = [bam.fetch_by_position(*args, **kwargs) for bam in self._bams]
         rgi = ReadGroupIter(iters)
-        while not rgi.is_empty():
-            yield list(chain(*rgi.next()))
+        if rgi.is_empty():
+            return
+        read_group = rgi.next()
+        for next_read_group in rgi:
+            self.next_read_start = next_read_group[0].reference_start
+            yield read_group
+            read_group = next_read_group
+        self.next_read_start = None
+        yield read_group

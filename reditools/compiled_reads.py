@@ -102,6 +102,25 @@ class CompiledReads:
         """
         return not self._nucleotides
 
+
+    def iter_range(self, start, stop):
+        """
+        Iteratively calls pop across a genomic range.
+
+        Params:
+            start (int): Genomic start (zero index, inclusive)
+            stop (int): Genomic stop (zero index, exclusive)
+
+        Yields:
+            CompiledPosition
+        """
+        for position in range(start, stop):
+            if self.is_empty():
+                break
+            bases = self.pop(position)
+            if bases is not None:
+                yield bases
+
     def _get_ref_from_read(self, read):
         return (_[2].upper() for _ in read.get_aligned_pairs(
             with_seq=True,

@@ -236,50 +236,27 @@ class REDItools:
             alignment_manager.file_list,
             region,
         )
-        read_iter = alignment_manager.fetch_by_position(region=region)
 
-        reads = next(read_iter, None)
-        while reads is not None:
-            position = reads[0].reference_start
+        for reads in alignment_manager.fetch_by_position(region=region):
             self.log(
                 Logger.debug_level,
                 'Adding {} reads starting from {}:{}',
                 len(reads),
                 region.contig,
-                position,
+                reads[0].reference_start,
             )
             total += len(reads)
             nucleotides.add_reads(reads)
 
-            reads = next(read_iter, None)
-            if reads is None or reads[0].reference_start > region.stop:
+            next_read_start = alignment_manager.next_read_start
+            if next_read_start is None or next_read_start > region.stop:
                 next_read_start = region.stop
-            else:
-                next_read_start = reads[0].reference_start
 
-            for position in range(position, next_read_start):
-                if nucleotides.is_empty():
-                    break
-                bases = nucleotides.pop(position)
-                if position < region.start:
-                    continue
-                self.log(
-                    Logger.debug_level,
-                    'Analyzing position {} {}',
-                    region.contig,
-                    position,
-                )
-                if bases is None:
-                    self.log(Logger.debug_level, 'DISCARD COLUMN no reads')
-                    continue
-                bases.calculate_strand(
-                    threshold=self.strand_confidence_threshold,
-                )
-                if self._use_strand_correction:
-                    bases.filter_by_strand()
-                    if bases.strand == '-':
-                        bases.complement()
-                if self._rtqc.check(self, bases):
+            for bases in nucleotides.iter_range(
+                    reads[0].reference_start,
+                    next_read_start,
+            ):
+                if bases.position >= region.start and self._process_bases(bases):
                     self.log(
                         Logger.debug_level,
                         'Yielding output for {} reads',
@@ -314,3 +291,19 @@ class REDItools:
         if alt[0] not in 'ATCG' and alt[1] not in 'ATCG':
             return False
         return True
+
+    def _process_bases(self, bases):
+        self.log(
+            Logger.debug_level,
+            'Analyzing position {} {}',
+            bases.position,
+            bases.contig,
+        )
+        bases.calculate_strand(
+            threshold=self.strand_confidence_threshold,
+        )
+        if self._use_strand_correction:
+            bases.filter_by_strand()
+            if bases.strand == '-':
+                bases.complement()
+        return self._rtqc.check(self, bases)
