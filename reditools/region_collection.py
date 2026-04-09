@@ -17,12 +17,9 @@ class RegionCollection:
         self._last_contig = None
         self._sorted = False
 
-    def _sort(self):
+    def sort(self):
         for contig, regions in self._regions.items():
-            self._regions[contig] = sorted(
-                regions,
-                key=lambda _: (_.start, _.stop),
-            )
+            self._regions[contig] = sorted(regions)
         self._sorted = True
 
     def contains(self, contig, position):
@@ -38,21 +35,29 @@ class RegionCollection:
             True if there is an overlap, False otherwise.
         """
         if not self._sorted:
-            self._sort()
+            self.sort()
             self._last_contig = contig
-            self._index = 0
+            #self._index = 0
+            idx = 0
         elif contig != self._last_contig:
             self._last_contig = contig
-            self._index = 0
+            #self._index = 0
+            idx = 0
+        else:
+            idx = self._index
 
-        for self._index in range(self._index, len(self._regions[contig])):
-            region = self._regions[contig][self._index]
+        #for self._index, region in enumerate(
+        for idx, region in enumerate(
+                self._regions[contig][idx:],
+                start=idx,
+        ):
             if position < region.start:
+                self._index = idx
                 return False
             if region.start <= position < region.stop:
+                self._index = idx
                 return True
-        self._index += 1
-
+        self._index = len(self._regions[contig])
         return False
 
     def add_region(self, region):
@@ -72,5 +77,5 @@ class RegionCollection:
         Parameters:
             regions (iterable): List of regions.
         """
-        for r in regions:
-            self.add_region(r)
+        for _ in regions:
+            self.add_region(_)

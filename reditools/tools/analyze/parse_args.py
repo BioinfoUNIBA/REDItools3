@@ -1,41 +1,39 @@
 import argparse
 import tempfile
 
-__all__ = ('parse_args',)
 
-
-def check_number_bounds(value, min=None, max=None):
-    if min is not None and value < min:
+def check_number_bounds(number, min=None, max=None):
+    if min is not None and number < min:
         raise argparse.ArgumentTypeError(f'Value must be at least {min}.')
-    if max is not None and value > max:
+    if max is not None and number > max:
         raise argparse.ArgumentTypeError(
             f'Value cannot be larger than {max}.',
         )
 
 
 def bounded_int(min=None, max=None):
-    def subfn(value):
+    def subfn(cli_value):  # noqa: WPS430
         try:
-            value = int(value)
+            int_value = int(cli_value)
         except ValueError:
-            raise argparse.ArgumentTypeError(f'invalid int value: {value}')
-        check_number_bounds(value, min, max)
-        return value
+            raise argparse.ArgumentTypeError(f'invalid int value: {cli_value}')
+        check_number_bounds(int_value, min, max)
+        return int_value
     return subfn
 
 
 def bounded_float(min=None, max=None):
-    def subfn(value):
+    def subfn(cli_value):  # noqa: WPS430
         try:
-            value = float(value)
+            float_value = float(cli_value)
         except ValueError:
-            raise argparse.ArgumentTypeError(f'invalid float value: {value}')
-        check_number_bounds(value, min, max)
-        return value
+            raise argparse.ArgumentTypeError(f'invalid float value: {cli_value}')
+        check_number_bounds(float_value, min, max)
+        return float_value
     return subfn
 
 
-def build_argument_parser():
+def build_argument_parser():  # noqa: WPS213, WPS210
     """
     Parse commandline options for REDItools.
 
@@ -372,13 +370,13 @@ def build_argument_parser():
 def check_dna_mode(args):
     if args.strand != 0 and args.dna:
         raise Exception('-N/--dna can only be used with -s/--strand 0.')
-    delattr(args, 'dna')
+    delattr(args, 'dna')  # noqa: WPS421
 
 
 def check_exclude_multis(args):
     if args.exclude_multis:
         setattr(args, 'max_editing_nucleotides', 1)
-    delattr(args, 'exclude_multis')
+    delattr(args, 'exclude_multis')  # noqa: WPS421
 
 
 def check_strict_mode(args):
@@ -387,16 +385,15 @@ def check_strict_mode(args):
             raise Exception(
                 '-S/--strict can only be used with -me/--min-edits 1.'
             )
-    delattr(args, 'strict')
+    delattr(args, 'strict')  # noqa: WPS421
 
 
 def check_load_omopolymeric_file(args):
     if args.load_omopolymeric_file:
         if args.exclude_regions is None:
-            setattr(args, 'exclude_regions', [args.load_omopolymeric_file])
-        else:
-            args.exclude_regions.append(args.load_omopolymeric_file)
-    delattr(args, 'load_omopolymeric_file')
+            args.exclude_regions = []
+        args.exclude_regions.append(args.load_omopolymeric_file)
+    delattr(args, 'load_omopolymeric_file')  # noqa: WPS421
 
 
 def test_edit_frequency(args):
@@ -417,7 +414,7 @@ def test_strand_args(args):
 def parse_args(sys_args=None):
     parser = build_argument_parser()
     args = parser.parse_args(sys_args)
-    try:
+    try:  # noqa: WPS229
         check_dna_mode(args)
         check_exclude_multis(args)
         check_strict_mode(args)
@@ -425,7 +422,7 @@ def parse_args(sys_args=None):
 
         test_edit_frequency(args)
         test_strand_args(args)
-    except Exception as e:
-        parser.error(message=str(e))
+    except Exception as exc:
+        parser.error(message=str(exc))
 
     return args

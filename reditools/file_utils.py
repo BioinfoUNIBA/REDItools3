@@ -3,16 +3,9 @@
 import csv
 import os
 from gzip import open as gzip_open
+import re
 
 from reditools.region import Region
-
-__all__ = (
-    'open_stream',
-    'read_bed_file',
-    'concat',
-    'load_splicing_file',
-    'load_text_file',
-)
 
 
 def open_stream(path, mode='rt', encoding='utf-8'):
@@ -29,10 +22,10 @@ def open_stream(path, mode='rt', encoding='utf-8'):
     """
     if path.endswith('gz'):
         return gzip_open(path, mode, encoding=encoding)
-    return open(path, mode, encoding=encoding)
+    return open(path, mode, encoding=encoding)  # noqa: WPS515
 
 
-def read_bed_file(path):
+def read_bed_file(*path):
     """
     Return an iterator for a BED file.
 
@@ -42,7 +35,10 @@ def read_bed_file(path):
     Yields:
         BED file contents as Regions.
     """
-    with open_stream(path) as stream:
+    if len(path) > 1:
+        yield from read_bed_file(*path[1:])
+
+    with open_stream(path[0]) as stream:
         reader = csv.reader(
             filter(lambda row: row[0] != '#', stream),
             delimiter='\t',
@@ -88,33 +84,28 @@ def load_text_file(file_name):
 
 
 def _read_splice_sites(stream):
-    reader = csv.reader(stream, delimiter=' ')
-    for idx, row in enumerate(reader, start=1):
-        if len(row) == 0 or row[0].startswith('#'):
+    pa = re.compile('(\S+) (\d+) \d+ (A|D) ([+-])')
+    for idx, row in enumerate(stream, start=1):
+        if row.startswith('#'):
             continue
-        if len(row) != 5:
-            raise ValueError(
-                'Cannot parse splice site. Row must have 5 values '
-                f'({stream.name}:{idx})'
-            )
         try:
-            position = int(row[1])
-        except ValueError as exc:
+            yield pa.fullmatch(row.strip()).groups()
+        except Exception as exc:
             raise ValueError(
-                f'Splice site must be an integer ({stream.name}:{idx})'
+                f'Cannot parse splice file entry ({stream.name}:{idx})'
             ) from exc
 
-        if row[3] not in ('A', 'D'):
-            raise ValueError(
-                f'Splice type must be A or D ({stream.name}:{idx})'
-            )
-        if row[4] not in ('+', '-'):
-            raise ValueError(
-                f'Strand must be + or - ({stream.name}:{idx})'
-            )
-
-        yield (row[0], position, row[3], row[4])
-
+def _splice_site_to_region(contig, position, splice, strand, splicing_span):
+    strand_map = {'-': 'D', '+': 'A'}
+    position = int(position) - 1
+    if strand_map[strand] == splice:
+        start = max(position - splicing_span, 0)
+        stop = position
+    else:
+        start = position
+        stop = position + splicing_span
+    if start != stop:
+        return Region(contig=contig, start=start, stop=stop)
 
 def load_splicing_file(splicing_file, splicing_span):
     """
@@ -127,16 +118,9 @@ def load_splicing_file(splicing_file, splicing_span):
     Yeilds:
         Splicing file contents as Regions.
     """
-    strand_map = {'-': 'D', '+': 'A'}
 
     with open_stream(splicing_file) as stream:
-        for contig, position, splice, strand in _read_splice_sites(stream):
-            position = position - 1
-            if strand_map[strand] == splice:
-                start = max(position - splicing_span, 0)
-                stop = position
-            else:
-                start = position
-                stop = position + splicing_span
-            if start != stop:
-                yield Region(contig=contig, start=start, stop=stop)
+        for splice_data in _read_splice_sites(stream):
+            region = _splice_site_to_region(*splice_data, splicing_span)
+            if region is not None:
+                yield region

@@ -29,7 +29,7 @@ class Logger:
         elif level.upper() == self.info_level:
             self.log = self._log_info
         else:
-            self.log = lambda *_: None
+            self.log = self._log_silent
 
     def _log_all(self, level, message, *args):
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -42,3 +42,6 @@ class Logger:
     def _log_info(self, level, message, *args):
         if level == self.info_level:
             self._log_all(level, message, *args)
+
+    def _log_silent(self, level, message, *args):
+        pass  # noqa: WPS420

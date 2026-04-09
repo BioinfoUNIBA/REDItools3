@@ -5,10 +5,9 @@ import sys
 import traceback
 import pysam
 from reditools.rtannotater import RTAnnotater
-from .parse_args import parse_args
+from reditools.tools.annotate.parse_args import parse_args
 
-__all__ = ('main')
-
+_contig = 'Region'
 
 def contig_order_from_bam(bam_fname):
     contigs = {}
@@ -33,14 +32,14 @@ def contig_order_from_out(out_fname):
         reader = csv.DictReader(stream, delimiter='\t')
         last_contig = None
         for row in reader:
-            if row['Region'] != last_contig:
-                if row['Region'] in contigs:
+            if row[_contig] != last_contig:
+                if row[_contig] in contigs:
                     raise ValueError(
                         f'File {out_fname} does not appear to be in sorted '
                         'order.'
                     )
-                contigs[row['Region']] = len(contigs) + 1
-                last_contig = row['Region']
+                contigs[row[_contig]] = len(contigs) + 1
+                last_contig = row[_contig]
     return contigs
 
 
@@ -121,9 +120,9 @@ def main():
         )
         sys.exit(1)
 
+    rta = RTAnnotater(options.rna_file, options.dna_file, contig_order)
     try:
-        x = RTAnnotater(options.rna_file, options.dna_file, contig_order)
-        x.annotate(sys.stdout)
+        rta.annotate(sys.stdout)
     except Exception as exc:
         if options.debug:
             traceback.print_exception(*sys.exc_info())

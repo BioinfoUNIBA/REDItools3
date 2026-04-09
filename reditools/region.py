@@ -19,11 +19,12 @@ class Region:
         Returns:
             (str): contig:start-stop
         """
+        one_idx_start = self.start + 1
         if self.stop is None:
             if self.start > 0:
-                return f'{self.contig}:{self.start + 1}'
+                return f'{self.contig}:{one_idx_start}'
             return self.contig
-        return f'{self.contig}:{self.start + 1}-{self.stop}'
+        return f'{self.contig}:{one_idx_start}-{self.stop}'
 
     def split(self, window):
         """
@@ -61,45 +62,51 @@ class Region:
         """
         return self.contig == contig and self.start <= position < self.stop
 
-    @staticmethod
-    def from_string(region_str, alignment_file):
+    @classmethod
+    def from_string(cls, region_str, alignment_file):
         contig, start, stop = Region.parse_string(region_str)
+        if start is None:
+            start = 0
+        elif start < 0:
+            raise ValueError(
+                f'Start position ({region[1]}) must be greater than or '
+                'equal to one.',
+            )
         if stop is None:
             with AlignmentFile(alignment_file, ignore_truncation=True) as bam:
                 stop = bam.get_reference_length(contig)
+        if stop <= start:
+            raise ValueError(
+                f'Stop position ({region[2]}) must be greater than or '
+                f'equal to start ({region[1]}).',
+            )
         return Region(contig, start, stop)
 
-    @staticmethod
-    def parse_string(region_str):
+    @classmethod
+    def parse_string(cls, region_str):
         if region_str is None:
             return None
-        region = re.split('[:-]', region_str)
-        if not region:
-            return None
-        contig = region[0]
-        start = 0
-        stop = None
+        pa = re.compile(
+            '(?P<contig>[^:]+)(:(?P<start>[0-9,]+)(-(?P<stop>[0-9,]+))?)?',
+        )
+        match = pa.fullmatch(region_str)
 
-        if len(region) > 3:
-            raise ValueError(f'Unrecognized format: {region_str}.')
-        if len(region) > 1:
-            start = Region._to_int(region[1]) - 1
-            if start < 0:
-                raise ValueError(
-                    f'Start position ({region[1]}) must be greater than or '
-                    'equal to one.',
-                )
-            if len(region) == 3:
-                stop = Region._to_int(region[2])
-                if stop <= start:
-                    raise ValueError(
-                        f'Stop position ({region[2]}) must be greater than or '
-                        f'equal to start ({region[1]}).',
-                    )
+        try:
+            contig, start, stop = match.group('contig', 'start', 'stop')
+        except AttributeError as exc:
+            raise ValueError(f'Unrecognized format: {region_str}.') from exc
+
+        if start is None:
+            start = 0
+        else:
+            start = Region._to_int(start) - 1
+
+        if stop is not None:
+            stop = Region._to_int(stop)
         return (contig, start, stop)
 
-    @staticmethod
-    def _to_int(number):
+    @classmethod
+    def _to_int(cls, number):
         if isinstance(number, str):
             return int(re.sub(r'[\s,]', '', number))
         if number is None:

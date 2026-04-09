@@ -20,21 +20,17 @@ def setup_rtools(options):
         rtools.log_level = Logger.info_level
 
     if options.variants:
-        rtools.specific_edits = [_.upper() for _ in options.variants]
+        rtools.specific_edits = options.variants
 
-    if options.bed_file:
-        for fname in options.bed_file:
-            regions = file_utils.read_bed_file(fname)
-            rtools.add_target_regions(regions)
-    if options.exclude_regions:
-        for fname in options.exclude_regions:
-            regions = file_utils.read_bed_file(fname)
-            rtools.add_exclude_regions(regions)
+    if options.bed_file is not None:
+        rtools.add_target_regions(file_utils.read_bed_file(*options.bed_file))
+    if options.exclude_regions is not None:
+        rtools.add_exclude_regions(file_utils.read_bed_file(*options.exclude_regions))
     if options.reference:
         rtools.add_reference(options.reference)
 
     if options.splicing_file:
-        rtools.splice_positions = file_utils.load_splicing_file(
+        regions = file_utils.load_splicing_file(
             options.splicing_file,
             options.splicing_span,
         )

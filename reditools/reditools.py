@@ -66,10 +66,9 @@ class REDItools:
 
     @specific_edits.setter
     def specific_edits(self, edits):
-        if list(edits) == ["ALL"]:
+        self._specific_edits = {_.upper() for _ in edits}
+        if 'ALL' in self._specific_edits:
             self._specific_edits = set()
-        else:
-            self._specific_edits = set(edits)
 
         for alt in self._specific_edits:
             if not self._verify_alt(alt):
@@ -82,15 +81,6 @@ class REDItools:
             self._rtqc.add(qc_check)
         else:
             self._rtqc.discard(qc_check)
-
-    def _verify_alt(self, alt):
-        if not isinstance(alt, str):
-            return False
-        if len(alt) != 2:
-            return False
-        if alt[0] not in 'ATCG' and alt[1] not in 'ATCG':
-            return False
-        return True
 
     @property
     def target_regions(self):
@@ -236,9 +226,8 @@ class REDItools:
             self.min_base_position,
             self.max_base_position,
             self.min_base_quality,
+            self.reference,
         )
-        if self.reference:
-            nucleotides.add_reference(self.reference)
         total = 0
 
         self.log(
@@ -316,3 +305,12 @@ class REDItools:
             reference_fname (str): File path to FASTA reference
         """
         self.reference = RTFastaFile(reference_fname)
+
+    def _verify_alt(self, alt):
+        if not isinstance(alt, str):
+            return False
+        if len(alt) != 2:
+            return False
+        if alt[0] not in 'ATCG' and alt[1] not in 'ATCG':
+            return False
+        return True

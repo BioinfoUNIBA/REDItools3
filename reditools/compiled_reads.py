@@ -14,6 +14,7 @@ class CompiledReads:
         min_base_position=0,
         max_base_position=0,
         min_base_quality=0,
+        fasta_file=None,
     ):
         """
         Create a new CompiledReads object.
@@ -23,16 +24,17 @@ class CompiledReads:
             min_base_position (int): Left trims bases
             max_base_position (int): Right trims bases
             min_base_quality (int): Minimum base quality to report
+            fasat_file (RTFastaFile): Optional genomic reference
         """
         self._nucleotides = {}
         if strand == 0:
-            self.get_strand = lambda _: 2
+            self.get_strand = self._unstranded_strand
         else:
             if strand == 1:
                 self.forward_flags = {0, 99, 147}
             else:
                 self.forward_flags = {16, 83, 163}
-            self.get_strand = lambda _: _.flag in self.forward_flags
+            self.get_strand = self._stranded_strand
 
         self._ref = None
         self._ref_seq = self._get_ref_from_read
@@ -42,6 +44,9 @@ class CompiledReads:
             'min_base_position': min_base_position,
             'max_base_position': max_base_position,
         }
+
+        if fasta_file is not None:
+            self.add_reference(fasta_file)
 
     def add_reference(self, ref):
         """
@@ -53,7 +58,7 @@ class CompiledReads:
         self._ref = ref
         self._ref_seq = self._get_ref_from_fasta
 
-    def add_reads(self, reads):
+    def add_reads(self, reads):  # noqa: WPS210
         """
         Add iterable of pysam reads to the object.
 
@@ -66,15 +71,13 @@ class CompiledReads:
         for read in reads:
             strand = self._strands[self.get_strand(read)]
             for pos, base, quality, ref in self._prep_read(read):
-                try:
-                    self._nucleotides[pos].add_base(quality, strand, base)
-                except KeyError:
+                if pos not in self._nucleotides:
                     self._nucleotides[pos] = CompiledPosition(
                         ref=ref,
                         position=pos,
                         contig=read.reference_name,
                     )
-                    self._nucleotides[pos].add_base(quality, strand, base)
+                self._nucleotides[pos].add_base(quality, strand, base)
 
     def pop(self, position):
         """
@@ -110,11 +113,15 @@ class CompiledReads:
         indices = [ref for _, ref in pairs]
         return self._ref.get_base(read.reference_name, *indices)
 
-    def _prep_read(self, read):
-        pairs = read.get_aligned_pairs(matches_only=True)
-        for (read_pos, ref_pos), ref_base in zip(pairs, self._ref_seq(read)):
+    def _prep_read(self, read):  # noqa: WPS231
+        for (read_pos, ref_pos), ref_base in zip(
+                read.get_aligned_pairs(matches_only=True),
+                self._ref_seq(read),
+        ):
+            # Right end trim
             if read_pos > read.query_length - self._qc['max_base_position']:
                 break
+            # Left end trim
             if read_pos < self._qc['min_base_position']:
                 continue
             read_base = read.query_sequence[read_pos]
@@ -124,3 +131,9 @@ class CompiledReads:
             if phred < self._qc['min_base_quality']:
                 continue
             yield (ref_pos, read_base, phred, ref_base)
+
+    def _unstranded_strand(self, read):
+        return 2
+
+    def _stranded_strand(self, read):
+        return read.flag in self.forward_flags

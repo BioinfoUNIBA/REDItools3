@@ -1,6 +1,7 @@
 import csv
 from tempfile import NamedTemporaryFile
 
+_empty = '-'
 
 def write_results(rtools, sam_manager, file_name, region, output_format,
                   temp_dir):
@@ -29,8 +30,8 @@ def write_results(rtools, sam_manager, file_name, region, output_format,
                 rt_result.depth,
                 f'{rt_result.mean_quality:.2f}',
                 rt_result.per_base_depth,
-                ' '.join(sorted(variants)) if variants else '-',
+                ' '.join(sorted(variants)) if variants else _empty,
                 f'{rt_result.edit_ratio:.2f}',
-                '-', '-', '-', '-', '-',
+                _empty, _empty, _empty, _empty, _empty,
             ])
         return stream.name

@@ -80,6 +80,53 @@ class CompiledPosition:
         complements = self._comp.items()
         self.counter = {sb: self.counter[bs] for bs, sb in complements}
 
+    def calculate_strand(self, threshold=0):
+        """
+        Determine the strandedness.
+
+        Parameters:
+            threshold (int): Confidence minimum for strand identification
+
+        Returns:
+            '+', '-', or '*'
+        """
+        pos_count = 0
+        neg_count = 0
+        for strand in self.strands:
+            if strand == '+':
+                pos_count += 1
+            elif strand == '-':
+                neg_count += 1
+        if pos_count == neg_count:
+            self._strand = '*'
+        elif pos_count / (pos_count + neg_count) >= threshold:
+            self._strand = '+'
+        elif neg_count / (pos_count + neg_count) >= threshold:
+            self._strand = '-'
+        else:
+            self._strand = '*'
+        return self._strand
+
+    def filter_by_strand(self):
+        """
+        Remove all bases not on the strand.
+        """
+        if self.strand == '*':
+            return
+        keep = range(len(self.bases))
+        keep = [idx for idx in keep if self.strands[idx] == self.strand]
+        self.qualities = self._filter(self.qualities, keep)
+        self.strands = self._filter(self.strands, keep)
+        self.bases = self._filter(self.bases, keep)
+        self.counter = False
+
+    @property
+    def per_base_depth(self):
+        """
+        list: Get the depth per base for this position in order A, C, G, T.
+        """
+        return list(self)
+
     @property
     def reference(self):
         """
@@ -93,7 +140,7 @@ class CompiledPosition:
         """
         list: Detected alternate bases.
         """
-        return [b for b in self._bases if self[b] and b != self.ref]
+        return [_ for _ in self._bases if self[_] and _ != self.ref]
 
     @property
     def variants(self):
@@ -146,52 +193,5 @@ class CompiledPosition:
             raise ValueError('Must run calculate_strand first.')
         return self._strand
 
-    def calculate_strand(self, threshold=0):
-        """
-        Determine the strandedness.
-
-        Parameters:
-            threshold (int): Confidence minimum for strand identification
-
-        Returns:
-            '+', '-', or '*'
-        """
-        pos_count = 0
-        neg_count = 0
-        for strand in self.strands:
-            if strand == '+':
-                pos_count += 1
-            elif strand == '-':
-                neg_count += 1
-        if pos_count == neg_count:
-            self._strand = '*'
-        elif pos_count / (pos_count + neg_count) >= threshold:
-            self._strand = '+'
-        elif neg_count / (pos_count + neg_count) >= threshold:
-            self._strand = '-'
-        else:
-            self._strand = '*'
-        return self._strand
-
-    def filter_by_strand(self):
-        """
-        Remove all bases not on the strand.
-        """
-        if self.strand == '*':
-            return
-        keep = range(len(self.bases))
-        keep = [idx for idx in keep if self.strands[idx] == self.strand]
-        self.qualities = self._filter(self.qualities, keep)
-        self.strands = self._filter(self.strands, keep)
-        self.bases = self._filter(self.bases, keep)
-        self.counter = False
-
     def _filter(self, lst, indx):
         return [lst[idx] for idx in indx]
-
-    @property
-    def per_base_depth(self):
-        """
-        list: Get the depth per base for this position in order A, C, G, T.
-        """
-        return list(self)

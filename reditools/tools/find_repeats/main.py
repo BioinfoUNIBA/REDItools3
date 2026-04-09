@@ -68,6 +68,16 @@ def parse_options():
 
     return parser.parse_args()
 
+def iter_homo_output(fasta, min_length):
+    for seq_name in fasta.references:
+        for region in find_homo_seqs(fasta.fetch(seq_name), min_length):
+            yield (
+                seq_name,
+                region[0],
+                region[1],
+                region[1] - region[0],
+                region[2],
+            )
 
 def main():
     """Report repetative regions."""
@@ -83,15 +93,6 @@ def main():
     else:
         stream = sys.stdout
 
-    for seq_name in fasta.references:
-        seq = fasta.fetch(seq_name)
-        for region in find_homo_seqs(seq, options.min_length):
-            fields = [
-                seq_name,
-                region[0],
-                region[1],
-                region[1] - region[0],
-                region[2],
-            ]
-            as_str = [str(_) for _ in fields]
-            stream.write('\t'.join(as_str) + '\n')
+    for row in iter_homo_output(fasta, options.min_length):
+        row = '\t'.join(row)
+        stream.write(f'{row}\n')

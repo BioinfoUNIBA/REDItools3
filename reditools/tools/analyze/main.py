@@ -5,28 +5,59 @@ import sys
 from multiprocessing import Process, Queue
 from reditools import file_utils
 from reditools.region import Region
+from reditools.logger import Logger
 
-from .concat_output import concat_output
-from .monitor import monitor
-from .parse_args import parse_args
-from .region_args import region_args
-from .run_proc import run_proc
+from reditools.tools.analyze.concat_output import concat_output
+from reditools.tools.analyze.monitor import monitor
+from reditools.tools.analyze.parse_args import parse_args
+from reditools.tools.analyze.region_args import region_args
+from reditools.tools.analyze.run_proc import run_proc
 
+def options_to_string(options):
+    return ", ".join(
+        [f"{_}:{getattr(options, _)}" for _ in vars(options)],  # noqa: WPS421
+    )
+
+def setup_logger(options):
+    if options.debug:
+        return Logger(Logger.debug_level)
+    if options.verbose:
+        return Logger(Logger.info_level)
+    return Logger(Logger.silent_level)
+
+def fill_queue(options):
+    in_queue = Queue()
+    try:
+        for _ in enumerate(region_args(options)):  # noqa: WPS468
+            in_queue.put(_)
+    except FileNotFoundError as exc:
+        sys.stderr.write(f'[ERROR] {exc}\n')
+        sys.exit(1)
+
+    # Check thread count
+    if in_queue.qsize() < options.threads:
+        sys.stderr.write(
+            "[WARNING] You have assigned more threads "
+            f"({options.threads}) than there are genomic ranges "
+            f"({in_queue.qsize()})\n",
+        )
+        options.threads = in_queue.qsize()
+    for _ in range(options.threads):
+        in_queue.put(None)
+    return in_queue
 
 def main():
     """Perform RNA editing analysis."""
     options = parse_args()
 
-    is_verbose = options.debug or options.verbose
+    logger = setup_logger(options)
 
-    if is_verbose:
-        options_string = ", ".join(
-            [f"{_}:{getattr(options, _)}" for _ in vars(options)],
-        )
-        sys.stderr.write(
-            "Starting REDItools\n"
-            f"Summary of command line parameters: {options_string}\n",
-        )
+    logger.log(logger.info_level, 'Starting REDItools')
+    logger.log(
+        logger.info_level,
+        "Summary of command line parameters: {}",
+        options_to_string(options),
+    )
 
     options.output_format = {'delimiter': '\t', 'lineterminator': '\n'}
     options.encoding = 'utf-8'
@@ -35,49 +66,16 @@ def main():
             options.exclude_reads,
         )
 
-    # Put analysis chunks into queue
-    if options.region is None:
-        region = None
-    else:
-        region = Region.from_string(options.region, options.file[0])
-
-    try:
-        regions = region_args(
-            options.file[0],
-            region,
-            options.window,
-        )
-    except FileNotFoundError as e:
-        sys.stderr.write(f'[ERROR] {e}\n')
-        sys.exit(1)
-
-    # Check thread count
-    if len(regions) < options.threads:
-        sys.stderr.write(
-            "[WARNING] You have assigned more threads "
-            f"({options.threads}) than there are genomic ranges "
-            f"({len(regions)})\n",
-        )
-        options.threads = len(regions)
-
-    in_queue = Queue()
-    for args in enumerate(regions):
-        in_queue.put(args)
-    for _ in range(options.threads):
-        in_queue.put(None)
+    in_queue = fill_queue(options)
 
     # Start parallel jobs
     out_queue = Queue()
-    processes = [
-        Process(
+    processes = []
+    for _ in range(options.threads):
+        processes.append(Process(
             target=run_proc,
             args=(options, in_queue, out_queue),
-        ) for _ in range(options.threads)
-    ]
-    if is_verbose:
-        sys.stderr.write(
-            "All processes complete. Concatenating temporary files.\n",
-        )
+        ))
 
     concat_output(
         monitor(processes, out_queue, in_queue.qsize()),
@@ -86,5 +84,4 @@ def main():
         options.encoding,
         **options.output_format)
 
-    if is_verbose:
-        sys.stderr.write("Analaysis Complete!\n")
+    logger.log(Logger.info_level, 'Analyze Complete!')

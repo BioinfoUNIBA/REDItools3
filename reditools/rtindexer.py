@@ -5,15 +5,12 @@ from json import loads as load_json
 from reditools.file_utils import open_stream, read_bed_file
 from reditools.region_collection import RegionCollection
 
-__all__ = ('RTIndexer',)
-
 _ref = 'Reference'
 _position = 'Position'
 _contig = 'Region'
 _count = 'BaseCount[A,C,G,T]'
 _strand = 'Strand'
 _nucs = 'ACGT'
-_ref_set = {f'{nuc}-{nuc}' for nuc in _nucs}
 
 
 class RTIndexer(object):
@@ -55,20 +52,6 @@ class RTIndexer(object):
             self.exclusions = RegionCollection()
         self.exclusions.add_regions(read_bed_file(fname))
 
-    def in_region_list(self, region_list, contig, position):
-        """
-        Check if a genomic position is in a list of regions.
-
-        Parameters:
-            region_list (dict): Region list to check
-            contig (str): Contig/Chromsome name
-            position (int): Coordinate
-
-        Returns:
-            True if the position is present, else False
-        """
-        return position in region_list.get(contig, [])
-
     def in_targets(self, contig, position):
         """
         Check if a genomic position is in the target list.
@@ -95,7 +78,7 @@ class RTIndexer(object):
             True if there are no exclusions or the position is in the
             exclusions list; else False
         """
-        return self.exclusions and self.in_region_list(self.exclusions)
+        return self.exclusions and self.exclusions.contains(contig, position)
 
     def do_ignore(self, row):
         """
@@ -115,7 +98,7 @@ class RTIndexer(object):
                     self.region[1] > position or \
                     self.region[2] is not None and self.region[2] < position:
                 return True
-        if self.in_exclusions(row[_contig], row[_position]):
+        if self.in_exclusions(row[_contig], int(row[_position])):
             return True
         return not self.in_targets(row[_contig], int(row[_position]))
 
@@ -126,17 +109,13 @@ class RTIndexer(object):
         Parameters:
             fname (str): File path to a REDItools output
         """
-        stream = open_stream(fname)
-        reader = csv.DictReader(stream, delimiter='\t')
-        for row in reader:
-            if self.do_ignore(row):
-                continue
-            ref = row[_ref]
-            reads = load_json(row[_count])
-            for nuc, count in zip(_nucs, reads):
-                key = f'{nuc}-{ref}'
-                self.counts[key] = self.counts.get(key, 0) + count
-        stream.close()
+        with open_stream(fname) as stream:
+            for row in csv.DictReader(stream, delimiter='\t'):
+                if self.do_ignore(row):
+                    continue
+                for nuc, count in zip(_nucs, load_json(row[_count])):
+                    key = f'{nuc}-{row[_ref]}'
+                    self.counts[key] = self.counts.get(key, 0) + count
 
     def calc_index(self):
         """
@@ -145,9 +124,8 @@ class RTIndexer(object):
         Returns:
             Dictionary of indices
         """
-        keys = set(self.counts) - _ref_set
         indices = {}
-        for idx in keys:
+        for idx in set(self.counts) - {f'{nuc}-{nuc}' for nuc in _nucs}:
             ref = idx[-1]
             numerator = self.counts[idx]
             denominator = self.counts.get(self.ref_edit(ref), 0) + numerator

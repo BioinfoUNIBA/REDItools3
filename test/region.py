@@ -87,3 +87,11 @@ class TestRegion(unittest.TestCase):
         self.assertEqual(Region._to_int("10,000"), 10000)
         with self.assertRaises(ValueError):
             Region._to_int("X")
+
+    def test_order(self):
+        regions_list = [
+            Region('chr1', 20, 30),
+            Region('chr1', 10, 30),
+            Region('chr1', 10, 20),
+        ]
+        self.assertEqual(sorted(regions_list), list(reversed(regions_list)))

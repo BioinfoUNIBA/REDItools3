@@ -1,6 +1,5 @@
 from reditools.logger import Logger
 
-__all__ = ('check_column_min_edits')
 _bases = ('A', 'T', 'C', 'G')
 
 
@@ -17,7 +16,7 @@ def check_column_min_edits(rtools, bases):
     """
     for base in _bases:
         if base != bases.ref and \
-                rtools.min_edits_per_nucleotide > bases[base] > 0:
+                0 < bases[base] < rtools.min_edits_per_nucleotide:
             rtools.log(
                 Logger.debug_level,
                 'DISCARDING COLUMN edits={} < {}',

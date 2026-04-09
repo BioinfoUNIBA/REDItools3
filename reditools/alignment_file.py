@@ -69,8 +69,9 @@ class RTAlignmentFile(PysamAlignmentFile):
         Yields:
              pysam.AlignedSegment
         """
-        if 'region' in kwargs:
-            kwargs['region'] = str(kwargs['region'])
+        region = kwargs.get('region')
+        if region is not None:
+            kwargs['region'] = str(region)
         try:
             iterator = super().fetch(*args, **kwargs)
         except ValueError:

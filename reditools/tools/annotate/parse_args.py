@@ -1,7 +1,5 @@
 import argparse
 
-__all__ = ('parse_args')
-
 
 def parse_args():
     """

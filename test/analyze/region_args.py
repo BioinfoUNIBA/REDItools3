@@ -3,6 +3,17 @@ import unittest
 from reditools.region import Region
 from reditools.tools.analyze.region_args import region_args
 from test.sam_gen import SAM, ntf
+from dataclasses import dataclass, InitVar
+
+
+@dataclass
+class Options:
+    bamfile: InitVar[str]
+    region: str | None = None
+    window: int = 0
+
+    def __post_init__(self, bamfile):
+        self.file = [bamfile]  # noqa: WPS110
 
 
 class TestRegionArgs(unittest.TestCase):
@@ -23,19 +34,21 @@ class TestRegionArgs(unittest.TestCase):
         os.remove(self.bam_fname)
 
     def test_no_input(self):
-        regions = region_args(self.bam_fname, None, 0)
+        options = Options(self.bam_fname)
+        regions = region_args(options)
         self.assertEqual(len(regions), 3)
 
     def test_region_input(self):
-        input_region = Region(contig='chr1', start=1, stop=100)
-        regions = region_args(self.bam_fname, input_region, 0)
-        self.assertEqual(regions, [input_region])
+        options = Options(self.bam_fname, 'chr1:1-100')
+        regions = region_args(options)
+        self.assertEqual(regions, [Region('chr1', 0, 100)])
 
     def test_region_window(self):
-        input_region = Region(contig='chr1', start=1, stop=100)
-        regions = region_args(self.bam_fname, input_region, 10)
+        options = Options(self.bam_fname, 'chr1:1-100', 10)
+        regions = region_args(options)
         self.assertEqual(len(regions), 10)
 
     def test_bam_window(self):
-        regions = region_args(self.bam_fname, None, 70)
+        options = Options(self.bam_fname, window=70)
+        regions = region_args(options)
         self.assertEqual(len(regions), 5)

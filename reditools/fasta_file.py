@@ -55,8 +55,12 @@ class RTFastaFile(PysamFastaFile):
                 )
             contig = new_contig
         sorted_pos = sorted(position)
+        seq = self.fetch(
+            contig,
+            sorted_pos[0],
+            sorted_pos[-1] + 1,
+        )
         try:
-            seq = self.fetch(contig, sorted_pos[0], sorted_pos[-1] + 1)
             return (seq[_ - sorted_pos[0]].upper() for _ in position)
         except IndexError as exc:
             raise IndexError(
