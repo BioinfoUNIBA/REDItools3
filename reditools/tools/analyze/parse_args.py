@@ -27,7 +27,9 @@ def bounded_float(min=None, max=None):
         try:
             float_value = float(cli_value)
         except ValueError:
-            raise argparse.ArgumentTypeError(f'invalid float value: {cli_value}')
+            raise argparse.ArgumentTypeError(
+                f'invalid float value: {cli_value}'
+            )
         check_number_bounds(float_value, min, max)
         return float_value
     return subfn

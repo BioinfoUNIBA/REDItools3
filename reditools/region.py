@@ -69,7 +69,7 @@ class Region:
             start = 0
         elif start < 0:
             raise ValueError(
-                f'Start position ({region[1]}) must be greater than or '
+                f'Start position ({start}) must be greater than or '
                 'equal to one.',
             )
         if stop is None:
@@ -77,8 +77,8 @@ class Region:
                 stop = bam.get_reference_length(contig)
         if stop <= start:
             raise ValueError(
-                f'Stop position ({region[2]}) must be greater than or '
-                f'equal to start ({region[1]}).',
+                f'Stop position ({stop}) must be greater than or '
+                f'equal to start ({start}).',
             )
         return Region(contig, start, stop)
 

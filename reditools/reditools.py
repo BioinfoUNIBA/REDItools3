@@ -256,7 +256,8 @@ class REDItools:
                     reads[0].reference_start,
                     next_read_start,
             ):
-                if bases.position >= region.start and self._process_bases(bases):
+                if bases.position >= region.start and \
+                        self._process_bases(bases):
                     self.log(
                         Logger.debug_level,
                         'Yielding output for {} reads',

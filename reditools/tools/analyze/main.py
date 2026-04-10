@@ -4,7 +4,6 @@ import sys
 
 from multiprocessing import Process, Queue
 from reditools import file_utils
-from reditools.region import Region
 from reditools.logger import Logger
 
 from reditools.tools.analyze.concat_output import concat_output

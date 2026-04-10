@@ -3,7 +3,9 @@ import traceback
 import sys
 
 from reditools.tools.analyze.setup_rtools import setup_rtools
-from reditools.tools.analyze.setup_alignment_manager import setup_alignment_manager
+from reditools.tools.analyze.setup_alignment_manager import (
+    setup_alignment_manager,
+)
 from reditools.tools.analyze.write_results import write_results
 
 
