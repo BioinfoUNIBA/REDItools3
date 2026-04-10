@@ -115,9 +115,9 @@ class CompiledPosition:
             return
         keep = range(len(self.bases))
         keep = [idx for idx in keep if self.strands[idx] == self.strand]
-        self.qualities = self._filter(self.qualities, keep)
-        self.strands = self._filter(self.strands, keep)
-        self.bases = self._filter(self.bases, keep)
+        self.qualities = [self.qualities[_] for _ in keep]
+        self.strands = [self.strands[_] for _ in keep]
+        self.bases = [self.bases[_] for _ in keep]
         self.counter = False
 
     @property
@@ -145,6 +145,3 @@ class CompiledPosition:
         if self._strand is None:
             raise ValueError('Must run calculate_strand first.')
         return self._strand
-
-    def _filter(self, lst, indx):
-        return [lst[idx] for idx in indx]
