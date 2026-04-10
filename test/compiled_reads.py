@@ -27,8 +27,7 @@ class TestCompiledReads(unittest.TestCase):
         sam_obj.genome.save_to_fasta(self.fasta_fname)
         sam_obj.save_to_sam(self.bam_fname, self.fasta_fname)
 
-        cr = CompiledReads()
-        cr.add_reference(RTFastaFile(self.fasta_fname))
+        cr = CompiledReads(fasta_file=RTFastaFile(self.fasta_fname))
         with AlignmentFile(self.bam_fname) as af:
             read = next(af.fetch())
         self.assertEqual(''.join(cr._get_ref_from_read(read)), spliceseq)
@@ -42,8 +41,7 @@ class TestCompiledReads(unittest.TestCase):
         sam_obj.genome.save_to_fasta(self.fasta_fname)
         sam_obj.save_to_sam(self.bam_fname, self.fasta_fname)
 
-        cr = CompiledReads()
-        cr.add_reference(RTFastaFile(self.fasta_fname))
+        cr = CompiledReads(fasta_file=RTFastaFile(self.fasta_fname))
 
         with AlignmentFile(self.bam_fname) as af:
             read = next(af.fetch())
@@ -60,8 +58,7 @@ class TestCompiledReads(unittest.TestCase):
         sam_obj.genome.save_to_fasta(self.fasta_fname)
         sam_obj.save_to_sam(self.bam_fname, self.fasta_fname)
 
-        cr = CompiledReads()
-        cr.add_reference(RTFastaFile(self.fasta_fname))
+        cr = CompiledReads(fasta_file=RTFastaFile(self.fasta_fname))
 
         with AlignmentFile(self.bam_fname) as af:
             read = next(af.fetch())

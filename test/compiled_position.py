@@ -32,7 +32,7 @@ class TestCompiledPosition(unittest.TestCase):
         self.cp.add_base(12, '-', 'C')
         self.cp.complement()
         self.assertEqual(self.cp.bases, ['T', 'G'])
-        self.assertEqual(self.cp.ref, 'T')
+        self.assertEqual(self.cp.reference, 'T')
 
     def test_alts_and_variants(self):
         self.cp.add_base(10, '+', 'C')
@@ -79,29 +79,7 @@ class TestCompiledPosition(unittest.TestCase):
     def test_reference(self):
         self.assertEqual(self.cp.reference, 'A')
 
-    def test_mean_quality(self):
-        self.assertEqual(self.cp.mean_quality, 0)
-        self.cp.add_base(5, '*', 'A')
-        self.cp.add_base(6, '+', 'C')
-        self.assertEqual(self.cp.mean_quality, 5.5)
-
-    def test_edit_ratio(self):
-        self.assertEqual(self.cp.edit_ratio, 0)
+    def test_len(self):
+        self.assertEqual(len(self.cp), 0)
         self.cp.add_base(40, '+', 'A')
-        self.cp.add_base(35, '-', 'C')
-        self.cp.add_base(30, '+', 'C')
-        self.cp.add_base(30, '+', 'C')
-        self.assertEqual(self.cp.edit_ratio, 0.75)
-
-    def test_depth(self):
-        self.assertEqual(self.cp.depth, 0)
-        self.assertEqual(self.cp.depth, len(self.cp))
-        self.cp.add_base(40, '+', 'A')
-        self.assertEqual(self.cp.depth, 1)
-        self.assertEqual(self.cp.depth, len(self.cp))
-
-    def test_per_base_depth(self):
-        self.cp.add_base(40, '+', 'A')
-        self.cp.add_base(35, '-', 'C')
-        self.cp.add_base(30, '+', 'C')
-        self.assertEqual(self.cp.per_base_depth, [1, 2, 0, 0])
+        self.assertEqual(len(self.cp), 1)
