@@ -1,21 +1,17 @@
-from reditools.logger import Logger
 
+class CheckColumnEditFrequency:
+    def __init__(self, options):
+        self.min_edits = options.min_edits
+    
+    @classmethod
+    def is_needed(cls, options):
+        return options.min_edits > 0
 
-def check_column_edit_frequency(options, bases):
-    """
-    Check the number of edits at the site.
-
-    Parameters:
-        options (namespace): Analyze tool options
-        bases (CompiledPosition): Base position under analysis
-
-    Returns:
-        None if QC passed, else debug message (tuple)
-    """
-    edits_no = len(bases) - bases['REF']
-    if edits_no < options.min_edits:
-        return (
-            'DISCARDING COLUMN edits={} < {}',
-            edits_no,
-            options.min_edits,
-        )
+    def run_check(self, bases):
+        edits_no = len(bases) - bases['REF']
+        if edits_no < self.min_edits:
+            return (
+                'DISCARDING COLUMN edits={} < {}',
+                edits_no,
+                self.min_edits,
+            )

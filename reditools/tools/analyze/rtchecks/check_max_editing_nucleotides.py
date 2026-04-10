@@ -1,21 +1,18 @@
-from reditools.logger import Logger
 
+class CheckMaxEditingNucleotides:
+    def __init__(self, options):
+        self.max_editing_nucleotides = options.max_editing_nucleotides
 
-def check_max_editing_nucleotides(options, bases):
-    """
-    Check that there are no more than a max number of alts.
+    @classmethod
+    def is_needed(cls, options):
+        return options.max_editing_nucleotides < 3
 
-    Parameters:
-        options (namespace): Analyze tool options
-        bases (CompiledPosition): Base position under analysis
+    def run_check(self, bases):
+        alts = bases.alts
+        if len(alts) > self.max_editing_nucleotides:
+            return (
+                'DISCARD COLUMN alts={} > {}',
+                len(alts),
+                self.max_editing_nucleotides,
+            )
 
-    Returns:
-        None if QC passed, else debug message (tuple)
-    """
-    alts = bases.alts
-    if len(alts) > options.max_editing_nucleotides:
-        return (
-            'DISCARD COLUMN alts={} > {}',
-            len(alts),
-            options.max_editing_nucleotides,
-        )

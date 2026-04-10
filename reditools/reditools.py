@@ -9,7 +9,6 @@ Authors:
 from reditools.compiled_reads import CompiledReads
 from reditools.fasta_file import RTFastaFile
 from reditools.logger import Logger
-from reditools.region_collection import RegionCollection
 
 
 class REDItools:

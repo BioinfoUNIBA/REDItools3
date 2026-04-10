@@ -1,19 +1,15 @@
-from reditools.logger import Logger
+from reditools.region_collection import RegionCollection
+from reditools import file_utils
 
+class CheckTargetPositions:
+    def __init__(self, options):
+        self.regions = RegionCollection()
+        self.regions.add_regions(file_utils.read_bed_file(*options.bed_file))
 
-def check_target_positions(options, bases):
-    """
-    Check if the bases object is in a target region.
+    @classmethod
+    def is_needed(cls, options):
+        return options.bed_file is not None
 
-    Parameters:
-        options (namespace): Analyze tool options
-        bases (CompiledPosition): Base position under analysis
-
-    Returns:
-        None if QC passed, else debug message (tuple)
-    """
-    if not options.target_regions.contains(
-            bases.contig,
-            bases.position,
-    ):
-        return ('DISCARD COLUMN not in target regions',)
+    def run_check(self, bases):
+        if not self.regions.contains(bases.contig, bases.position):
+            return ('DISCARD COLUMN not in target regions',)

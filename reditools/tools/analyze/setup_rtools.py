@@ -1,4 +1,4 @@
-from reditools import file_utils, reditools
+from reditools import reditools
 from reditools.logger import Logger
 
 

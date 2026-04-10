@@ -1,20 +1,15 @@
-from reditools.logger import Logger
+from reditools.region_collection import RegionCollection
+from reditools import file_utils
 
+class CheckExclusions:
+    def __init__(self, options):
+        self.regions = RegionCollection()
+        self.regions.add_regions(file_utils.read_bed_file(*options.exclude_regions))
 
-def check_exclusions(options, bases):
-    """
-    Check if the bases object is in an excluded position.
+    @classmethod
+    def is_needed(cls, options):
+        return options.exclude_regions is not None
 
-    Parameters:
-        options (namespace): Analyze tool options
-        bases (CompiledPosition): Base position under analysis
-
-    Returns:
-        None if QC passed, else debug message (tuple)
-    """
-    in_exclusions = options.exclude_regions.contains(
-        bases.contig,
-        bases.position,
-    )
-    if in_exclusions:
-        return ('DISCARD COLUMN in excluded region',)
+    def run_check(self, bases):
+        if self.regions.contains(bases.contig, bases.position):
+            return ('DISCARD COLUMN in excluded region',)

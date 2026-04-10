@@ -1,20 +1,17 @@
-from reditools.logger import Logger
 
 
-def check_min_read_depth(options, bases):
-    """
-    Checks whether there is sufficient read coverage.
+class CheckMinReadDepth:
+    def __init__(self, options):
+        self.min_read_depth = options.min_read_depth
 
-    Parameters:
-        options (namespace): Analyze tool options
-        bases (CompiledPosition): Base position under analysis
+    @classmethod
+    def is_needed(cls, options):
+        return options.min_read_depth > 1
 
-    Returns:
-        None if QC passed, else debug message (tuple)
-    """
-    if len(bases) < options.min_read_depth:
-        return (
-            'DISCARDING COLUMN {} [MIN_READ_DEPTH={}]',
-            len(bases),
-            options.min_read_depth,
-        )
+    def run_check(self, bases):
+        if len(bases) < self.min_read_depth:
+            return (
+                'DISCARDING COLUMN {} [MIN_READ_DEPTH={}]',
+                len(bases),
+                self.min_read_depth,
+            )
