@@ -7,7 +7,7 @@ def check_column_quality(rtools, bases):
     Check mean quality of the position.
 
     Parameters:
-        rtools (REDItools): Object performing analysis
+        namespace (namespace): Object performing analysis
         bases (CompiledPosition): Base position under analysis
 
     Returns:
@@ -18,11 +18,9 @@ def check_column_quality(rtools, bases):
     else:
         mean_q = 0
     if mean_q < rtools.min_read_quality:
-        rtools.log(
+        return (
             Logger.debug_level,
             'DISCARD COLUMN mean_quality={} < {}',
             mean_q,
             rtools.min_read_quality,
         )
-        return False
-    return True

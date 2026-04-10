@@ -8,7 +8,7 @@ def check_column_min_edits(rtools, bases):
     Check that there are sufficient edit events for each base.
 
     Parameters:
-        rtools (REDItools): Object performing analysis
+        namespace (namespace): Object performing analysis
         bases (CompiledPosition): Base position under analysis
 
     Returns:
@@ -17,11 +17,8 @@ def check_column_min_edits(rtools, bases):
     for base in _bases:
         if base != bases.reference and \
                 0 < bases[base] < rtools.min_edits_per_nucleotide:
-            rtools.log(
-                Logger.debug_level,
+            return (
                 'DISCARDING COLUMN edits={} < {}',
                 bases[base],
                 rtools.min_edits_per_nucleotide,
             )
-            return False
-    return True

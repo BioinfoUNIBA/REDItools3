@@ -1,12 +1,12 @@
 from reditools.logger import Logger
 
 
-def check_specific_alts(rtools, bases):
+def check_variants(namespace, bases):
     """
     Check whether specified edits are present.
 
     Parameters:
-        rtools (REDItools): Object running the analysis
+        namespace (namespace): Object running the analysis
         bases (CompiledPosition): Base position under analysis
 
     Returns:
@@ -14,11 +14,9 @@ def check_specific_alts(rtools, bases):
     """
 
     for variant in bases.variants:
-        if variant in rtools._specific_edits:
-            return True
-    rtools.log(
-        Logger.debug_level,
+        if variant in namespace.variants:
+            return None
+    return (
         'DISCARD COLUMN Requested edits {} not found',
-        rtools._specific_edits,
+        namespace.variants,
     )
-    return False

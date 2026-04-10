@@ -6,7 +6,7 @@ def check_column_edit_frequency(rtools, bases):
     Check the number of edits at the site.
 
     Parameters:
-        rtools (REDItools): Object performing analysis
+        namespace (namespace): Object performing analysis
         bases (CompiledPosition): Base position under analysis
 
     Returns:
@@ -14,11 +14,8 @@ def check_column_edit_frequency(rtools, bases):
     """
     edits_no = len(bases) - bases['REF']
     if edits_no < rtools.min_edits:
-        rtools.log(
-            Logger.debug_level,
+        return (
             'DISCARDING COLUMN edits={} < {}',
             edits_no,
             rtools.min_edits,
         )
-        return False
-    return True

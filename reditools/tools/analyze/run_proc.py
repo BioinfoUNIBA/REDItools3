@@ -7,6 +7,7 @@ from reditools.tools.analyze.setup_alignment_manager import (
     setup_alignment_manager,
 )
 from reditools.tools.analyze.write_results import write_results
+from reditools.tools.analyze.rtchecks import RTChecks
 
 
 def run_proc(options, in_queue, out_queue):
@@ -28,6 +29,7 @@ def run_proc(options, in_queue, out_queue):
         options.min_read_length,
         options.exclude_reads,
     )
+    rtqc = RTChecks(options)
     while True:
         args = in_queue.get()
         if args is None:
@@ -40,6 +42,8 @@ def run_proc(options, in_queue, out_queue):
                 options.file,
                 options.output_format,
                 options.temp_dir,
+                rtqc,
+                rtools.log,
             )))
         except Exception as exc:
             if options.debug:

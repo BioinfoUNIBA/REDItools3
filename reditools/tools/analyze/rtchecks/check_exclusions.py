@@ -6,7 +6,7 @@ def check_exclusions(rtools, bases):
     Check if the bases object is in an excluded position.
 
     Parameters:
-        rtools (REDItools): Object running the analysis
+        namespace (namespace): Object running the analysis
         bases (CompiledPosition): Data for analysis
 
     Returns:
@@ -17,9 +17,4 @@ def check_exclusions(rtools, bases):
         bases.position,
     )
     if in_exclusions:
-        rtools.log(
-            Logger.debug_level,
-            'DISCARD COLUMN in excluded region',
-        )
-        return False
-    return True
+        return ('DISCARD COLUMN in excluded region',)
