@@ -1,18 +1,18 @@
 from reditools.logger import Logger
 
 
-def check_exclusions(rtools, bases):
+def check_exclusions(options, bases):
     """
     Check if the bases object is in an excluded position.
 
     Parameters:
-        namespace (namespace): Object running the analysis
-        bases (CompiledPosition): Data for analysis
+        options (namespace): Analyze tool options
+        bases (CompiledPosition): Base position under analysis
 
     Returns:
-        (bool): True if the position is not excluded
+        None if QC passed, else debug message (tuple)
     """
-    in_exclusions = rtools.exclude_regions.contains(
+    in_exclusions = options.exclude_regions.contains(
         bases.contig,
         bases.position,
     )

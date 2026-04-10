@@ -1,21 +1,21 @@
 from reditools.logger import Logger
 
 
-def check_max_editing_nucleotides(rtools, bases):
+def check_max_editing_nucleotides(options, bases):
     """
     Check that there are no more than a max number of alts.
 
     Parameters:
-        namespace (namespace): Object running the analysis
+        options (namespace): Analyze tool options
         bases (CompiledPosition): Base position under analysis
 
     Returns:
-        (bool): True if there are n or fewer alts
+        None if QC passed, else debug message (tuple)
     """
     alts = bases.alts
-    if len(alts) > rtools.max_editing_nucleotides:
+    if len(alts) > options.max_editing_nucleotides:
         return (
             'DISCARD COLUMN alts={} > {}',
             len(alts),
-            rtools.max_editing_nucleotides,
+            options.max_editing_nucleotides,
         )

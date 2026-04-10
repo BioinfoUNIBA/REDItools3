@@ -2,7 +2,7 @@
 from reditools.region_collection import RegionCollection
 from reditools import file_utils
 from reditools.tools.analyze import rtchecks
-
+import re
 
 class RTChecks(object):
     """Quality control for REDItools analyses."""
@@ -10,33 +10,18 @@ class RTChecks(object):
     def __init__(self, options):
         self.check_list = []
 
-        variants = set()
-        for alt in options.variants:
-            alt = alt.upper()
-            if alt == 'ALL':
-                variants = set()
-                break
-            if len(alt) != 2 or alt[0] not in 'ATCG' or alt[1] not in 'ATCG':
-                raise ValueError(f'Bad variant: {alt}')
-            variants.add(alt)
-
-        if variants:
-            options.variants = variants
-            self.check_list.append(rtchecks.check_variants)
+        options.variants = self.verify_alts(options.variants)
 
         if options.bed_file:
-            options.target_regions = RegionCollection()
-            options.target_regions.add_regions(
-                file_utils.read_bed_file(*options.bed_file),
+            options.target_regions = self.create_region_collection(
+                options.bed_file,
             )
             self.check_list.append(rtchecks.check_target_positions)
 
         if options.exclude_regions:
-            excluded_regions = RegionCollection()
-            excluded_regions.add_regions(
-                file_utils.read_bed_file(*options.exclude_regions),
+            self.exclude_regions = self.create_region_collection(
+                options.exclude_regions,
             )
-            options.exclude_regions = excluded_regions
             self.check_list.append(rtchecks.check_exclusions)
 
         if options.max_editing_nucleotides < 3:
@@ -62,6 +47,20 @@ class RTChecks(object):
 
         self.namespace = options
 
+    def verify_alts(self, variants):
+        alt_pa = re.compile('[ACTG]{2}')
+        for alt in variants:
+            alt = alt.upper()
+            if alt == 'ALL':
+                return set()
+            if not alt_pa.fullmatch(alt):
+                raise ValueError(f'Bad variant: {alt}')
+        return set(variants)
+
+    def create_region_collection(self, file_list):
+        rc = RegionCollection()
+        rc.add_regions(file_utils.read_bed_file(*file_list))
+        return rc
 
     def check(self, bases):
         """
@@ -69,12 +68,8 @@ class RTChecks(object):
 
         Parameters:
             bases (CompiledPosition): Base position under analysis
-            rtools (REDItools): for logging
 
         Returns:
-            (bool): True of all checks pass, else false
+            None if QC passed, else debug message (tuple)
         """
-        for qc_check_fn in self.check_list:
-            msg = qc_check_fn(self.namespace, bases)
-            if msg is not None:
-                return msg
+        return next((_(self.namespace, bases) for _ in self.check_list), None)

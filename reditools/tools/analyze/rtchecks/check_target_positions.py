@@ -1,18 +1,18 @@
 from reditools.logger import Logger
 
 
-def check_target_positions(rtools, bases):
+def check_target_positions(options, bases):
     """
     Check if the bases object is in a target region.
 
     Parameters:
-        namespace (namespace): Object running the analysis
-        bases (CompiledPosition): Data for analysis
+        options (namespace): Analyze tool options
+        bases (CompiledPosition): Base position under analysis
 
     Returns:
-        (bool): True if the position is in a target region
+        None if QC passed, else debug message (tuple)
     """
-    if not rtools.target_regions.contains(
+    if not options.target_regions.contains(
             bases.contig,
             bases.position,
     ):

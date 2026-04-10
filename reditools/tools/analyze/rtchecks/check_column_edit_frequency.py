@@ -1,21 +1,21 @@
 from reditools.logger import Logger
 
 
-def check_column_edit_frequency(rtools, bases):
+def check_column_edit_frequency(options, bases):
     """
     Check the number of edits at the site.
 
     Parameters:
-        namespace (namespace): Object performing analysis
+        options (namespace): Analyze tool options
         bases (CompiledPosition): Base position under analysis
 
     Returns:
-        (bool): True if there are sufficient edits.
+        None if QC passed, else debug message (tuple)
     """
     edits_no = len(bases) - bases['REF']
-    if edits_no < rtools.min_edits:
+    if edits_no < options.min_edits:
         return (
             'DISCARDING COLUMN edits={} < {}',
             edits_no,
-            rtools.min_edits,
+            options.min_edits,
         )

@@ -3,22 +3,22 @@ from reditools.logger import Logger
 _bases = ('A', 'T', 'C', 'G')
 
 
-def check_column_min_edits(rtools, bases):
+def check_column_min_edits(options, bases):
     """
     Check that there are sufficient edit events for each base.
 
     Parameters:
-        namespace (namespace): Object performing analysis
+        options (namespace): Analyze tool options
         bases (CompiledPosition): Base position under analysis
 
     Returns:
-        (bool): True if there are sufficient edits
+        None if QC passed, else debug message (tuple)
     """
     for base in _bases:
         if base != bases.reference and \
-                0 < bases[base] < rtools.min_edits_per_nucleotide:
+                0 < bases[base] < options.min_edits_per_nucleotide:
             return (
                 'DISCARDING COLUMN edits={} < {}',
                 bases[base],
-                rtools.min_edits_per_nucleotide,
+                options.min_edits_per_nucleotide,
             )

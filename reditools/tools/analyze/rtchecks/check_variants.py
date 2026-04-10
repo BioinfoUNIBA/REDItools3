@@ -1,22 +1,22 @@
 from reditools.logger import Logger
 
 
-def check_variants(namespace, bases):
+def check_variants(options, bases):
     """
     Check whether specified edits are present.
 
     Parameters:
-        namespace (namespace): Object running the analysis
+        options (namespace): Analyze tool options
         bases (CompiledPosition): Base position under analysis
 
     Returns:
-        (bool): True if there specified edits are detected.
+        None if QC passed, else debug message (tuple)
     """
 
     for variant in bases.variants:
-        if variant in namespace.variants:
+        if variant in options.variants:
             return None
     return (
         'DISCARD COLUMN Requested edits {} not found',
-        namespace.variants,
+        options.variants,
     )
