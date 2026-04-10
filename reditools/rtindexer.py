@@ -52,34 +52,6 @@ class RTIndexer(object):
             self.exclusions = RegionCollection()
         self.exclusions.add_regions(read_bed_file(fname))
 
-    def in_targets(self, contig, position):
-        """
-        Check if a genomic position is in the target list.
-
-        Parameters:
-            contig (str): Contig/Chromsome name
-            position (int): Coordiante
-
-        Returns:
-            True if there are no targets or the position is in the target
-            list; else False
-        """
-        return not self.targets or self.targets.contains(contig, position)
-
-    def in_exclusions(self, contig, position):
-        """
-        Check if a genomic position is in the exclusions list.
-
-        Parameters:
-            contig (str): Contig/Chromsome name
-            position (int): Coordiante
-
-        Returns:
-            True if there are no exclusions or the position is in the
-            exclusions list; else False
-        """
-        return self.exclusions and self.exclusions.contains(contig, position)
-
     def do_ignore(self, row):
         """
         Check whether a row should meets analysis criteria.
@@ -98,9 +70,15 @@ class RTIndexer(object):
                     self.region[1] > position or \
                     self.region[2] is not None and self.region[2] < position:
                 return True
-        if self.in_exclusions(row[_contig], int(row[_position])):
+        if self.exclusions and self.exclusions.contains(
+                row[_contig],
+                int(row[_position]),
+        ):
             return True
-        return not self.in_targets(row[_contig], int(row[_position]))
+        if self.targets:
+             return not self.targets.contains(row[_contig], int(row[_position]))
+        return False
+
 
     def add_rt_output(self, fname):
         """

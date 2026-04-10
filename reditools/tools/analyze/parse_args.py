@@ -366,20 +366,15 @@ def build_argument_parser():  # noqa: WPS213, WPS210
 
     return parser
 
-
-def check_dna_mode(args):
+def fix_legacy_options(args):
     if args.strand != 0 and args.dna:
         raise Exception('-N/--dna can only be used with -s/--strand 0.')
     delattr(args, 'dna')  # noqa: WPS421
 
-
-def check_exclude_multis(args):
     if args.exclude_multis:
         setattr(args, 'max_editing_nucleotides', 1)
     delattr(args, 'exclude_multis')  # noqa: WPS421
 
-
-def check_strict_mode(args):
     if args.strict:
         if args.min_edits != 1:
             raise Exception(
@@ -387,8 +382,6 @@ def check_strict_mode(args):
             )
     delattr(args, 'strict')  # noqa: WPS421
 
-
-def check_load_omopolymeric_file(args):
     if args.load_omopolymeric_file:
         if args.exclude_regions is None:
             args.exclude_regions = []
@@ -396,33 +389,23 @@ def check_load_omopolymeric_file(args):
     delattr(args, 'load_omopolymeric_file')  # noqa: WPS421
 
 
-def test_edit_frequency(args):
+def parse_args(sys_args=None):
+    parser = build_argument_parser()
+    args = parser.parse_args(sys_args)
+    try:
+        fix_legacy_options(args)
+    except Exception as exc:
+        parser.error(message=str(exc))
+
     if args.max_editing_nucleotides < args.min_edits:
-        raise Exception(
+        parser.error(
             '-Men/--max-editing-nucleotides cannot be smaller than '
             '-me/--min-edits.',
         )
 
-
-def test_strand_args(args):
     if args.strand == 0 and args.strand_correction:
-        raise Exception(
+        parser.error(
             '-s/--strand 0 and -C/--strand-correction are mutually exclusive.'
         )
-
-
-def parse_args(sys_args=None):
-    parser = build_argument_parser()
-    args = parser.parse_args(sys_args)
-    try:  # noqa: WPS229
-        check_dna_mode(args)
-        check_exclude_multis(args)
-        check_strict_mode(args)
-        check_load_omopolymeric_file(args)
-
-        test_edit_frequency(args)
-        test_strand_args(args)
-    except Exception as exc:
-        parser.error(message=str(exc))
 
     return args

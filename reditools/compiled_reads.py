@@ -46,19 +46,10 @@ class CompiledReads:
         }
 
         if fasta_file is not None:
-            self.add_reference(fasta_file)
+            self._ref = fasta_file
+            self._ref_seq = self._get_ref_from_fasta
 
-    def add_reference(self, ref):
-        """
-        Add a reference FASTA file to use.
-
-        Parameters:
-            ref (RTFastaFile): Reference sequence
-        """
-        self._ref = ref
-        self._ref_seq = self._get_ref_from_fasta
-
-    def add_reads(self, reads):  # noqa: WPS210
+    def add_reads(self, reads):
         """
         Add iterable of pysam reads to the object.
 
@@ -93,16 +84,6 @@ class CompiledReads:
         """
         return self._nucleotides.pop(position, None)
 
-    def is_empty(self):
-        """
-        Determine if there are any CompiledPositions still in the object.
-
-        Returns:
-            True if the object is empty, else False
-        """
-        return not self._nucleotides
-
-
     def iter_range(self, start, stop):
         """
         Iteratively calls pop across a genomic range.
@@ -115,7 +96,7 @@ class CompiledReads:
             CompiledPosition
         """
         for position in range(start, stop):
-            if self.is_empty():
+            if not self._nucleotides:
                 break
             bases = self.pop(position)
             if bases is not None:

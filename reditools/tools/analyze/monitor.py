@@ -39,7 +39,8 @@ def monitor(processes, out_queue, chunks):
     while None in tfs:
         try:
             idx, fname = out_queue.get(block=False, timeout=1)
-            tfs[idx] = fname
         except EmptyQueueException:
             check_dead(processes)
+        else:
+            tfs[idx] = fname
     return tfs

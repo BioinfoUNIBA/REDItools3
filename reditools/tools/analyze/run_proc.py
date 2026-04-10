@@ -19,30 +19,29 @@ def run_proc(options, in_queue, out_queue):
     Returns:
         bool: True if the in_queue is empty
     """
-    try:
-        rtools = setup_rtools(options)
-        sam_manager = setup_alignment_manager(
-            options.file,
-            options.min_read_quality,
-            options.min_read_length,
-            options.exclude_reads,
-        )
-        while True:
-            args = in_queue.get()
-            if args is None:
-                return True
-            idx, region = args
+    rtools = setup_rtools(options)
+    sam_manager = setup_alignment_manager(
+        options.file,
+        options.min_read_quality,
+        options.min_read_length,
+        options.exclude_reads,
+    )
+    while True:
+        args = in_queue.get()
+        if args is None:
+            return True
+        idx, region = args
+        try:  # noqa: WPS229
+            rtresults = rtools.analyze(sam_manager, region)
             out_queue.put((idx, write_results(
-                rtools,
-                sam_manager,
+                rtresults,
                 options.file,
-                region,
                 options.output_format,
                 options.temp_dir,
             )))
-    except Exception as exc:
-        if options.debug:
-            traceback.print_exception(*sys.exc_info())
-        sys.stderr.write(f'[ERROR] ({type(exc)}) {exc}\n')
-        sys.exit(1)
+        except Exception as exc:
+            if options.debug:
+                traceback.print_exception(*sys.exc_info())
+            sys.stderr.write(f'[ERROR] ({type(exc)}) {exc}\n')
+            sys.exit(1)
 

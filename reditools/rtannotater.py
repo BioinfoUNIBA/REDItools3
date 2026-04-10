@@ -58,7 +58,7 @@ class RTAnnotater:
             row[new_key] = row.pop(old_key, row.get(new_key))
         return row
 
-    def merge_files(self):  # noqa: WPS210
+    def merge_files(self):
         with file_utils.open_stream(self.rna_file, 'r') as rna_stream, \
                 file_utils.open_stream(self.dna_file, 'r') as dna_stream:
             rna_reader = csv.DictReader(rna_stream, delimiter='\t')

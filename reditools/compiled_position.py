@@ -20,7 +20,7 @@ class CompiledPosition:
         self.strands = []
         self.bases = []
         self.counter = False
-        self.ref = ref
+        self.reference = ref
         self.contig = contig
         self.position = position
         self._strand = None
@@ -46,7 +46,7 @@ class CompiledPosition:
             for base_member in self.bases:
                 self.counter[base_member] += 1
         if base.upper() == 'REF':
-            return self.counter[self.ref]
+            return self.counter[self.reference]
         return self.counter[base]
 
     def __iter__(self):
@@ -74,7 +74,7 @@ class CompiledPosition:
         Modify all the summarized nucleotides to their complements.
         """
         self.bases = [self._comp[base] for base in self.bases]
-        self.ref = self._comp[self.ref]
+        self.reference = self._comp[self.reference]
         if not self.counter:
             return
         complements = self._comp.items()
@@ -121,65 +121,18 @@ class CompiledPosition:
         self.counter = False
 
     @property
-    def per_base_depth(self):
-        """
-        list: Get the depth per base for this position in order A, C, G, T.
-        """
-        return list(self)
-
-    @property
-    def reference(self):
-        """
-        str: Reference base at this position.
-        (alias for ref)
-        """
-        return self.ref
-
-    @property
     def alts(self):
         """
         list: Detected alternate bases.
         """
-        return [_ for _ in self._bases if self[_] and _ != self.ref]
+        return [_ for _ in self._bases if self[_] and _ != self.reference]
 
     @property
     def variants(self):
         """
         list: Observed edits at this position (e.g. AG).
         """
-        return [f'{self.ref}{base}' for base in self.alts]
-
-    @property
-    def mean_quality(self):
-        """
-        int: Mean read quality of the base position.
-        """
-        if len(self) == 0:
-            return 0
-        return sum(self.qualities) / len(self)
-
-    @property
-    def edit_ratio(self):
-        """
-        float: Edit ratio as most edited base frequency divided by sum of most
-        edited base and reference base.
-        """
-        max_edits = 0
-        for base, count in zip(self._bases, self):
-            if base != self.ref and count > max_edits:
-                max_edits = count
-        try:
-            return max_edits / (self['REF'] + max_edits)
-        except ZeroDivisionError:
-            return 0
-
-    @property
-    def depth(self):
-        """
-        int: Number of reads covering this position.
-        (alias for __len__)
-        """
-        return len(self)
+        return [f'{self.reference}{base}' for base in self.alts]
 
     @property
     def strand(self):
