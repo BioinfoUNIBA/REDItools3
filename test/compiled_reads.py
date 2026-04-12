@@ -172,3 +172,19 @@ class TestCompiledReads(unittest.TestCase):
                 self.assertTrue(phred >= 10)
             cr.add_reads([read])
             self.assertEqual(len(cr._nucleotides), 10)
+
+    def test_pop_range(self):
+        sam_obj = SAM()
+        sam_obj.add_contig('chr1', length=20)
+        read = Sequence(sam_obj.genome['chr1'], 0, phred=range(20))
+        sam_obj.add_read('chr1', read)
+        sam_obj.genome.save_to_fasta(self.fasta_fname)
+        sam_obj.save_to_sam(self.bam_fname, self.fasta_fname)
+
+        with AlignmentFile(self.bam_fname) as af:
+            cr = CompiledReads(min_base_quality=10)
+            cr.add_reads([next(af.fetch())])
+            cp_list = list(cr.pop_range(18, 30))
+            self.assertEqual(len(cp_list), 2)
+
+            self.assertEqual(cp_list[0].ref, sam_obj.genome['chr1'][18])

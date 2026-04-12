@@ -48,13 +48,6 @@ class TestRegion(unittest.TestCase):
         with self.assertRaises(IndexError):
             Region('chr1', 50, None).split(50)
 
-    def test_contains(self):
-        region = Region('chr1', 100, 200)
-        self.assertTrue(region.contains('chr1', 150))
-        self.assertFalse(region.contains('chr1', 99))
-        self.assertFalse(region.contains('chr1', 200))
-        self.assertFalse(region.contains('chr2', 150))
-
     def test_from_string(self):
         fasta_fname = ntf(suffix='.fa')
         bam_fname = ntf(suffix='.bam')

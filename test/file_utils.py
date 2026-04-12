@@ -60,14 +60,33 @@ class TestFileUtils(unittest.TestCase):
                 Region('chr1', 10, 20),
             ),
             (
-                ('chr2', 30, 40),
-                Region('chr2', 30, 40),
+                ('chr1', 30, 40),
+                Region('chr1', 30, 40),
             ),
         )
         fname = self.write_file((_[0] for _ in bed_data), sep='\t')
         region_list = list(file_utils.read_bed_file(fname))
         self.check_test_data(bed_data, region_list)
         os.remove(fname)
+
+    def test_read_many_bed_files(self):
+        bed_data = (
+            (
+                ('chr1', 10, 20),
+                Region('chr1', 10, 20),
+            ),
+            (
+                ('chr1', 30, 40),
+                Region('chr1', 30, 40),
+            ),
+        )
+        fnames = []
+        for row in bed_data:
+            fnames.append(self.write_file([row[0]], sep='\t'))
+        region_list = list(file_utils.read_bed_file(*fnames))
+        self.check_test_data(bed_data, sorted(region_list))
+        for fname in fnames:
+            os.remove(fname)
 
     def test_concat(self):
         file_contents = ('file1', 'file2', 'file3')

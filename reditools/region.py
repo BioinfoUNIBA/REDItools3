@@ -50,19 +50,6 @@ class Region:
                 stop=min(new_start + window, self.stop)))
         return sub_regions
 
-    def contains(self, contig, position):
-        """
-        Determines if a given genomic location is within the region.
-
-        Parameters:
-            contig (str): Contig/Chromosome name
-            position (int): Position
-
-        Returns:
-            bool
-        """
-        return self.contig == contig and self.start <= position < self.stop
-
     @classmethod
     def from_string(cls, region_str, alignment_file):
         contig, start, stop = Region.parse_string(region_str)

@@ -60,16 +60,6 @@ class RegionCollection:
         self._index = len(self._regions[contig])
         return False
 
-    def add_region(self, region):
-        """
-        Add a region to the collection.
-
-        Parameters:
-            region (Region): region to add.
-        """
-        self._sorted = False
-        self._regions[region.contig].append(region)
-
     def add_regions(self, regions):
         """
         Add a list or iterable of regions to the collection.
@@ -77,5 +67,6 @@ class RegionCollection:
         Parameters:
             regions (iterable): List of regions.
         """
+        self._sorted = False
         for _ in regions:
-            self.add_region(_)
+            self._regions[_.contig].append(_)

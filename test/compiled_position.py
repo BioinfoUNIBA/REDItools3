@@ -85,3 +85,31 @@ class TestCompiledPosition(unittest.TestCase):
         self.cp.add_base(10, '+', 'A')
         rtresult = RTResult(self.cp, '*')
         self.assertEqual(rtresult.variants, ['AC'])
+
+    def test_edit_ratio(self):
+        rtresult = RTResult(self.cp, '*')
+        self.assertEqual(rtresult.edit_ratio, 0)
+
+        self.cp.add_base(10, '+', 'A')
+        self.cp.add_base(10, '+', 'C')
+        rtresult = RTResult(self.cp, '*')
+        self.assertEqual(rtresult.edit_ratio, 0.5)
+
+        self.cp.add_base(10, '+', 'T')
+        rtresult = RTResult(self.cp, '*')
+        self.assertEqual(rtresult.edit_ratio, 0.5)
+
+        self.cp.add_base(10, '+', 'C')
+        self.cp.add_base(10, '+', 'C')
+        rtresult = RTResult(self.cp, '*')
+        self.assertEqual(rtresult.edit_ratio, 0.75)
+
+    def test_mean_quality(self):
+        rtresult = RTResult(self.cp, '*')
+        self.assertEqual(rtresult.mean_quality, 0)
+
+        self.cp.add_base(10, '+', 'C')
+        self.cp.add_base(20, '+', 'C')
+        self.cp.add_base(30, '+', 'C')
+        rtresult = RTResult(self.cp, '*')
+        self.assertEqual(rtresult.mean_quality, 20)
