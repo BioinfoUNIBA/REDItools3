@@ -1,11 +1,11 @@
 import os
 import unittest
-from reditools.region import Region
-from reditools.tools.analyze.setup_alignment_manager import (
-    setup_alignment_manager,
-)
-from test.analyze.options import Options
 from test.sam_gen import SAM, ntf
+
+from reditools.region import Region
+from reditools.tools.analyze.setup_alignment_manager import \
+    setup_alignment_manager
+
 
 class TestSetupAlignmentManager(unittest.TestCase):
     def test_setup(self):

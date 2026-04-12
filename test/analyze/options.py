@@ -1,4 +1,5 @@
-from dataclasses import dataclass, InitVar
+from dataclasses import InitVar, dataclass
+
 
 @dataclass
 class Options:
