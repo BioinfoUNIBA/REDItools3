@@ -1,6 +1,5 @@
 import unittest
 import os
-from reditools.fasta_file import RTFastaFile
 from reditools.compiled_reads import CompiledReads, RefFetch
 from pysam import AlignmentFile
 from test.sam_gen import SAM, Sequence, ntf

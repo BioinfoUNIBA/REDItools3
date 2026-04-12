@@ -3,7 +3,6 @@ import os
 from tempfile import NamedTemporaryFile
 from reditools.tools.analyze.rtchecks import RTChecks
 from reditools.compiled_position import CompiledPosition, RTResult
-from reditools.region import Region
 
 class Namespace:
     def __init__(self, **kwargs):
@@ -85,7 +84,11 @@ class TestRTChecks(unittest.TestCase):
         self.assertIsNone(self.run_check(rtc))
 
     def test_check_exclusions(self):
-        with NamedTemporaryFile(delete=False, suffix='.bed', mode='w+') as stream:
+        with NamedTemporaryFile(
+                delete=False,
+                suffix='.bed',
+                mode='w+',
+        ) as stream:
             stream.write('chr1\t20\t30\n')
             bed_file = stream.name
 
@@ -126,7 +129,11 @@ class TestRTChecks(unittest.TestCase):
         self.assertIsNone(self.run_check(rtc))
 
     def test_check_target_positions(self):
-        with NamedTemporaryFile(delete=False, suffix='.bed', mode='w+') as stream:
+        with NamedTemporaryFile(
+                delete=False,
+                suffix='.bed',
+                mode='w+',
+        ) as stream:
             stream.write('chr1\t10\t20\n')
             bed_file = stream.name
         self.options.bed_file = [bed_file]

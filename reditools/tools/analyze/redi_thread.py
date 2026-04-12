@@ -45,7 +45,10 @@ def redi_thread(options, in_queue, out_queue):
             return True
         idx, region = args
         try:  # noqa: WPS229
-            out_queue.put((idx, analyze(options, rtools, sam_manager, region, rtqc)))
+            out_queue.put((
+                idx,
+                analyze(options, rtools, sam_manager, region, rtqc),
+            ))
         except Exception as exc:
             if options.debug:
                 traceback.print_exception(*sys.exc_info())

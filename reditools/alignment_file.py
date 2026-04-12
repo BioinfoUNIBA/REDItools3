@@ -53,7 +53,14 @@ class RTAlignmentFile(PysamAlignmentFile):
         kwargs.pop('exclude_set', None)
         return PysamAlignmentFile.__new__(cls, *args, **kwargs)
 
-    def __init__(self, *args, min_quality=0, min_length=0, exclude_set=None, **kwargs, ):
+    def __init__(
+            self,
+            *args,
+            min_quality=0,
+            min_length=0,
+            exclude_set=None,
+            **kwargs,
+    ):
         """
         Create a wrapper for pysam.AlignmentFile.
 
