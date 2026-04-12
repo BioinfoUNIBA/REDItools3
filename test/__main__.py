@@ -11,5 +11,6 @@ from test.fasta_file import TestRTFastaFile
 from test.file_utils import TestFileUtils
 from test.region import TestRegion
 from test.region_collection import TestRegionCollection
+from test.analyze.setup_alignment_manager import TestSetupAlignmentManager
 
 unittest.main()

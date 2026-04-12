@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from pysam import AlignmentFile
 
 
-@dataclass(slots=True, order=True)
+@dataclass(slots=True, order=True, frozen=True)
 class Region:
     contig: str
     start: int

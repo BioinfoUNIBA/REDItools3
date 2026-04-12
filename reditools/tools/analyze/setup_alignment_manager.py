@@ -23,8 +23,7 @@ def setup_alignment_manager(
     """
 
     if exclusions_file:
-        with file_utils.open(exclusions_file, 'r') as stream:
-            exclude_set = set(_.strip() for _ in stream)
+        exclude_set = set(file_utils.read_bed_file(exclusions_file))
     else:
         exclude_set = None
 

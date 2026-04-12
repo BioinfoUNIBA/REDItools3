@@ -2,19 +2,10 @@ import os
 import unittest
 from dataclasses import InitVar, dataclass
 from test.sam_gen import SAM, ntf
+from test.analyze.options import Options
 
 from reditools.region import Region
 from reditools.tools.analyze.region_args import region_args
-
-
-@dataclass
-class Options:
-    bamfile: InitVar[str]
-    region: str | None = None
-    window: int = 0
-
-    def __post_init__(self, bamfile):
-        self.file = [bamfile]  # noqa: WPS110
 
 
 class TestRegionArgs(unittest.TestCase):
