@@ -7,6 +7,7 @@ Authors:
 """
 
 from reditools.compiled_reads import CompiledReads
+from reditools.compiled_position import RTResult
 from reditools.logger import Logger
 
 
@@ -102,14 +103,14 @@ class REDItools:
                     reads[0].reference_start,
                     next_read_start,
             ):
-                if bases.position >= region.start and \
-                        self._process_bases(bases):
+                rtresult = self._process_bases(bases)
+                if bases.position >= region.start:
                     self.log(
                         Logger.debug_level,
                         'Yielding output for {} reads',
-                        len(bases),
+                        len(rtresult),
                     )
-                    yield bases
+                    yield rtresult
         self.log(
             Logger.info_level,
             '[REGION={}] {} total reads',
@@ -137,11 +138,11 @@ class REDItools:
             bases.position,
             bases.contig,
         )
-        bases.calculate_strand(
+        strand = bases.calculate_strand(
             threshold=self.strand_confidence_threshold,
         )
-        if self._use_strand_correction:
-            bases.filter_by_strand()
-            if bases.strand == '-':
+        if self._use_strand_correction and strand != '*':
+            bases.filter_by_strand(strand)
+            if strand == '-':
                 bases.complement()
-        return bases
+        return RTResult(bases, strand)

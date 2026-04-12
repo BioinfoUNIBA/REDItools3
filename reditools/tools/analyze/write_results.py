@@ -11,7 +11,7 @@ def mean_quality(rtresult):
 
 def edit_ratio(rtresult):
     max_edits = 0
-    for base, count in zip(rtresult._bases, rtresult):
+    for base, count in zip(rtresult._base_order, rtresult):
         if base != rtresult.reference and count > max_edits:
             max_edits = count
     try:

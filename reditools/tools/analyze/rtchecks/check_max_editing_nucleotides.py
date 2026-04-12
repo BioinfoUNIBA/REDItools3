@@ -8,11 +8,11 @@ class CheckMaxEditingNucleotides:
         return options.max_editing_nucleotides < 3
 
     def run_check(self, bases):
-        alts = bases.alts
-        if len(alts) > self.max_editing_nucleotides:
+        variants = bases.variants
+        if len(variants) > self.max_editing_nucleotides:
             return (
-                'DISCARD COLUMN alts={} > {}',
-                len(alts),
+                'DISCARD COLUMN variants={} > {}',
+                len(variants),
                 self.max_editing_nucleotides,
             )
 
