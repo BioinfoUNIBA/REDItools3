@@ -132,6 +132,7 @@ class AlignmentManager:
         if rgi.is_empty():
             return
         read_group = rgi.next()
+        self.next_read_start = read_group[0].reference_start
         for next_read_group in rgi:
             self.next_read_start = next_read_group[0].reference_start
             yield read_group

@@ -33,9 +33,6 @@ class RTResult:
     def __len__(self):
         return len(self.cp)
 
-    def __getattr__(self, attr):
-        return getattr(self.cp, attr)
-
     @property
     def edit_ratio(self):
         max_edits = 0
@@ -51,7 +48,7 @@ class RTResult:
     def mean_quality(self):
         if len(self) == 0:
             return 0
-        return sum(self.qualities) / len(self)
+        return sum(self.cp.qualities) / len(self)
 
 @dataclass
 class CompiledPosition:

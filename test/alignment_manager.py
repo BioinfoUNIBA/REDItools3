@@ -31,14 +31,19 @@ class TestAlignmentManager(unittest.TestCase):
         rtam = AlignmentManager(min_length=10, min_quality=30)
         rtam.add_file(bam_fnames[0])
         rtam.add_file(bam_fnames[1])
-        read_groups = list(rtam.fetch_by_position('chr1'))
 
-        self.assertEqual(len(read_groups[0]), 1)
-        self.assertEqual(read_groups[0][0].qname, '1_1')
+        read_iter = rtam.fetch_by_position('chr1')
 
-        self.assertEqual(len(read_groups[1]), 2)
-        self.assertIn('2_1', (_.qname for _ in read_groups[1]))
-        self.assertIn('1_2', (_.qname for _ in read_groups[1]))
+        read_group = next(read_iter)
+        self.assertEqual(len(read_group), 1)
+        self.assertEqual(read_group[0].qname, '1_1')
+        self.assertEqual(rtam.next_read_start, 20)
+
+        read_group = next(read_iter)
+        self.assertEqual(len(read_group), 2)
+        self.assertIn('2_1', (_.qname for _ in read_group))
+        self.assertIn('1_2', (_.qname for _ in read_group))
+        self.assertEqual(rtam.next_read_start, 40)
 
         os.remove(genome_fname)
         for fname in bam_fnames:
