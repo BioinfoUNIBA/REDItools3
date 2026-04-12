@@ -79,7 +79,7 @@ class AlignmentManager:
         min_length (int): Minimum read length (applied during add_file)
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, exclude_set=None, *args, **kwargs):  # noqa: WPS475
         """
         Create a new manager.
 
@@ -94,6 +94,7 @@ class AlignmentManager:
         self._bams = []
         self.file_list = []
         self.next_read_start = None
+        self.exclude_set = exclude_set
 
     def add_file(self, fname, exclude_reads=None):
         """
@@ -106,11 +107,10 @@ class AlignmentManager:
         new_file = RTAlignmentFile(
             fname,
             *self._bam_args,
+            exclude_set=self.exclude_set,
             **self._bam_kwargs,
         )
         new_file.check_index()
-        if exclude_reads:
-            new_file.exclude_reads = exclude_reads
         self._bams.append(new_file)
         self.file_list.append(fname)
 

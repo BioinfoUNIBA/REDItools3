@@ -1,6 +1,26 @@
 """Organizational structure for tracking base coverage of genomic positions."""
 
 from reditools.compiled_position import CompiledPosition
+from reditools.fasta_file import RTFastaFile
+
+class RefFetch:
+    def __init__(self, fasta_file_path=None):
+        if fasta_file_path:
+            self.fasta_file = RTFastaFile(fasta_file_path)
+            self.get_refseq = self.get_ref_from_fasta
+        else:
+            self.get_refseq = self.get_ref_from_read
+
+    def get_ref_from_read(self, read):
+        return (_[2].upper() for _ in read.get_aligned_pairs(
+            with_seq=True,
+            matches_only=True,
+        ))
+
+    def get_ref_from_fasta(self, read):
+        pairs = read.get_aligned_pairs(matches_only=True)
+        indices = [ref for _, ref in pairs]
+        return self.fasta_file.get_base(read.reference_name, *indices)
 
 
 class CompiledReads:
@@ -36,18 +56,13 @@ class CompiledReads:
                 self.forward_flags = {16, 83, 163}
             self.get_strand = self._stranded_strand
 
-        self._ref = None
-        self._ref_seq = self._get_ref_from_read
+        self.reference = RefFetch(fasta_file)
 
         self._qc = {
             'min_base_quality': min_base_quality,
             'min_base_position': min_base_position,
             'max_base_position': max_base_position,
         }
-
-        if fasta_file is not None:
-            self._ref = fasta_file
-            self._ref_seq = self._get_ref_from_fasta
 
     def add_reads(self, reads):
         """
@@ -70,21 +85,7 @@ class CompiledReads:
                     )
                 self._nucleotides[pos].add_base(quality, strand, base)
 
-    def pop(self, position):
-        """
-        Remove and return the CompiledPosition at position.
-
-        Method returns None if the position is empty.
-
-        Parameters:
-            position (int): The chromosomal location to pop
-
-        Returns:
-            A CompiledPosition or None if position is empty.
-        """
-        return self._nucleotides.pop(position, None)
-
-    def iter_range(self, start, stop):
+    def pop_range(self, start, stop):
         """
         Iteratively calls pop across a genomic range.
 
@@ -98,25 +99,14 @@ class CompiledReads:
         for position in range(start, stop):
             if not self._nucleotides:
                 break
-            bases = self.pop(position)
+            bases = self._nucleotides.pop(position, None)
             if bases is not None:
                 yield bases
-
-    def _get_ref_from_read(self, read):
-        return (_[2].upper() for _ in read.get_aligned_pairs(
-            with_seq=True,
-            matches_only=True,
-        ))
-
-    def _get_ref_from_fasta(self, read):
-        pairs = read.get_aligned_pairs(matches_only=True)
-        indices = [ref for _, ref in pairs]
-        return self._ref.get_base(read.reference_name, *indices)
 
     def _prep_read(self, read):  # noqa: WPS231
         for (read_pos, ref_pos), ref_base in zip(
                 read.get_aligned_pairs(matches_only=True),
-                self._ref_seq(read),
+                self.reference.get_refseq(read),
         ):
             # Right end trim
             if read_pos > read.query_length - self._qc['max_base_position']:

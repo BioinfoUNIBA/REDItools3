@@ -7,9 +7,20 @@ from reditools.tools.analyze.setup_alignment_manager import (
     setup_alignment_manager,
 )
 from reditools.tools.analyze.write_results import write_results
+from reditools.tools.analyze.rtchecks import RTChecks
 
+def analyze(options, rtools, sam_manager, region, rtqc):
+    rtresults = rtools.analyze(sam_manager, region)
+    return write_results(
+        rtresults,
+        options.file,
+        options.output_format,
+        options.temp_dir,
+        rtqc,
+        rtools.log,
+    )
 
-def run_proc(options, in_queue, out_queue):
+def redi_thread(options, in_queue, out_queue):
     """
     Analyze a genomic segment using REDItools.
 
@@ -28,19 +39,14 @@ def run_proc(options, in_queue, out_queue):
         options.min_read_length,
         options.exclude_reads,
     )
+    rtqc = RTChecks(options)
     while True:
         args = in_queue.get()
         if args is None:
             return True
         idx, region = args
         try:  # noqa: WPS229
-            rtresults = rtools.analyze(sam_manager, region)
-            out_queue.put((idx, write_results(
-                rtresults,
-                options.file,
-                options.output_format,
-                options.temp_dir,
-            )))
+            out_queue.put((idx, analyze(options, rtools, sam_manager, region, rtqc)))
         except Exception as exc:
             if options.debug:
                 traceback.print_exception(*sys.exc_info())

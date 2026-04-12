@@ -1,5 +1,6 @@
 import csv
 from tempfile import NamedTemporaryFile
+from reditools.logger import Logger
 
 _empty = '-'
 
@@ -19,7 +20,7 @@ def edit_ratio(rtresult):
         return 0
 
 def write_results(rtresults, file_name, output_format,
-                  temp_dir):
+                  temp_dir, filters, logger):
     """
     Write the results from a REDItools analysis to a temporary file.
 
@@ -28,6 +29,7 @@ def write_results(rtresults, file_name, output_format,
         file_name (string): Input file name for analysis
         output_format (dict): keyword arguments for csv.writer constructor.
         temp_dir (str): Location to save results
+        filters (RTChecks): Filters what to write
 
     Returns:
         string: Name of the results file.
@@ -35,6 +37,10 @@ def write_results(rtresults, file_name, output_format,
     with NamedTemporaryFile(mode='w', delete=False, dir=temp_dir) as stream:
         writer = csv.writer(stream, **output_format)
         for rt_result in rtresults:
+            msg = filters.check(rt_result)
+            if msg:
+                logger(Logger.debug_level, *msg)
+                continue
             variants = rt_result.variants
             writer.writerow([
                 rt_result.contig,

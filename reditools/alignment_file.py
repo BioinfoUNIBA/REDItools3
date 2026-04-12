@@ -2,6 +2,37 @@
 
 from pysam.libcalignmentfile import AlignmentFile as PysamAlignmentFile
 
+class ReadQC:
+    _flags_to_keep = {0, 16, 83, 99, 147, 163}
+
+    def __init__(self, min_quality, min_length, exclude_set):
+        self.min_quality = min_quality
+        self.min_length = min_length
+        self.exclude_set = exclude_set
+
+        self.check_list = [self.check_baseline]
+        if self.min_quality > 0:
+            self.check_list.append(self.check_quality)
+        if self.min_length > 0:
+            self.check_list.append(self.check_length)
+        if self.exclude_set:
+            self.check_list.append(self.check_exclude_set)
+
+    def check_baseline(self, read):
+        return read.flag in self._flags_to_keep and not read.has_tag('SA')
+    
+    def check_quality(self, read):
+        return read.mapping_quality >= self.min_quality
+
+    def check_length(self, read):
+        return read.query_length >= self.min_length
+
+    def check_exclude_set(self, read):
+        return read.query_name not in self.exclude_set
+
+    def run_check(self, read):
+        return all(_(read) for _ in self.check_list)
+
 
 class RTAlignmentFile(PysamAlignmentFile):
     """Wrapper for pysam.AlignmentFile to provide filtering on fetch."""
@@ -19,9 +50,10 @@ class RTAlignmentFile(PysamAlignmentFile):
         """
         kwargs.pop('min_quality', None)
         kwargs.pop('min_length', None)
+        kwargs.pop('exclude_set', None)
         return PysamAlignmentFile.__new__(cls, *args, **kwargs)
 
-    def __init__(self, *args, min_quality=0, min_length=0, **kwargs):
+    def __init__(self, *args, min_quality=0, min_length=0, exclude_set=None, **kwargs, ):
         """
         Create a wrapper for pysam.AlignmentFile.
 
@@ -37,26 +69,7 @@ class RTAlignmentFile(PysamAlignmentFile):
         PysamAlignmentFile.__init__(self)
 
         self._checklist = []
-
-        if min_quality > 0:
-            self._min_quality = min_quality
-            self._checklist.append(self._check_quality)
-
-        if min_length > 0:
-            self._min_length = min_length
-            self._checklist.append(self._check_length)
-
-    @property
-    def exclude_reads(self):
-        """
-        Set of read names not to be fetched.
-        """
-        return self._exclude_reads
-
-    @exclude_reads.setter
-    def exclude_reads(self, read_names):
-        self._exclude_reads = set(read_names)
-        self._checklist.append(self._check_read_name)
+        self.readqc = ReadQC(min_quality, min_length, exclude_set)
 
     def fetch(self, *args, **kwargs):
         """
@@ -77,7 +90,7 @@ class RTAlignmentFile(PysamAlignmentFile):
         except ValueError:
             return
         for read in iterator:
-            if self._check_read(read):
+            if self.readqc.run_check(read):
                 yield read
 
     def fetch_by_position(self, *args, **kwargs):
@@ -108,25 +121,3 @@ class RTAlignmentFile(PysamAlignmentFile):
                 reads = [read]
                 ref_start = read.reference_start
         yield reads
-
-    def _check_quality(self, read):
-        return read.mapping_quality >= self._min_quality
-
-    def _check_length(self, read):
-        return read.query_length >= self._min_length
-
-    def _check_read_name(self, read):
-        return read.query_name not in self._exclude_reads
-
-    _flags_to_keep = {0, 16, 83, 99, 147, 163}
-
-    def _check_read(self, read):
-        if read.has_tag('SA'):
-            return False
-        if read.flag not in self._flags_to_keep:
-            return False
-
-        for check in self._checklist:
-            if not check(read):
-                return False
-        return True

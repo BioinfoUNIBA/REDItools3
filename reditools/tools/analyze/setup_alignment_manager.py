@@ -1,4 +1,5 @@
 from reditools.alignment_manager import AlignmentManager
+from reditools import file_utils
 
 
 def setup_alignment_manager(
@@ -20,14 +21,21 @@ def setup_alignment_manager(
     Returns:
         AlignmentManager
     """
+
+    if exclusions_file:
+        with file_utils.open(exclusions_file, 'r') as stream:
+            exclude_set = set(_.strip() for _ in stream)
+    else:
+        exclude_set = None
+
     sam_manager = AlignmentManager(
         ignore_truncation=True,
+        exclude_set=exclude_set
     )
     sam_manager.min_quality = min_read_quality
     sam_manager.min_length = min_read_length
     for sam in file_list:
         sam_manager.add_file(
             sam,
-            exclusions_file,
         )
     return sam_manager

@@ -1,7 +1,7 @@
 import unittest
 import os
 from reditools.fasta_file import RTFastaFile
-from reditools.compiled_reads import CompiledReads
+from reditools.compiled_reads import CompiledReads, RefFetch
 from pysam import AlignmentFile
 from test.sam_gen import SAM, Sequence, ntf
 
@@ -27,11 +27,13 @@ class TestCompiledReads(unittest.TestCase):
         sam_obj.genome.save_to_fasta(self.fasta_fname)
         sam_obj.save_to_sam(self.bam_fname, self.fasta_fname)
 
-        cr = CompiledReads(fasta_file=RTFastaFile(self.fasta_fname))
+        md_ref_fetch = RefFetch()
+        fa_ref_fetch = RefFetch(self.fasta_fname)
+
         with AlignmentFile(self.bam_fname) as af:
             read = next(af.fetch())
-        self.assertEqual(''.join(cr._get_ref_from_read(read)), spliceseq)
-        self.assertEqual(''.join(cr._get_ref_from_fasta(read)), spliceseq)
+        self.assertEqual(''.join(md_ref_fetch.get_refseq(read)), spliceseq)
+        self.assertEqual(''.join(fa_ref_fetch.get_refseq(read)), spliceseq)
 
     def test_ref_seq_unspliced(self):
         sam_obj = SAM()
@@ -41,12 +43,13 @@ class TestCompiledReads(unittest.TestCase):
         sam_obj.genome.save_to_fasta(self.fasta_fname)
         sam_obj.save_to_sam(self.bam_fname, self.fasta_fname)
 
-        cr = CompiledReads(fasta_file=RTFastaFile(self.fasta_fname))
+        md_ref_fetch = RefFetch()
+        fa_ref_fetch = RefFetch(self.fasta_fname)
 
         with AlignmentFile(self.bam_fname) as af:
             read = next(af.fetch())
-        self.assertEqual(''.join(cr._get_ref_from_read(read)), refseq)
-        self.assertEqual(''.join(cr._get_ref_from_fasta(read)), refseq)
+        self.assertEqual(''.join(md_ref_fetch.get_refseq(read)), refseq)
+        self.assertEqual(''.join(fa_ref_fetch.get_refseq(read)), refseq)
 
     def test_ref_seq_snp(self):
         sam_obj = SAM()
@@ -58,16 +61,17 @@ class TestCompiledReads(unittest.TestCase):
         sam_obj.genome.save_to_fasta(self.fasta_fname)
         sam_obj.save_to_sam(self.bam_fname, self.fasta_fname)
 
-        cr = CompiledReads(fasta_file=RTFastaFile(self.fasta_fname))
+        md_ref_fetch = RefFetch()
+        fa_ref_fetch = RefFetch(self.fasta_fname)
 
         with AlignmentFile(self.bam_fname) as af:
             read = next(af.fetch())
         self.assertEqual(
-            ''.join(cr._get_ref_from_read(read)),
+            ''.join(fa_ref_fetch.get_refseq(read)),
             sam_obj.genome['chr1'],
         )
         self.assertEqual(
-            ''.join(cr._get_ref_from_fasta(read)),
+            ''.join(md_ref_fetch.get_refseq(read)),
             sam_obj.genome['chr1'],
         )
 
