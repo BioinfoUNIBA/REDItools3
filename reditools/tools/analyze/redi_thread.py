@@ -13,7 +13,6 @@ def analyze(options, rtools, sam_manager, region, rtqc):
     rtresults = rtools.analyze(sam_manager, region)
     return write_results(
         rtresults,
-        options.file,
         options.output_format,
         options.temp_dir,
         rtqc,

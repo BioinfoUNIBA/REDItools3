@@ -19,14 +19,13 @@ def edit_ratio(rtresult):
     except ZeroDivisionError:
         return 0
 
-def write_results(rtresults, file_name, output_format,
+def write_results(rtresults, output_format,
                   temp_dir, filters, logger):
     """
     Write the results from a REDItools analysis to a temporary file.
 
     Parameters:
         rtresults (iterable): REDItools results
-        file_name (string): Input file name for analysis
         output_format (dict): keyword arguments for csv.writer constructor.
         temp_dir (str): Location to save results
         filters (RTChecks): Filters what to write
