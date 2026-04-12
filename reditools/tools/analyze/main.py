@@ -10,7 +10,7 @@ from reditools.tools.analyze.concat_output import concat_output
 from reditools.tools.analyze.monitor import monitor
 from reditools.tools.analyze.parse_args import parse_args
 from reditools.tools.analyze.region_args import region_args
-from reditools.tools.analyze.run_proc import run_proc
+from reditools.tools.analyze.redi_thread import redi_thread
 
 def options_to_string(options):
     return ", ".join(
@@ -72,7 +72,7 @@ def main():
     processes = []
     for _ in range(options.threads):
         processes.append(Process(
-            target=run_proc,
+            target=redi_thread,
             args=(options, in_queue, out_queue),
         ))
 
