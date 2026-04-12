@@ -7,7 +7,6 @@ Authors:
 """
 
 from reditools.compiled_reads import CompiledReads
-from reditools.fasta_file import RTFastaFile
 from reditools.logger import Logger
 
 
@@ -99,7 +98,7 @@ class REDItools:
             if next_read_start is None or next_read_start > region.stop:
                 next_read_start = region.stop
 
-            for bases in nucleotides.iter_range(
+            for bases in nucleotides.pop_range(
                     reads[0].reference_start,
                     next_read_start,
             ):
@@ -129,7 +128,7 @@ class REDItools:
         Parameters:
             reference_fname (str): File path to FASTA reference
         """
-        self.reference = RTFastaFile(reference_fname)
+        self.reference = reference_fname
 
     def _process_bases(self, bases):
         self.log(

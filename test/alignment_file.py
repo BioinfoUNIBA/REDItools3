@@ -81,8 +81,10 @@ class TestRTAlignmentFile(unittest.TestCase):
         self.sam_obj.genome.save_to_fasta(self.genome_fname)
         self.sam_obj.save_to_sam(self.bam_fname, self.genome_fname)
 
-        with RTAlignmentFile(self.bam_fname) as rtaf:
-            rtaf.exclude_reads = ['exclude_me']
+        with RTAlignmentFile(
+                self.bam_fname,
+                exclude_set={'exclude_me'},
+        ) as rtaf:
             reads = list(rtaf.fetch())
             self.assertEqual(len(reads), 1)
             self.assertEqual(reads[0].qname, 'include_me')

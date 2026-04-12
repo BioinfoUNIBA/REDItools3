@@ -18,8 +18,8 @@ class TestAlignmentManager(unittest.TestCase):
         rtam = AlignmentManager(min_length=10, min_quality=30)
         rtam.add_file(bam_fname)
 
-        self.assertEqual(rtam._bams[0]._min_length, 10)
-        self.assertEqual(rtam._bams[0]._min_quality, 30)
+        self.assertEqual(rtam._bams[0].readqc.min_length, 10)
+        self.assertEqual(rtam._bams[0].readqc.min_quality, 30)
 
         os.remove(genome_fname)
         os.remove(bam_fname)
