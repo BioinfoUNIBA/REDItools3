@@ -2,6 +2,7 @@
 import sys
 from queue import Empty as EmptyQueueException
 
+
 def check_dead(processes):
     """
     Look through processes to determine if any have died unexpectedly.

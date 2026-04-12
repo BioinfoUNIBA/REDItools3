@@ -1,7 +1,8 @@
-import unittest
 import os
-from reditools.alignment_manager import AlignmentManager
+import unittest
 from test.sam_gen import SAM, Sequence, ntf
+
+from reditools.alignment_manager import AlignmentManager
 
 
 class TestAlignmentManager(unittest.TestCase):

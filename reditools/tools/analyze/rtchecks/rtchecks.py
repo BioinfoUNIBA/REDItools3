@@ -1,6 +1,7 @@
 """Quality control for REDItools analyses."""
 from reditools.tools.analyze import rtchecks
 
+
 class RTChecks(object):
     """Quality control for REDItools analyses."""
 

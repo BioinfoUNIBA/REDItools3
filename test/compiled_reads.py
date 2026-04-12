@@ -1,8 +1,10 @@
-import unittest
 import os
-from reditools.compiled_reads import CompiledReads, RefFetch
-from pysam import AlignmentFile
+import unittest
 from test.sam_gen import SAM, Sequence, ntf
+
+from pysam import AlignmentFile
+
+from reditools.compiled_reads import CompiledReads, RefFetch
 
 
 class TestCompiledReads(unittest.TestCase):

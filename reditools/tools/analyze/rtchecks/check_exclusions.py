@@ -1,5 +1,6 @@
-from reditools.region_collection import RegionCollection
 from reditools import file_utils
+from reditools.region_collection import RegionCollection
+
 
 class CheckExclusions:
     def __init__(self, options):

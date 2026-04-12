@@ -3,6 +3,7 @@
 from reditools.compiled_position import CompiledPosition
 from reditools.fasta_file import RTFastaFile
 
+
 class RefFetch:
     def __init__(self, fasta_file_path=None):
         if fasta_file_path:

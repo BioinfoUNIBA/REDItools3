@@ -1,16 +1,16 @@
 """Commandline tool for REDItools."""
 
 import sys
-
 from multiprocessing import Process, Queue
+
 from reditools import file_utils
 from reditools.logger import Logger
-
 from reditools.tools.analyze.concat_output import concat_output
 from reditools.tools.analyze.monitor import monitor
 from reditools.tools.analyze.parse_args import parse_args
-from reditools.tools.analyze.region_args import region_args
 from reditools.tools.analyze.redi_thread import redi_thread
+from reditools.tools.analyze.region_args import region_args
+
 
 def options_to_string(options):
     return ", ".join(

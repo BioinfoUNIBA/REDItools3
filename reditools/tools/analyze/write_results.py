@@ -1,5 +1,6 @@
 import csv
 from tempfile import NamedTemporaryFile
+
 from reditools.logger import Logger
 
 _empty = '-'

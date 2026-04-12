@@ -6,8 +6,8 @@ Authors:
     ahanden - 2022
 """
 
-from reditools.compiled_reads import CompiledReads
 from reditools.compiled_position import RTResult
+from reditools.compiled_reads import CompiledReads
 from reditools.logger import Logger
 
 

@@ -1,8 +1,10 @@
-import unittest
 import os
+import unittest
 from tempfile import NamedTemporaryFile
-from reditools.tools.analyze.rtchecks import RTChecks
+
 from reditools.compiled_position import CompiledPosition, RTResult
+from reditools.tools.analyze.rtchecks import RTChecks
+
 
 class Namespace:
     def __init__(self, **kwargs):

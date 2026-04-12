@@ -1,8 +1,9 @@
-import unittest
 import os
+import unittest
+from test.sam_gen import SAM, Sequence, ntf
+
 from reditools.alignment_file import RTAlignmentFile
 from reditools.region import Region
-from test.sam_gen import SAM, Sequence, ntf
 
 
 class TestRTAlignmentFile(unittest.TestCase):

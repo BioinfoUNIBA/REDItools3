@@ -1,5 +1,6 @@
 import re
 
+
 class CheckVariants:
     def __init__(self, options):
         pa = re.compile('[ATCG]{2}', re.IGNORE_CASE)

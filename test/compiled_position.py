@@ -1,5 +1,7 @@
 import unittest
+
 from reditools.compiled_position import CompiledPosition, RTResult
+
 
 class TestCompiledPosition(unittest.TestCase):
     def setUp(self):

@@ -1,4 +1,5 @@
 import unittest
+
 from reditools.region import Region
 from reditools.region_collection import RegionCollection
 

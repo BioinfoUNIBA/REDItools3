@@ -1,9 +1,11 @@
 import argparse
-from reditools import file_utils
 import csv
 import sys
 import traceback
+
 import pysam
+
+from reditools import file_utils
 from reditools.rtannotater import RTAnnotater
 from reditools.tools.annotate.parse_args import parse_args
 

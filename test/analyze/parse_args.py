@@ -2,8 +2,8 @@ import sys
 import unittest
 from contextlib import contextmanager
 from io import StringIO
-from reditools.tools.analyze.parse_args import parse_args
 
+from reditools.tools.analyze.parse_args import parse_args
 
 
 class TestParseArgs(unittest.TestCase):

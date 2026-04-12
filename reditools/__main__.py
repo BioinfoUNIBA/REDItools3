@@ -1,6 +1,7 @@
 """Commandline tool for REDItools."""
 
 import sys
+
 from reditools.tools import analyze, annotate, find_repeats, index
 
 

@@ -1,5 +1,5 @@
-from reditools.alignment_manager import AlignmentManager
 from reditools import file_utils
+from reditools.alignment_manager import AlignmentManager
 
 
 def setup_alignment_manager(

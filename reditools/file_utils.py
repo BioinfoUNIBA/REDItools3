@@ -2,8 +2,8 @@
 
 import csv
 import os
-from gzip import open as gzip_open
 import re
+from gzip import open as gzip_open
 
 from reditools.region import Region
 

@@ -1,7 +1,8 @@
-import unittest
 import os
-from reditools.region import Region
+import unittest
 from test.sam_gen import SAM, ntf
+
+from reditools.region import Region
 
 
 class TestRegion(unittest.TestCase):

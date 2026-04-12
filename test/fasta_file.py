@@ -1,9 +1,10 @@
-import unittest
-from tempfile import NamedTemporaryFile
 import os
-from reditools.fasta_file import RTFastaFile
 import random
+import unittest
 from itertools import chain
+from tempfile import NamedTemporaryFile
+
+from reditools.fasta_file import RTFastaFile
 
 
 class TestRTFastaFile(unittest.TestCase):

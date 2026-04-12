@@ -1,10 +1,11 @@
+import os
 import random
+import re
+from dataclasses import InitVar, dataclass
+from tempfile import NamedTemporaryFile
+
 from Bio.Align import PairwiseAligner
 from pysam import samtools
-import os
-from tempfile import NamedTemporaryFile
-import re
-from dataclasses import dataclass, InitVar
 
 
 class Genome:

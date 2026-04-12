@@ -1,5 +1,6 @@
-from reditools import file_utils
 import csv
+
+from reditools import file_utils
 
 
 class RTAnnotater:

@@ -2,6 +2,7 @@
 
 from pysam.libcalignmentfile import AlignmentFile as PysamAlignmentFile
 
+
 class ReadQC:
     _flags_to_keep = {0, 16, 83, 99, 147, 163}
 

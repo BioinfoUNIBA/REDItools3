@@ -1,7 +1,8 @@
 """Commandline tool for REDItools."""
 
-import sys
 import csv
+import sys
+
 from reditools import file_utils
 
 fieldnames = [

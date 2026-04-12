@@ -1,9 +1,10 @@
 import os
 import unittest
+from dataclasses import InitVar, dataclass
+from test.sam_gen import SAM, ntf
+
 from reditools.region import Region
 from reditools.tools.analyze.region_args import region_args
-from test.sam_gen import SAM, ntf
-from dataclasses import dataclass, InitVar
 
 
 @dataclass

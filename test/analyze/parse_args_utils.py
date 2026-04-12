@@ -1,8 +1,8 @@
-import unittest
 import argparse
-from reditools.tools.analyze.parse_args import (
-    check_number_bounds, bounded_int, bounded_float
-)
+import unittest
+
+from reditools.tools.analyze.parse_args import (bounded_float, bounded_int,
+                                                check_number_bounds)
 
 
 class TestParseArgsUtils(unittest.TestCase):

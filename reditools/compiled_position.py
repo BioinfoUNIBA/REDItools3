@@ -1,6 +1,7 @@
 """Organizational structure for tracking base coverage of genomic positions."""
 from dataclasses import dataclass, field
 
+
 class RTResult:
     _base_order = 'ACGT'
     def __init__(self, compiled_position, strand):

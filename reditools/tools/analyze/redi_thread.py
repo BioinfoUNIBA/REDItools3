@@ -1,13 +1,13 @@
 """Commandline tool for REDItools."""
-import traceback
 import sys
+import traceback
 
-from reditools.tools.analyze.setup_rtools import setup_rtools
-from reditools.tools.analyze.setup_alignment_manager import (
-    setup_alignment_manager,
-)
-from reditools.tools.analyze.write_results import write_results
 from reditools.tools.analyze.rtchecks import RTChecks
+from reditools.tools.analyze.setup_alignment_manager import \
+    setup_alignment_manager
+from reditools.tools.analyze.setup_rtools import setup_rtools
+from reditools.tools.analyze.write_results import write_results
+
 
 def analyze(options, rtools, sam_manager, region, rtqc):
     rtresults = rtools.analyze(sam_manager, region)

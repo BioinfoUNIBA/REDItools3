@@ -1,5 +1,6 @@
-from reditools.region import Region
 from pysam import AlignmentFile
+
+from reditools.region import Region
 
 
 def region_args(options):

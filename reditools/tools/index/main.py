@@ -1,6 +1,7 @@
 """Commandline tool for REDItools."""
 
 import sys
+
 from reditools.file_utils import open_stream
 from reditools.region import Region
 from reditools.rtindexer import RTIndexer

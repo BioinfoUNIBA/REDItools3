@@ -1,9 +1,10 @@
+import gzip
+import os
 import unittest
 from tempfile import NamedTemporaryFile
-import os
+
 from reditools import file_utils
 from reditools.region import Region
-import gzip
 
 
 class TestFileUtils(unittest.TestCase):
