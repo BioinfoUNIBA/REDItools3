@@ -30,4 +30,7 @@ class RTChecks(object):
         Returns:
             None if QC passed, else debug message (tuple)
         """
-        return next((_.run_check(bases) for _ in self.check_list), None)
+        for check_class in self.check_list:
+            check_result = check_class.run_check(bases)
+            if check_result is not None:
+                return check_result
