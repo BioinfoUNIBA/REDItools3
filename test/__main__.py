@@ -11,6 +11,7 @@ from test.compiled_position import TestCompiledPosition
 from test.compiled_reads import TestCompiledReads
 from test.fasta_file import TestRTFastaFile
 from test.file_utils import TestFileUtils
+from test.reditools import TestREDItools
 from test.region import TestRegion
 from test.region_collection import TestRegionCollection
 
