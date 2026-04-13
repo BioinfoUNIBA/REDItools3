@@ -6,6 +6,7 @@ from test.analyze.parse_args_utils import TestParseArgsUtils
 from test.analyze.region_args import TestRegionArgs
 from test.analyze.rtchecks import TestRTChecks
 from test.analyze.setup_alignment_manager import TestSetupAlignmentManager
+from test.analyze.setup_rtools import TestSetupRTools
 from test.compiled_position import TestCompiledPosition
 from test.compiled_reads import TestCompiledReads
 from test.fasta_file import TestRTFastaFile
