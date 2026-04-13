@@ -22,4 +22,4 @@ jobs:
       - name: Install the project
         run: uv sync --extra wps --dev
       - name: Run tests
-        run: uv run -m flake8
+        run: uv run -m flake8 reditools/ test/
