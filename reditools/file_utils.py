@@ -84,7 +84,7 @@ def load_text_file(file_name):
 
 
 def _read_splice_sites(stream):
-    pa = re.compile('(\S+) (\d+) \d+ (A|D) ([+-])')
+    pa = re.compile(r'(\S+) (\d+) \d+ (A|D) ([+-])')
     for idx, row in enumerate(stream, start=1):
         if row.startswith('#'):
             continue
