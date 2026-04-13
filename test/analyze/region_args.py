@@ -1,9 +1,9 @@
 import os
 import unittest
-from test.analyze.options import Options
 from test.sam_gen import SAM, ntf
 
 from reditools.region import Region
+from reditools.tools.analyze.parse_args import parse_args
 from reditools.tools.analyze.region_args import region_args
 
 
@@ -25,21 +25,27 @@ class TestRegionArgs(unittest.TestCase):
         os.remove(self.bam_fname)
 
     def test_no_input(self):
-        options = Options(self.bam_fname)
+        options = parse_args([self.bam_fname])
         regions = region_args(options)
         self.assertEqual(len(regions), 3)
 
     def test_region_input(self):
-        options = Options(self.bam_fname, 'chr1:1-100')
+        options = parse_args([self.bam_fname, '--region', 'chr1:1-100'])
         regions = region_args(options)
         self.assertEqual(regions, [Region('chr1', 0, 100)])
 
     def test_region_window(self):
-        options = Options(self.bam_fname, 'chr1:1-100', 10)
+        options = parse_args([
+            self.bam_fname,
+            '--region',
+            'chr1:1-100',
+            '--window',
+            '10',
+        ])
         regions = region_args(options)
         self.assertEqual(len(regions), 10)
 
     def test_bam_window(self):
-        options = Options(self.bam_fname, window=70)
+        options = parse_args([self.bam_fname, '--window', '70'])
         regions = region_args(options)
         self.assertEqual(len(regions), 5)
