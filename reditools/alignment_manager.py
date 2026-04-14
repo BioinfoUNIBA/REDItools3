@@ -1,6 +1,8 @@
 """Wrappers for pysam files."""
 from itertools import chain
+
 from reditools.alignment_file import RTAlignmentFile
+
 
 class ReadGroupIter:
     __slots__ = ('iterator', 'reads', 'reference_start')
