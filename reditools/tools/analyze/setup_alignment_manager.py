@@ -23,16 +23,15 @@ def setup_alignment_manager(
     """
 
     if exclusions_file:
-        exclude_set = set(file_utils.read_bed_file(exclusions_file))
+        exclude_set = set(file_utils.load_text_file(exclusions_file))
     else:
         exclude_set = None
 
     sam_manager = AlignmentManager(
-        ignore_truncation=True,
-        exclude_set=exclude_set
+        min_quality = min_read_quality,
+        min_length = min_read_length,
+        excluded_read_names=exclude_set,
     )
-    sam_manager.min_quality = min_read_quality
-    sam_manager.min_length = min_read_length
     for sam in file_list:
         sam_manager.add_file(
             sam,

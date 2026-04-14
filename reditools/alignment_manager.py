@@ -63,32 +63,20 @@ class FetchGroupIter:
         return list(chain(*reads))
 
 class AlignmentManager:
-    """
-    Manage multiple RTAlignmentFiles with a single fetch.
-
-    Attributes:
-        min_quality (int): Minimum read quality (applied during add_file)
-        min_length (int): Minimum read length (applied during add_file)
-    """
-
-    def __init__(self, exclude_set=None, *args, **kwargs):  # noqa: WPS475
-        """
-        Create a new manager.
-
-        Parameters:
-            *args (list): positional arguments for pysam.AlignmentFile
-                constructor
-            **kwargs (dict): named arguments for pysam.AlignmentFile
-                constructor
-        """
-        self._bam_args = args
-        self._bam_kwargs = kwargs
+    def __init__(
+            self,
+            excluded_read_names=None,
+            min_quality=0,
+            min_length=0,
+    ):  # noqa: WPS475
         self._bams = []
         self.file_list = []
         self.next_read_start = None
-        self.exclude_set = exclude_set
+        self.excluded_read_names = excluded_read_names
+        self.min_quality = min_quality
+        self.min_length = min_length
 
-    def add_file(self, fname, exclude_reads=None):
+    def add_file(self, fname):
         """
         Add an alignment file to the manager for analysis.
 
@@ -98,11 +86,10 @@ class AlignmentManager:
         """
         new_file = RTAlignmentFile(
             fname,
-            *self._bam_args,
-            exclude_set=self.exclude_set,
-            **self._bam_kwargs,
+            excluded_read_names=self.excluded_read_names,
+            min_length=self.min_length,
+            min_quality=self.min_quality,
         )
-        new_file.check_index()
         self._bams.append(new_file)
         self.file_list.append(fname)
 

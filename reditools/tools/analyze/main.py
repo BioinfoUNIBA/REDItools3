@@ -3,7 +3,6 @@
 import sys
 from multiprocessing import Process, Queue
 
-from reditools import file_utils
 from reditools.logger import Logger
 from reditools.tools.analyze.concat_output import concat_output
 from reditools.tools.analyze.monitor import monitor
@@ -60,10 +59,6 @@ def main():
 
     options.output_format = {'delimiter': '\t', 'lineterminator': '\n'}
     options.encoding = 'utf-8'
-    if options.exclude_reads:
-        options.exclude_reads = file_utils.load_text_file(
-            options.exclude_reads,
-        )
 
     in_queue = fill_queue(options)
 
