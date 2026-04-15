@@ -1,6 +1,6 @@
 """Wrappers for pysam files."""
 
-from typing import Iterator
+from typing import Collection, Iterator
 
 from pysam import AlignedSegment
 from pysam.libcalignmentfile import AlignmentFile as PysamAlignmentFile
@@ -15,7 +15,7 @@ class ReadQC:
             self,
             min_quality: int,
             min_length: int,
-            excluded_read_names: set | None,
+            excluded_read_names: Collection[str] | None,
     ):
         self.min_quality = min_quality
         self.min_length = min_length
@@ -27,6 +27,7 @@ class ReadQC:
         if self.min_length > 0:
             self.check_list.append(self.check_length)
         if self.excluded_read_names:
+            self.excluded_read_names = set(self.excluded_read_names)
             self.check_list.append(self.check_excluded_read_names)
 
     def check_baseline(self, read: AlignedSegment) -> bool:
@@ -53,7 +54,7 @@ class RTAlignmentFile:
             *args,
             min_quality: int=0,
             min_length: int=0,
-            excluded_read_names: set | None=None,
+            excluded_read_names: Collection[str] | None=None,
             **kwargs,
     ):
         kwargs['ignore_truncation'] = True
