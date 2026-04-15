@@ -60,28 +60,6 @@ class RTAlignmentFile:
     def __exit__(self, exc_type, exc_value, traceback):
         self.alignment_file.close()
 
-    def fetch(self, *args, **kwargs):
-        """
-        Fetch reads that pass interal quality control filters.
-
-        Parameters:
-            *args (list): Positional arguments for pysam.AlignmentFile.fetch
-            *kwargs (list): Keyword arguments for pysam.AlignmentFile.fetch
-
-        Yields:
-             pysam.AlignedSegment
-        """
-        region = kwargs.get('region')
-        if region is not None:
-            kwargs['region'] = str(region)
-        try:
-            iterator = self.alignment_file.fetch(*args, **kwargs)
-        except ValueError:
-            return
-        for read in iterator:
-            if self.readqc.run_check(read):
-                yield read
-
     def fetch_by_position(self, region, *args, **kwargs):
         """
         Retrieve reads that all start at the same point on the reference.
