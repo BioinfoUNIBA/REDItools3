@@ -24,7 +24,10 @@ class RefFetch:
     def get_ref_from_fasta(self, read: AlignedSegment) -> Iterator[str]:
         pairs = read.get_aligned_pairs(matches_only=True)
         indices = [ref for _, ref in pairs]
-        return self.fasta_file.get_base(read.reference_name, *indices)
+        return self.fasta_file.get_base(
+            read.reference_name,  # type: ignore
+            *indices,
+        )
 
 
 class CompiledReads:

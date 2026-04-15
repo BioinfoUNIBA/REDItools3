@@ -1,4 +1,5 @@
 """Wrappers for PysamFastaFile."""
+from typing import Iterator
 
 from pysam.libcfaidx import FastaFile as PysamFastaFile
 
@@ -29,7 +30,7 @@ class RTFastaFile(PysamFastaFile):
         """
         PysamFastaFile.__init__(self)
 
-    def get_base(self, contig, *position):
+    def get_base(self, contig: str, *position: int) -> Iterator[str]:
         """
         Retrieve the base at the given position.
 
