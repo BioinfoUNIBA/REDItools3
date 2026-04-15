@@ -1,24 +1,27 @@
 """Organizational structure for tracking base coverage of genomic positions."""
+from typing import Iterator, Optional
+
+from pysam import AlignedSegment
 
 from reditools.compiled_position import CompiledPosition
 from reditools.fasta_file import RTFastaFile
 
 
 class RefFetch:
-    def __init__(self, fasta_file_path=None):
+    def __init__(self, fasta_file_path: Optional[str]=None):
         if fasta_file_path:
             self.fasta_file = RTFastaFile(fasta_file_path)
             self.get_refseq = self.get_ref_from_fasta
         else:
             self.get_refseq = self.get_ref_from_read
 
-    def get_ref_from_read(self, read):
+    def get_ref_from_read(self, read: AlignedSegment) -> Iterator[str]:
         return (_[2].upper() for _ in read.get_aligned_pairs(
             with_seq=True,
             matches_only=True,
         ))
 
-    def get_ref_from_fasta(self, read):
+    def get_ref_from_fasta(self, read: AlignedSegment) -> Iterator[str]:
         pairs = read.get_aligned_pairs(matches_only=True)
         indices = [ref for _, ref in pairs]
         return self.fasta_file.get_base(read.reference_name, *indices)
@@ -31,11 +34,11 @@ class CompiledReads:
 
     def __init__(
         self,
-        strand=0,
-        min_base_position=0,
-        max_base_position=0,
-        min_base_quality=0,
-        fasta_file=None,
+        strand: int=0,
+        min_base_position: int=0,
+        max_base_position: int=0,
+        min_base_quality: int=0,
+        fasta_file: Optional[str]=None,
     ):
         """
         Create a new CompiledReads object.
@@ -47,7 +50,7 @@ class CompiledReads:
             min_base_quality (int): Minimum base quality to report
             fasat_file (RTFastaFile): Optional genomic reference
         """
-        self._nucleotides = {}
+        self._nucleotides: dict[int, CompiledPosition] = {}
         if strand == 0:
             self.get_strand = self._unstranded_strand
         else:
@@ -65,7 +68,7 @@ class CompiledReads:
             'max_base_position': max_base_position,
         }
 
-    def add_reads(self, reads):
+    def add_reads(self, reads: list[AlignedSegment]) -> None:
         """
         Add iterable of pysam reads to the object.
 
@@ -82,11 +85,11 @@ class CompiledReads:
                     self._nucleotides[pos] = CompiledPosition(
                         ref=ref,
                         position=pos,
-                        contig=read.reference_name,
+                        contig=read.reference_name,  # type: ignore
                     )
                 self._nucleotides[pos].add_base(quality, strand, base)
 
-    def pop_range(self, start, stop):
+    def pop_range(self, start, stop) -> Iterator[CompiledPosition]:
         """
         Iteratively calls pop across a genomic range.
 
@@ -104,7 +107,10 @@ class CompiledReads:
             if bases is not None:
                 yield bases
 
-    def _prep_read(self, read):  # noqa: WPS231
+    def _prep_read(  # noqa: WPS231
+            self,
+            read: AlignedSegment,
+    ) -> Iterator[tuple[int, str, int, str]]:
         for (read_pos, ref_pos), ref_base in zip(
                 read.get_aligned_pairs(matches_only=True),
                 self.reference.get_refseq(read),
@@ -115,16 +121,16 @@ class CompiledReads:
             # Left end trim
             if read_pos < self._qc['min_base_position']:
                 continue
-            read_base = read.query_sequence[read_pos]
+            read_base = read.query_sequence[read_pos]  # type: ignore
             if ref_base == 'N' or read_base == 'N':
                 continue
-            phred = read.query_qualities[read_pos]
+            phred = read.query_qualities[read_pos]  # type: ignore
             if phred < self._qc['min_base_quality']:
                 continue
             yield (ref_pos, read_base, phred, ref_base)
 
-    def _unstranded_strand(self, read):
+    def _unstranded_strand(self, read: AlignedSegment) -> int:
         return 2
 
-    def _stranded_strand(self, read):
+    def _stranded_strand(self, read: AlignedSegment) -> int:
         return read.flag in self.forward_flags
