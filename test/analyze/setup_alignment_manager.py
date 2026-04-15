@@ -2,7 +2,6 @@ import os
 import unittest
 from test.sam_gen import SAM, ntf
 
-from reditools.region import Region
 from reditools.tools.analyze.setup_alignment_manager import \
     setup_alignment_manager
 
@@ -23,7 +22,7 @@ class TestSetupAlignmentManager(unittest.TestCase):
 
         exclusions_fname = ntf(suffix='.bed')
         with open(exclusions_fname, 'w') as stream:
-            stream.write('chr1\t100\t200\n')
+            stream.write('bad_read')
 
         rtam = setup_alignment_manager(
             [bam_fname],
@@ -34,7 +33,7 @@ class TestSetupAlignmentManager(unittest.TestCase):
 
         self.assertEqual(rtam.min_quality, 50)
         self.assertEqual(rtam.min_length, 123)
-        self.assertIn(Region('chr1', 100, 200), rtam.exclude_set)
+        self.assertIn('bad_read', rtam.excluded_read_names)
 
         os.remove(fasta_fname)
         os.remove(bam_fname)

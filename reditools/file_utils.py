@@ -37,7 +37,6 @@ def read_bed_file(*path):
     """
     if len(path) > 1:
         yield from read_bed_file(*path[1:])
-
     with open_stream(path[0]) as stream:
         reader = csv.reader(
             filter(lambda row: row[0] != '#', stream),
