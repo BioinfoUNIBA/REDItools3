@@ -86,7 +86,8 @@ class RTAnnotater:
 
                 while self.cmp_position(rna_entry, dna_entry) > 0:
                     dna_entry = next(dna_reader, None)
-                if dna_entry is not None and self.cmp_position(rna_entry, dna_entry) == 0:
+                if dna_entry is not None and \
+                        self.cmp_position(rna_entry, dna_entry) == 0:
                     self.legacy_translate(dna_entry)
                     yield self.annotate_row(rna_entry, dna_entry)
                 else:

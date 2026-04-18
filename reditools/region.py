@@ -27,7 +27,7 @@ class Region:
             return self.contig
         return f'{self.contig}:{one_idx_start}-{self.stop}'
 
-    def split(self, window: int) -> list[Region]:
+    def split(self, window: int) -> list['Region']:
         """
         Split the region into a list of smaller regions.
 
@@ -51,7 +51,7 @@ class Region:
         return sub_regions
 
     @classmethod
-    def from_string(cls, region_str: str, alignment_file: str) -> Region:
+    def from_string(cls, region_str: str, alignment_file: str) -> 'Region':
         contig, start, stop = Region.parse_string(region_str)
         if start is None:
             start = 0
