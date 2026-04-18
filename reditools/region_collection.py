@@ -1,5 +1,7 @@
 """Genomic Region Collection."""
 from collections import defaultdict
+from typing import Iterable
+from reditools.region import Region
 
 
 class RegionCollection:
@@ -17,12 +19,12 @@ class RegionCollection:
         self._last_contig = None
         self._sorted = False
 
-    def sort(self):
+    def sort(self) -> None:
         for contig, regions in self._regions.items():
             self._regions[contig] = sorted(regions)
         self._sorted = True
 
-    def contains(self, contig, position):
+    def contains(self, contig: str, position: int) -> bool:
         """
         Checks whether the given position or range overlaps with the
         collection.
@@ -60,7 +62,7 @@ class RegionCollection:
         self._index = len(self._regions[contig])
         return False
 
-    def add_regions(self, regions):
+    def add_regions(self, regions: Iterable[Region]) -> None:
         """
         Add a list or iterable of regions to the collection.
 
