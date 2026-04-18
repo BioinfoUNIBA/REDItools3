@@ -1,6 +1,7 @@
 import csv
 
 from reditools import file_utils
+from typing import IO, Iterator, Any
 
 
 class RTAnnotater:
@@ -8,12 +9,17 @@ class RTAnnotater:
         ('Coverage-q30', 'Coverage'),
         ('gCoverage-q30', 'gCoverage'),
     )
-    def __init__(self, rna_file, dna_file, contig_order):
+    def __init__(
+            self,
+            rna_file: str,
+            dna_file: str,
+            contig_order: dict[str, int],
+    ):
         self.rna_file = rna_file
         self.dna_file = dna_file
         self.contig_order = contig_order
 
-    def annotate(self, stream):
+    def annotate(self, stream: IO):
         writer = csv.DictWriter(stream, delimiter='\t', fieldnames=[
             'Region',
             'Position',
@@ -32,7 +38,11 @@ class RTAnnotater:
         writer.writeheader()
         writer.writerows(self.merge_files())
 
-    def cmp_position(self, rna_entry, dna_entry):
+    def cmp_position(
+            self,
+            rna_entry: dict[Any, Any],
+            dna_entry: dict[Any, Any] | None,
+    ) -> int:
         if dna_entry is None:
             return -1
         rna_contig_idx = self.contig_order[rna_entry['Region']]
@@ -46,7 +56,11 @@ class RTAnnotater:
             return int(rna_entry['Position']) - int(dna_entry['Position'])
         return rna_contig_idx - dna_contig_idx
 
-    def annotate_row(self, rna_row, dna_row):
+    def annotate_row(
+            self,
+            rna_row: dict[Any, Any],
+            dna_row: dict[Any, Any],
+    ) -> dict[Any, Any]:
         rna_row['gCoverage'] = dna_row['Coverage']
         rna_row['gMeanQ'] = dna_row['MeanQ']
         rna_row['gBaseCount[A,C,G,T]'] = dna_row['BaseCount[A,C,G,T]']
@@ -54,12 +68,12 @@ class RTAnnotater:
         rna_row['gFrequency'] = dna_row['Frequency']
         return rna_row
 
-    def legacy_translate(self, row):
+    def legacy_translate(self, row: dict[Any, Any]) -> dict[Any, Any]:
         for old_key, new_key in self.legacy_map:
             row[new_key] = row.pop(old_key, row.get(new_key))
         return row
 
-    def merge_files(self):
+    def merge_files(self) -> Iterator[dict[Any, Any]]:
         with file_utils.open_stream(self.rna_file, 'r') as rna_stream, \
                 file_utils.open_stream(self.dna_file, 'r') as dna_stream:
             rna_reader = csv.DictReader(rna_stream, delimiter='\t')
@@ -72,9 +86,8 @@ class RTAnnotater:
 
                 while self.cmp_position(rna_entry, dna_entry) > 0:
                     dna_entry = next(dna_reader, None)
-                if self.cmp_position(rna_entry, dna_entry) == 0:
+                if dna_entry is not None and self.cmp_position(rna_entry, dna_entry) == 0:
                     self.legacy_translate(dna_entry)
                     yield self.annotate_row(rna_entry, dna_entry)
                 else:
                     yield rna_entry
-
