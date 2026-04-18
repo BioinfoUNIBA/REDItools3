@@ -19,6 +19,9 @@ class RegionCollection:
         self._last_contig = None
         self._sorted = False
 
+    def __bool__(self):
+        return bool(self._regions)
+
     def sort(self) -> None:
         for contig, regions in self._regions.items():
             self._regions[contig] = sorted(regions)

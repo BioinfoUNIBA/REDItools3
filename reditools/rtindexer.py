@@ -16,7 +16,11 @@ _nucs = 'ACGT'
 class RTIndexer(object):
     """Utility for calculating editing indices."""
 
-    def __init__(self, region=None, strand=0):
+    def __init__(
+            self,
+            region: tuple[str, int, int | None] | None=None,
+            strand: int=0,
+    ):
         """
         Create a new Index.
 
@@ -24,35 +28,31 @@ class RTIndexer(object):
             region (Region): Limit results to the given genomic region
             strand (int): Either 0, 1, or 2 for unstranded, reverse, or forward
         """
-        self.targets = False
-        self.exclusions = False
+        self.targets = RegionCollection()
+        self.exclusions = RegionCollection()
         self.counts = {'-'.join(_): 0 for _ in permutations(_nucs, 2)}
         self.region = region
         self.strand = ['*', '-', '+'][strand]
 
-    def add_target_from_bed(self, fname):
+    def add_target_from_bed(self, fname: str) -> None:
         """
         Only report index data for regions from a given bed file.
 
         Parameters:
             fname (str): Path to BED formatted file.
         """
-        if not self.targets:
-            self.targets = RegionCollection()
         self.targets.add_regions(read_bed_file(fname))
 
-    def add_exclusions_from_bed(self, fname):
+    def add_exclusions_from_bed(self, fname: str) -> None:
         """
         Exclude index data for regions from a given bed file.
 
         Parameters:
             fname (str): Path to BED formatted file.
         """
-        if not self.exclusions:
-            self.exclusions = RegionCollection()
         self.exclusions.add_regions(read_bed_file(fname))
 
-    def do_ignore(self, row):
+    def do_ignore(self, row: dict) -> bool:
         """
         Check whether a row should meets analysis criteria.
 
@@ -80,7 +80,7 @@ class RTIndexer(object):
         return False
 
 
-    def add_rt_output(self, fname):
+    def add_rt_output(self, fname: str) -> None:
         """
         Count the number of reads with matches and substitutions.
 
@@ -95,14 +95,14 @@ class RTIndexer(object):
                     key = f'{nuc}-{row[_ref]}'
                     self.counts[key] = self.counts.get(key, 0) + count
 
-    def calc_index(self):
+    def calc_index(self) -> dict[str, float]:
         """
         Compute all editing indices.
 
         Returns:
             Dictionary of indices
         """
-        indices = {}
+        indices: dict[str, float] = {}
         for idx in set(self.counts) - {f'{nuc}-{nuc}' for nuc in _nucs}:
             ref = idx[-1]
             numerator = self.counts[idx]
@@ -113,7 +113,7 @@ class RTIndexer(object):
                 indices[idx] = 100 * numerator / denominator
         return indices
 
-    def ref_edit(self, ref):
+    def ref_edit(self, ref: str) -> str:
         """
         Format a base as a non-edit.
 
