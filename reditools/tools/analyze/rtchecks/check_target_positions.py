@@ -1,16 +1,20 @@
+import argparse
+
 from reditools import file_utils
+from reditools.compiled_position import RTResult
 from reditools.region_collection import RegionCollection
 
 
 class CheckTargetPositions:
-    def __init__(self, options):
+    def __init__(self, options: argparse.Namespace):
         self.regions = RegionCollection()
         self.regions.add_regions(file_utils.read_bed_file(*options.bed_file))
 
     @classmethod
-    def is_needed(cls, options):
+    def is_needed(cls, options: argparse.Namespace) -> bool:
         return options.bed_file is not None
 
-    def run_check(self, bases):
+    def run_check(self, bases: RTResult) -> None | tuple:
         if not self.regions.contains(bases.contig, bases.position):
             return ('DISCARD COLUMN not in target regions',)
+        return None

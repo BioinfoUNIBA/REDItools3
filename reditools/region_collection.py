@@ -1,6 +1,7 @@
 """Genomic Region Collection."""
 from collections import defaultdict
 from typing import Iterable
+
 from reditools.region import Region
 
 

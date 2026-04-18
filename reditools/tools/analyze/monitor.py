@@ -1,9 +1,12 @@
 """Commandline tool for REDItools."""
+from __future__ import annotations
+
 import sys
+from multiprocessing import Process, Queue
 from queue import Empty as EmptyQueueException
 
 
-def check_dead(processes):
+def check_dead(processes: list[Process]):
     """
     Look through processes to determine if any have died unexpectedly.
 
@@ -20,7 +23,11 @@ def check_dead(processes):
             sys.stderr.write('[ERROR] Killing job\n')
             sys.exit(1)
 
-def monitor(processes, out_queue, chunks):
+def monitor(
+        processes: list[Process],
+        out_queue: Queue[tuple[int, str]],
+        chunks: int,
+) -> list[str]:
     """
     Monitor parallel REDItools jobs.
 
@@ -32,12 +39,12 @@ def monitor(processes, out_queue, chunks):
     Returns:
         list: Temporary files containing the output of each chunk.
     """
-    tfs = [None for _ in range(chunks - len(processes))]
+    tfs = ['' for _ in range(chunks - len(processes))]
 
     for prc in processes:
         prc.start()
 
-    while None in tfs:
+    while '' in tfs:
         try:
             idx, fname = out_queue.get(block=False, timeout=1)
         except EmptyQueueException:

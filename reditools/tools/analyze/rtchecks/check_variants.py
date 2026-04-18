@@ -1,9 +1,12 @@
+import argparse
 import re
+
+from reditools.compiled_position import RTResult
 
 
 class CheckVariants:
-    def __init__(self, options):
-        pa = re.compile('[ATCG]{2}', re.IGNORE_CASE)
+    def __init__(self, options: argparse.Namespace):
+        pa = re.compile('[ATCG]{2}', re.IGNORECASE)
         bad_alt = next(
             (_ for _ in options.variants if not pa.fullmatch(_)),
             None,
@@ -15,10 +18,10 @@ class CheckVariants:
         self.variants = {_.upper() for _ in options.variants}
 
     @classmethod
-    def is_needed(cls, options):
-        'ALL' not in [_.upper() for _ in options.variants]
+    def is_needed(cls, options: argparse.Namespace) -> bool:
+        return 'ALL' not in [_.upper() for _ in options.variants]
 
-    def run_check(self, bases):
+    def run_check(self, bases: RTResult) -> None | tuple:
         if any(_ in self.variants for _ in bases.variants):
             return None
         return (

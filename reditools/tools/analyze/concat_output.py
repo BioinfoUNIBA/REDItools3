@@ -24,12 +24,12 @@ fieldnames = [
 
 
 def concat_output(
-    tfs,
-    output_file=None,
-    mode='w',
-    encoding='utf-8',
+    tfs: list[str],
+    output_file: str | None=None,
+    mode: str='w',
+    encoding: str='utf-8',
     **format_args,
-):
+) -> None:
     """
     Write the output of a REDItools analysis.
 

@@ -1,7 +1,12 @@
 """Commandline tool for REDItools."""
+import argparse
 import sys
 import traceback
+from multiprocessing import Queue
 
+from reditools.alignment_manager import AlignmentManager
+from reditools.reditools import REDItools
+from reditools.region import Region
 from reditools.tools.analyze.rtchecks import RTChecks
 from reditools.tools.analyze.setup_alignment_manager import \
     setup_alignment_manager
@@ -9,7 +14,13 @@ from reditools.tools.analyze.setup_rtools import setup_rtools
 from reditools.tools.analyze.write_results import write_results
 
 
-def analyze(options, rtools, sam_manager, region, rtqc):
+def analyze(
+        options: argparse.Namespace,
+        rtools: REDItools,
+        sam_manager: AlignmentManager,
+        region: Region,
+        rtqc: RTChecks,
+) -> str:
     rtresults = rtools.analyze(sam_manager, region)
     return write_results(
         rtresults,
@@ -19,7 +30,11 @@ def analyze(options, rtools, sam_manager, region, rtqc):
         rtools.log,
     )
 
-def redi_thread(options, in_queue, out_queue):
+def redi_thread(
+        options: argparse.Namespace,
+        in_queue: Queue,
+        out_queue: Queue,
+) -> bool:
     """
     Analyze a genomic segment using REDItools.
 
@@ -54,4 +69,3 @@ def redi_thread(options, in_queue, out_queue):
                 traceback.print_exception(*sys.exc_info())
             sys.stderr.write(f'[ERROR] ({type(exc)}) {exc}\n')
             sys.exit(1)
-

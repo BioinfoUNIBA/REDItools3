@@ -1,8 +1,10 @@
+import argparse
+
 from reditools import reditools
 from reditools.logger import Logger
 
 
-def setup_rtools(options):
+def setup_rtools(options: argparse.Namespace) -> reditools.REDItools:
     """
     Create a REDItools object.
 

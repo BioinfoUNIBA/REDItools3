@@ -1,7 +1,7 @@
 import csv
+from typing import IO, Any, Iterator
 
 from reditools import file_utils
-from typing import IO, Iterator, Any
 
 
 class RTAnnotater:

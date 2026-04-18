@@ -1,12 +1,20 @@
 import csv
 from tempfile import NamedTemporaryFile
+from typing import Callable, Iterator
 
+from reditools.compiled_position import RTResult
 from reditools.logger import Logger
+from reditools.tools.analyze.rtchecks import RTChecks
 
 _empty = '-'
 
-def write_results(rtresults, output_format,
-                  temp_dir, filters, logger):
+def write_results(
+        rtresults: Iterator[RTResult],
+        output_format: dict,
+        temp_dir: str,
+        filters: RTChecks,
+        logger: Callable,
+) -> str:
     """
     Write the results from a REDItools analysis to a temporary file.
 

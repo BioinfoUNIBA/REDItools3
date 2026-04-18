@@ -3,11 +3,11 @@ from reditools.alignment_manager import AlignmentManager
 
 
 def setup_alignment_manager(
-    file_list,
-    min_read_quality,
-    min_read_length,
-    exclusions_file,
-):
+    file_list: list[str],
+    min_read_quality: int,
+    min_read_length: int,
+    exclusions_file: str | None,
+) -> AlignmentManager:
     """
     Create an AlignmentManager for REDItools.
 

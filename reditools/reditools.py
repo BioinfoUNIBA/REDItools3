@@ -6,12 +6,13 @@ Authors:
     ahanden - 2022
 """
 
-from reditools.compiled_position import RTResult, CompiledPosition
-from reditools.compiled_reads import CompiledReads
-from reditools.alignment_manager import AlignmentManager
-from reditools.region import Region
-from reditools.logger import Logger
 from typing import Iterator
+
+from reditools.alignment_manager import AlignmentManager
+from reditools.compiled_position import CompiledPosition, RTResult
+from reditools.compiled_reads import CompiledReads
+from reditools.logger import Logger
+from reditools.region import Region
 
 
 class REDItools:

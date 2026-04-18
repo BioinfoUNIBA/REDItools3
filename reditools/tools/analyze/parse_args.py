@@ -1,28 +1,38 @@
 import argparse
 import tempfile
+from typing import Callable
 
 
-def check_number_bounds(number, min=None, max=None):
-    if min is not None and number < min:
-        raise argparse.ArgumentTypeError(f'Value must be at least {min}.')
-    if max is not None and number > max:
+def check_number_bounds(
+        number: float,
+        min_value: float | None=None,
+        max_value: float | None=None,
+) -> None:
+    if min_value is not None and number < min_value:
+        raise argparse.ArgumentTypeError(f'Value must be at least {min_value}.')
+    if max_value is not None and number > max_value:
         raise argparse.ArgumentTypeError(
-            f'Value cannot be larger than {max}.',
+            f'Value cannot be larger than {max_value}.',
         )
 
-
-def bounded_int(min=None, max=None):
+def bounded_int(
+        min_value: int | None=None,
+        max_value: int | None=None,
+) -> Callable:
     def subfn(cli_value):  # noqa: WPS430
         try:
             int_value = int(cli_value)
         except ValueError:
             raise argparse.ArgumentTypeError(f'invalid int value: {cli_value}')
-        check_number_bounds(int_value, min, max)
+        check_number_bounds(int_value, min_value, max_value)
         return int_value
     return subfn
 
 
-def bounded_float(min=None, max=None):
+def bounded_float(
+        min_value: float | None=None,
+        max_value: float | None=None,
+) -> Callable:
     def subfn(cli_value):  # noqa: WPS430
         try:
             float_value = float(cli_value)
@@ -30,12 +40,12 @@ def bounded_float(min=None, max=None):
             raise argparse.ArgumentTypeError(
                 f'invalid float value: {cli_value}'
             )
-        check_number_bounds(float_value, min, max)
+        check_number_bounds(float_value, min_value, max_value)
         return float_value
     return subfn
 
 
-def build_argument_parser():  # noqa: WPS213, WPS210
+def build_argument_parser() -> argparse.ArgumentParser:  # noqa: WPS213, WPS210
     """
     Parse commandline options for REDItools.
 
@@ -113,14 +123,14 @@ def build_argument_parser():  # noqa: WPS213, WPS210
     bqf_group.add_argument(
         '-mbp',
         '--min-base-position',
-        type=bounded_int(min=0),
+        type=bounded_int(min_value=0),
         default=0,
         help='Ignores the first -mbp bases in each read.',
     )
     bqf_group.add_argument(
         '-Mbp',
         '--max-base-position',
-        type=bounded_int(min=0),
+        type=bounded_int(min_value=0),
         default=0,
         help='Ignores the last -Mpb bases in each read.',
     )
@@ -185,7 +195,7 @@ def build_argument_parser():  # noqa: WPS213, WPS210
     rf_group.add_argument(
         '-Men',
         '--max-editing-nucleotides',
-        type=bounded_int(min=0, max=4),
+        type=bounded_int(min_value=0, max_value=4),
         default=4,
         help=(
             'Positions with more than -Men unique variants (listed in the '
@@ -206,7 +216,7 @@ def build_argument_parser():  # noqa: WPS213, WPS210
     rf_group.add_argument(
         '-l',
         '--min-read-depth',
-        type=bounded_int(min=1),
+        type=bounded_int(min_value=1),
         default=1,
         help=(
             'Only report on positions with at least -l reads (corresponds to '
@@ -237,7 +247,7 @@ def build_argument_parser():  # noqa: WPS213, WPS210
     strand_group.add_argument(
         '-T',
         '--strand-confidence-threshold',
-        type=bounded_float(max=1),
+        type=bounded_float(max_value=1),
         default=0.7,
         help=(
             'Only report the strandedness if at least -T proportion of '
@@ -268,7 +278,7 @@ def build_argument_parser():  # noqa: WPS213, WPS210
             'chromosomes in your alignment genome unless you use the --window '
             'option.'
         ),
-        type=bounded_int(min=1),
+        type=bounded_int(min_value=1),
         default=1,
     )
     para_group.add_argument(
@@ -278,7 +288,7 @@ def build_argument_parser():  # noqa: WPS213, WPS210
             'How many bp should be processed by each thread at a time. '
             'Zero uses the full contig.'
         ),
-        type=bounded_int(min=0),
+        type=bounded_int(min_value=0),
         default=0,
     )
     tech_group = parser.add_argument_group(
@@ -359,7 +369,7 @@ def build_argument_parser():  # noqa: WPS213, WPS210
     leg_group.add_argument(
         '-ss',
         '--splicing-span',
-        type=bounded_int(min=1),
+        type=bounded_int(min_value=1),
         default=4,
         help=(
             'The splicing span. Used in conjunction with -sf/--splicing-file.'
@@ -368,7 +378,7 @@ def build_argument_parser():  # noqa: WPS213, WPS210
 
     return parser
 
-def fix_legacy_options(args):
+def fix_legacy_options(args: argparse.Namespace) -> None:
     if args.strand != 0 and args.dna:
         raise Exception('-N/--dna can only be used with -s/--strand 0.')
     delattr(args, 'dna')  # noqa: WPS421
@@ -390,8 +400,7 @@ def fix_legacy_options(args):
         args.exclude_regions.append(args.load_omopolymeric_file)
     delattr(args, 'load_omopolymeric_file')  # noqa: WPS421
 
-
-def parse_args(sys_args=None):
+def parse_args(sys_args: list[str] | None = None) -> argparse.Namespace:
     parser = build_argument_parser()
     args = parser.parse_args(sys_args)
     try:
