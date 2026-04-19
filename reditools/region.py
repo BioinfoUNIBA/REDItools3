@@ -27,7 +27,7 @@ class Region:
             return self.contig
         return f'{self.contig}:{one_idx_start}-{self.stop}'
 
-    def split(self, window):
+    def split(self, window: int) -> list['Region']:
         """
         Split the region into a list of smaller regions.
 
@@ -51,7 +51,7 @@ class Region:
         return sub_regions
 
     @classmethod
-    def from_string(cls, region_str, alignment_file):
+    def from_string(cls, region_str: str, alignment_file: str) -> 'Region':
         contig, start, stop = Region.parse_string(region_str)
         if start is None:
             start = 0
@@ -71,18 +71,16 @@ class Region:
         return Region(contig, start, stop)
 
     @classmethod
-    def parse_string(cls, region_str):
+    def parse_string(cls, region_str: str) -> tuple[str, int, int | None]:
         if region_str is None:
             return None
         pa = re.compile(
             '(?P<contig>[^:]+)(:(?P<start>[0-9,]+)(-(?P<stop>[0-9,]+))?)?',
         )
         match = pa.fullmatch(region_str)
-
-        try:
-            contig, start, stop = match.group('contig', 'start', 'stop')
-        except AttributeError as exc:
-            raise ValueError(f'Unrecognized format: {region_str}.') from exc
+        if match is None:
+            raise ValueError(f'Unrecognized format: {region_str}.')
+        contig, start, stop = match.group('contig', 'start', 'stop')
 
         if start is None:
             start = 0
@@ -94,9 +92,5 @@ class Region:
         return (contig, start, stop)
 
     @classmethod
-    def _to_int(cls, number):
-        if isinstance(number, str):
-            return int(re.sub(r'[\s,]', '', number))
-        if number is None:
-            return None
-        return int(number)
+    def _to_int(cls, number: str) -> int:
+        return int(re.sub(r'[\s,]', '', number))

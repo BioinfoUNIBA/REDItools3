@@ -1,11 +1,14 @@
 """Quality control for REDItools analyses."""
+import argparse
+
+from reditools.compiled_position import RTResult
 from reditools.tools.analyze import rtchecks
 
 
 class RTChecks(object):
     """Quality control for REDItools analyses."""
 
-    def __init__(self, options):
+    def __init__(self, options: argparse.Namespace):
         self.check_list = []
 
         for check in (
@@ -20,7 +23,7 @@ class RTChecks(object):
             if check.is_needed(options):
                 self.check_list.append(check(options))
 
-    def check(self, bases):
+    def check(self, bases: RTResult) -> None | tuple:
         """
         Perform QC.
 
@@ -30,7 +33,5 @@ class RTChecks(object):
         Returns:
             None if QC passed, else debug message (tuple)
         """
-        for check_class in self.check_list:
-            check_result = check_class.run_check(bases)
-            if check_result is not None:
-                return check_result
+        generator = (_.run_check(bases) for _ in self.check_list)
+        return next((_ for _ in generator if _ is not None), None)

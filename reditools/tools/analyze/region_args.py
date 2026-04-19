@@ -1,9 +1,11 @@
+import argparse
+
 from pysam import AlignmentFile
 
 from reditools.region import Region
 
 
-def region_args(options):
+def region_args(options: argparse.Namespace) -> list[Region]:
     """
     Split a region into segments for paralllel processing.
 

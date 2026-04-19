@@ -3,6 +3,7 @@ import os
 import socket
 import sys
 from datetime import datetime
+from typing import Any
 
 
 class Logger:
@@ -12,7 +13,7 @@ class Logger:
     info_level = 'INFO'
     debug_level = 'DEBUG'
 
-    def __init__(self, level):
+    def __init__(self, level: str):
         """
         Create a new Logger.
 
@@ -23,15 +24,20 @@ class Logger:
         ip_addr = socket.gethostbyname(hostname)
         pid = os.getpid()
         self.hostname_string = f'{hostname}|{ip_addr}|{pid}'
+        self._level = level.upper()
 
-        if level.upper() == self.debug_level:
+        if self._level == self.debug_level:
             self.log = self._log_all
-        elif level.upper() == self.info_level:
+        elif self._level == self.info_level:
             self.log = self._log_info
         else:
             self.log = self._log_silent
 
-    def _log_all(self, level, message, *args):
+    @property
+    def level(self):
+        return self._level
+
+    def _log_all(self, level: str, message: str, *args: Any):
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         message = message.format(*args)
         sys.stderr.write(
@@ -39,9 +45,9 @@ class Logger:
             f'[{level}] {message}\n',
         )
 
-    def _log_info(self, level, message, *args):
+    def _log_info(self, level: str, message: str, *args: Any):
         if level == self.info_level:
             self._log_all(level, message, *args)
 
-    def _log_silent(self, level, message, *args):
+    def _log_silent(self, level: str, message: str, *args: Any):
         pass  # noqa: WPS420

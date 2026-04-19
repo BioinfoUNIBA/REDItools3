@@ -1,5 +1,8 @@
 """Wrappers for pysam files."""
 from itertools import chain
+from typing import Collection, Iterable, Iterator
+
+from pysam import AlignedSegment
 
 from reditools.alignment_file import RTAlignmentFile
 
@@ -7,14 +10,14 @@ from reditools.alignment_file import RTAlignmentFile
 class ReadGroupIter:
     __slots__ = ('iterator', 'reads', 'reference_start')
 
-    def __init__(self, iterator):
+    def __init__(self, iterator: Iterator):
         self.iterator = iterator
         next(self)
 
     def __bool__(self):
         return bool(self.reads)
 
-    def __next__(self):
+    def __next__(self) -> list[AlignedSegment] | None:
         self.reads = next(self.iterator, None)
         if self.reads:
             self.reference_start = self.reads[0].reference_start
@@ -25,7 +28,7 @@ class ReadGroupIter:
 class FetchGroupIter:
     """Manages multiple fetch iterators."""
 
-    def __init__(self, fetch_iters):
+    def __init__(self, fetch_iters: list[Iterator]):
         """
         Combine multiple fetch iterators.
 
@@ -38,14 +41,14 @@ class FetchGroupIter:
             if rgi:
                 self.read_groups.append(rgi)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[list[AlignedSegment]]:
         while self:
             yield next(self)
 
     def __bool__(self):
         return bool(self.read_groups)
 
-    def __next__(self):
+    def __next__(self) -> list[AlignedSegment]:
         """
         Retrieve a list of reads that all start at the same position.
 
@@ -60,23 +63,23 @@ class FetchGroupIter:
             reads.append(rgi.reads)
             if next(rgi) is None:
                 self.read_groups.pop(idx)
-        return list(chain(*reads))
+        return list(chain(*reads))  # type: ignore
 
 class AlignmentManager:
     def __init__(
             self,
-            excluded_read_names=None,
-            min_quality=0,
-            min_length=0,
+            excluded_read_names: Collection[str] | None=None,
+            min_quality: int=0,
+            min_length: int=0,
     ):  # noqa: WPS475
-        self._bams = []
-        self.file_list = []
-        self.next_read_start = None
+        self._bams: list[RTAlignmentFile] = []
+        self.file_list: list[str] = []
+        self.next_read_start: int | None = None
         self.excluded_read_names = excluded_read_names
         self.min_quality = min_quality
         self.min_length = min_length
 
-    def add_file(self, fname):
+    def add_file(self, fname: str):
         """
         Add an alignment file to the manager for analysis.
 
@@ -93,7 +96,11 @@ class AlignmentManager:
         self._bams.append(new_file)
         self.file_list.append(fname)
 
-    def fetch_by_position(self, *args, **kwargs):
+    def fetch_by_position(
+            self,
+            *args,
+            **kwargs,
+    ) -> Iterable[list[AlignedSegment]]:
         """
         Perform combine fetch_by_position for all managed files.
 

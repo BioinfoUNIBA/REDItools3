@@ -1,13 +1,15 @@
 """Repeat Sequence Identifier."""
 import argparse
+import csv
 import sys
+from typing import Iterator
 
 from pysam import FastaFile
 
 from reditools import file_utils
 
 
-def find_homo_seqs(seq, length=5):
+def find_homo_seqs(seq: str, length: int=5) -> Iterator[tuple[int, int, str]]:
     """
     Locate regions of repeated bases.
 
@@ -18,7 +20,7 @@ def find_homo_seqs(seq, length=5):
     Yields:
         start, stop, base
     """
-    h_base = None
+    h_base = ''
     start = 0
     count = 0
 
@@ -35,7 +37,7 @@ def find_homo_seqs(seq, length=5):
         yield (start, start + count, h_base)
 
 
-def parse_options():
+def parse_options() -> argparse.Namespace:
     """
     Parse commandline arguments.
 
@@ -68,7 +70,10 @@ def parse_options():
 
     return parser.parse_args()
 
-def iter_homo_output(fasta, min_length):
+def iter_homo_output(
+        fasta: FastaFile,
+        min_length: int,
+) -> Iterator[tuple[str, int, int, int, str]]:
     for seq_name in fasta.references:
         for region in find_homo_seqs(fasta.fetch(seq_name), min_length):
             yield (
@@ -79,7 +84,7 @@ def iter_homo_output(fasta, min_length):
                 region[2],
             )
 
-def main():
+def main() -> None:
     """Report repetative regions."""
     options = parse_options()
     fasta = FastaFile(options.file)
@@ -93,6 +98,5 @@ def main():
     else:
         stream = sys.stdout
 
-    for row in iter_homo_output(fasta, options.min_length):
-        row = '\t'.join(row)
-        stream.write(f'{row}\n')
+    writer = csv.writer(stream, delimiter='\t')
+    writer.writerows(iter_homo_output(fasta, options.min_length))

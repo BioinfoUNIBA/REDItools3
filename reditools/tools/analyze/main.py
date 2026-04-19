@@ -1,9 +1,12 @@
 """Commandline tool for REDItools."""
+from __future__ import annotations
 
+import argparse
 import sys
 from multiprocessing import Process, Queue
 
 from reditools.logger import Logger
+from reditools.region import Region
 from reditools.tools.analyze.concat_output import concat_output
 from reditools.tools.analyze.monitor import monitor
 from reditools.tools.analyze.parse_args import parse_args
@@ -11,20 +14,20 @@ from reditools.tools.analyze.redi_thread import redi_thread
 from reditools.tools.analyze.region_args import region_args
 
 
-def options_to_string(options):
+def options_to_string(options: argparse.Namespace) -> str:
     return ", ".join(
         [f"{_}:{getattr(options, _)}" for _ in vars(options)],  # noqa: WPS421
     )
 
-def setup_logger(options):
+def setup_logger(options: argparse.Namespace) -> Logger:
     if options.debug:
         return Logger(Logger.debug_level)
     if options.verbose:
         return Logger(Logger.info_level)
     return Logger(Logger.silent_level)
 
-def fill_queue(options):
-    in_queue = Queue()
+def fill_queue(options: argparse.Namespace) -> Queue[tuple[int, Region] | None]:
+    in_queue: Queue[tuple[int, Region] | None] = Queue()
     try:
         for _ in enumerate(region_args(options)):  # noqa: WPS468
             in_queue.put(_)

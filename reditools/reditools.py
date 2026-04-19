@@ -6,9 +6,13 @@ Authors:
     ahanden - 2022
 """
 
-from reditools.compiled_position import RTResult
+from typing import Iterator
+
+from reditools.alignment_manager import AlignmentManager
+from reditools.compiled_position import CompiledPosition, RTResult
 from reditools.compiled_reads import CompiledReads
 from reditools.logger import Logger
+from reditools.region import Region
 
 
 class REDItools:
@@ -20,7 +24,8 @@ class REDItools:
         self._min_edits = 0
         self._min_edits_per_nucleotide = 0
 
-        self.log_level = Logger.silent_level
+        self._logger = Logger(Logger.silent_level)
+        self.log = self._logger.log
 
         self.strand = 0
         self._use_strand_correction = False
@@ -37,17 +42,17 @@ class REDItools:
         self.reference = None
 
     @property
-    def log_level(self):
+    def log_level(self) -> str:
         """
         The logging level.
 
         Returns:
             Log level
         """
-        return self._log_level
+        return self._logger.level
 
     @log_level.setter
-    def log_level(self, level):
+    def log_level(self, level: str):
         """
         Set the class logging level.
 
@@ -57,7 +62,11 @@ class REDItools:
         self._logger = Logger(level)
         self.log = self._logger.log
 
-    def analyze(self, alignment_manager, region):
+    def analyze(
+            self,
+            alignment_manager: AlignmentManager,
+            region: Region,
+    ) -> Iterator[RTResult]:
         """
         Detect RNA editing events.
 
@@ -118,11 +127,11 @@ class REDItools:
             total,
         )
 
-    def use_strand_correction(self):
+    def use_strand_correction(self) -> None:
         """Only reports reads/positions that match `strand`."""
         self._use_strand_correction = True
 
-    def add_reference(self, reference_fname):
+    def add_reference(self, reference_fname: str):
         """
         Use a reference fasta file instead of reference from the BAM files.
 
@@ -131,7 +140,7 @@ class REDItools:
         """
         self.reference = reference_fname
 
-    def _process_bases(self, bases):
+    def _process_bases(self, bases: CompiledPosition) -> RTResult:
         self.log(
             Logger.debug_level,
             'Analyzing position {} {}',

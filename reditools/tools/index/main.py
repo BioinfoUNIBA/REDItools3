@@ -8,7 +8,7 @@ from reditools.rtindexer import RTIndexer
 from reditools.tools.index.parse_args import parse_args
 
 
-def main():
+def main() -> None:
     """Perform RNA editing analysis."""
     options = parse_args()
     if options.region:
