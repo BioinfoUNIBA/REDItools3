@@ -1,4 +1,3 @@
-"""Commandline tool for REDItools."""
 from __future__ import annotations
 
 import argparse
@@ -15,11 +14,37 @@ from reditools.tools.analyze.region_args import region_args
 
 
 def options_to_string(options: argparse.Namespace) -> str:
+    """
+    Convert argparse options to a comma-separated string of key:value pairs.
+
+    Parameters
+    ----------
+    options : argparse.Namespace
+        The parsed command line options.
+
+    Returns
+    -------
+    str
+        A string representation of the options.
+    """
     return ", ".join(
         [f"{_}:{getattr(options, _)}" for _ in vars(options)],  # noqa: WPS421
     )
 
 def setup_logger(options: argparse.Namespace) -> Logger:
+    """
+    Configure a logger based on the command line options.
+
+    Parameters
+    ----------
+    options : argparse.Namespace
+        The parsed command line options.
+
+    Returns
+    -------
+    Logger
+        The configured Logger object.
+    """
     if options.debug:
         return Logger(Logger.debug_level)
     if options.verbose:
@@ -27,6 +52,24 @@ def setup_logger(options: argparse.Namespace) -> Logger:
     return Logger(Logger.silent_level)
 
 def fill_queue(options: argparse.Namespace) -> Queue[tuple[int, Region] | None]:
+    """
+    Fill the input queue with genomic regions to be analyzed.
+
+    Parameters
+    ----------
+    options : argparse.Namespace
+        The parsed command line options.
+
+    Returns
+    -------
+    Queue[tuple[int, Region] | None]
+        A queue containing indexed Region objects.
+
+    Raises
+    ------
+    SystemExit
+        If a required file is not found.
+    """
     in_queue: Queue[tuple[int, Region] | None] = Queue()
     try:
         for _ in enumerate(region_args(options)):  # noqa: WPS468
@@ -48,7 +91,9 @@ def fill_queue(options: argparse.Namespace) -> Queue[tuple[int, Region] | None]:
     return in_queue
 
 def main():
-    """Perform RNA editing analysis."""
+    """
+    The main entry point for the REDItools analyze command.
+    """
     options = parse_args()
 
     logger = setup_logger(options)

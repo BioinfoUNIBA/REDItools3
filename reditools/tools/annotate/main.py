@@ -11,6 +11,18 @@ from reditools.tools.annotate.parse_args import parse_args
 _contig = 'Region'
 
 def contig_order_from_bam(bam_fname: str) -> dict[str, int]:
+    """Get contig order from a BAM file.
+
+    Parameters
+    ----------
+    bam_fname : str
+        The path to the BAM file.
+
+    Returns
+    -------
+    dict[str, int]
+        A dictionary mapping contig names to their 1-based order.
+    """
     contigs = {}
     with pysam.AlignmentFile(bam_fname, ignore_truncation=True) as bam:
         for idx, contig in enumerate(bam.references, start=1):
@@ -18,6 +30,18 @@ def contig_order_from_bam(bam_fname: str) -> dict[str, int]:
     return contigs
 
 def contig_order_from_fai(fai_fname: str) -> dict[str, int]:
+    """Get contig order from a FASTA index file.
+
+    Parameters
+    ----------
+    fai_fname : str
+        The path to the FASTA index file (.fai).
+
+    Returns
+    -------
+    dict[str, int]
+        A dictionary mapping contig names to their 1-based order.
+    """
     contigs = {}
     with file_utils.open_stream(fai_fname, 'r') as stream:
         for idx, line in enumerate(stream, start=1):
@@ -26,6 +50,23 @@ def contig_order_from_fai(fai_fname: str) -> dict[str, int]:
     return contigs
 
 def contig_order_from_out(out_fname: str) -> dict[str, int]:
+    """Get contig order from a REDItools output file.
+
+    Parameters
+    ----------
+    out_fname : str
+        The path to the REDItools output file.
+
+    Returns
+    -------
+    dict[str, int]
+        A dictionary mapping contig names to their 1-based order.
+
+    Raises
+    ------
+    ValueError
+        If the file does not appear to be in sorted order.
+    """
     contigs: dict[str, int] = {}
     with file_utils.open_stream(out_fname, 'r') as stream:
         reader = csv.DictReader(stream, delimiter='\t')
@@ -42,6 +83,10 @@ def contig_order_from_out(out_fname: str) -> dict[str, int]:
     return contigs
 
 def main() -> None:
+    """Execute the reditools annotate tool.
+
+    This tool annotates RNA REDItools output with corresponding DNA output.
+    """
     options = parse_args()
     try:
         if options.fai:

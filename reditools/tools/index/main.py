@@ -1,4 +1,3 @@
-"""Commandline tool for REDItools."""
 
 import sys
 
@@ -9,7 +8,11 @@ from reditools.tools.index.parse_args import parse_args
 
 
 def main() -> None:
-    """Perform RNA editing analysis."""
+    """Execute the reditools index tool.
+
+    This tool calculates indexing statistics for REDItools output files,
+    optionally filtering by genomic regions or exclusions.
+    """
     options = parse_args()
     if options.region:
         indexer = RTIndexer(Region.parse_string(options.region))

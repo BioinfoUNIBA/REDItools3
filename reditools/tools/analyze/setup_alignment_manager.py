@@ -8,20 +8,24 @@ def setup_alignment_manager(
     min_read_length: int,
     exclusions_file: str | None,
 ) -> AlignmentManager:
+    """Initialize and configure an AlignmentManager object.
+
+    Parameters
+    ----------
+    file_list : list[str]
+        List of paths to alignment files (BAM/SAM).
+    min_read_quality : int
+        Minimum mapping quality for a read to be considered.
+    min_read_length : int
+        Minimum length for a read to be considered.
+    exclusions_file : str, optional
+        Path to a file containing read names to be excluded.
+
+    Returns
+    -------
+    AlignmentManager
+        A configured AlignmentManager instance.
     """
-    Create an AlignmentManager for REDItools.
-
-    Parameters:
-        options (namespace): Commandline arguments
-        file_list (list): BAM file paths
-        min_read_quality (int): Filter out reads with a MAPQ below threshold
-        min_read_length (int): Filter out reads with length below threshold
-        exclusions_file (str): Path to text file with read names to exclude
-
-    Returns:
-        AlignmentManager
-    """
-
     if exclusions_file:
         exclude_set = set(file_utils.load_text_file(exclusions_file))
     else:

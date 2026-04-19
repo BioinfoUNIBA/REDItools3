@@ -1,4 +1,3 @@
-"""Repeat Sequence Identifier."""
 import argparse
 import csv
 import sys
@@ -9,16 +8,20 @@ from pysam import FastaFile
 from reditools import file_utils
 
 
-def find_homo_seqs(seq: str, length: int=5) -> Iterator[tuple[int, int, str]]:
-    """
-    Locate regions of repeated bases.
+def find_homo_seqs(seq: str, length: int = 5) -> Iterator[tuple[int, int, str]]:
+    """Find homopolymeric sequences in a string.
 
-    Parameters:
-        seq (str): The DNA sequence
-        length (int): Minimum number of sequential repeats.
+    Parameters
+    ----------
+    seq : str
+        The sequence to search.
+    length : int, optional
+        The minimum length of the repeat, by default 5.
 
-    Yields:
-        start, stop, base
+    Yields
+    ------
+    Iterator[tuple[int, int, str]]
+        A tuple containing (start, end, base) for each homopolymeric sequence.
     """
     h_base = ''
     start = 0
@@ -38,11 +41,12 @@ def find_homo_seqs(seq: str, length: int=5) -> Iterator[tuple[int, int, str]]:
 
 
 def parse_options() -> argparse.Namespace:
-    """
-    Parse commandline arguments.
+    """Parse command-line arguments for reditools find-repeats.
 
-    Returns:
-        namespace
+    Returns
+    -------
+    argparse.Namespace
+        The parsed command-line arguments.
     """
     parser = argparse.ArgumentParser(
         prog="reditools find-repeats",
@@ -74,6 +78,20 @@ def iter_homo_output(
         fasta: FastaFile,
         min_length: int,
 ) -> Iterator[tuple[str, int, int, int, str]]:
+    """Iterate over homopolymeric sequences in a FASTA file.
+
+    Parameters
+    ----------
+    fasta : FastaFile
+        The opened FASTA file.
+    min_length : int
+        The minimum length of the repeat.
+
+    Yields
+    ------
+    Iterator[tuple[str, int, int, int, str]]
+        A tuple containing (seq_name, start, end, length, base) for each repeat.
+    """
     for seq_name in fasta.references:
         for region in find_homo_seqs(fasta.fetch(seq_name), min_length):
             yield (
@@ -85,7 +103,10 @@ def iter_homo_output(
             )
 
 def main() -> None:
-    """Report repetative regions."""
+    """Execute the reditools find-repeats tool.
+
+    This tool identifies homopolymeric sequences in a FASTA file.
+    """
     options = parse_options()
     fasta = FastaFile(options.file)
 

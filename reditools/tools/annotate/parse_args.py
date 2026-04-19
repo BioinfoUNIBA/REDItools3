@@ -2,11 +2,12 @@ import argparse
 
 
 def parse_args() -> argparse.Namespace:
-    """
-    Parse commandline options for REDItools.
+    """Parse command-line arguments for reditools annotate.
 
-    Returns:
-        namespace: commandline args
+    Returns
+    -------
+    argparse.Namespace
+        The parsed command-line arguments.
     """
     parser = argparse.ArgumentParser(
         prog='reditools annotate',

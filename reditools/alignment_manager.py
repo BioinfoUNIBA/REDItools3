@@ -1,4 +1,3 @@
-"""Wrappers for pysam files."""
 from itertools import chain
 from typing import Collection, Iterable, Iterator
 
@@ -8,16 +7,48 @@ from reditools.alignment_file import RTAlignmentFile
 
 
 class ReadGroupIter:
+    """
+    Iterator over groups of reads sharing the same reference start position.
+
+    Parameters
+    ----------
+    iterator : Iterator
+        An iterator yielding lists of AlignedSegment objects.
+    """
     __slots__ = ('iterator', 'reads', 'reference_start')
 
     def __init__(self, iterator: Iterator):
+        """
+        Initialize the ReadGroupIter.
+
+        Parameters
+        ----------
+        iterator : Iterator
+            An iterator yielding lists of AlignedSegment objects.
+        """
         self.iterator = iterator
         next(self)
 
     def __bool__(self):
+        """
+        Check if there are more reads.
+
+        Returns
+        -------
+        bool
+            True if there are more reads, False otherwise.
+        """
         return bool(self.reads)
 
     def __next__(self) -> list[AlignedSegment] | None:
+        """
+        Get the next group of reads.
+
+        Returns
+        -------
+        list[AlignedSegment] | None
+            The next list of reads, or None if the iterator is exhausted.
+        """
         self.reads = next(self.iterator, None)
         if self.reads:
             self.reference_start = self.reads[0].reference_start
@@ -26,14 +57,24 @@ class ReadGroupIter:
         return self.reads
 
 class FetchGroupIter:
-    """Manages multiple fetch iterators."""
+    """
+    Iterator that merges multiple ReadGroupIter objects, yielding reads grouped
+    by position.
+
+    Parameters
+    ----------
+    fetch_iters : list[Iterator]
+        A list of iterators, each yielding reads from an alignment file.
+    """
 
     def __init__(self, fetch_iters: list[Iterator]):
         """
-        Combine multiple fetch iterators.
+        Initialize the FetchGroupIter.
 
-        Parameters:
-            fetch_iters (iterable): The iterators to combine.
+        Parameters
+        ----------
+        fetch_iters : list[Iterator]
+            A list of iterators, each yielding reads from an alignment file.
         """
         self.read_groups = []
         for iterator in fetch_iters:
@@ -42,18 +83,38 @@ class FetchGroupIter:
                 self.read_groups.append(rgi)
 
     def __iter__(self) -> Iterator[list[AlignedSegment]]:
+        """
+        Return the iterator object itself.
+
+        Returns
+        -------
+        Iterator[list[AlignedSegment]]
+            The iterator object.
+        """
         while self:
             yield next(self)
 
     def __bool__(self):
+        """
+        Check if there are more read groups.
+
+        Returns
+        -------
+        bool
+            True if there are more read groups, False otherwise.
+        """
         return bool(self.read_groups)
 
     def __next__(self) -> list[AlignedSegment]:
         """
-        Retrieve a list of reads that all start at the same position.
+        Get the next group of reads from all alignment files for the same
+        position.
 
-        Returns:
-            list: Reads
+        Returns
+        -------
+        list[AlignedSegment]
+            A concatenated list of reads from all files at the current minimum
+            position.
         """
         position = min(_.reference_start for _ in self.read_groups)
         reads = []
@@ -66,12 +127,37 @@ class FetchGroupIter:
         return list(chain(*reads))  # type: ignore
 
 class AlignmentManager:
+    """
+    Manage multiple alignment files and provide unified access to reads by
+    position.
+
+    Parameters
+    ----------
+    excluded_read_names : Collection[str] | None, optional
+        Read names to exclude from analysis (default is None).
+    min_quality : int, optional
+        Minimum mapping quality (default is 0).
+    min_length : int, optional
+        Minimum read length (default is 0).
+    """
     def __init__(
             self,
             excluded_read_names: Collection[str] | None=None,
             min_quality: int=0,
             min_length: int=0,
     ):  # noqa: WPS475
+        """
+        Initialize the AlignmentManager.
+
+        Parameters
+        ----------
+        excluded_read_names : Collection[str] | None, optional
+            Read names to exclude from analysis (default is None).
+        min_quality : int, optional
+            Minimum mapping quality (default is 0).
+        min_length : int, optional
+            Minimum read length (default is 0).
+        """
         self._bams: list[RTAlignmentFile] = []
         self.file_list: list[str] = []
         self.next_read_start: int | None = None
@@ -81,11 +167,12 @@ class AlignmentManager:
 
     def add_file(self, fname: str):
         """
-        Add an alignment file to the manager for analysis.
+        Add an alignment file to the manager.
 
-        Parameters:
-            fname (str): Path to BAM file
-            exclude_reads (set): Read names not to skip
+        Parameters
+        ----------
+        fname : str
+            Path to the alignment file (BAM).
         """
         new_file = RTAlignmentFile(
             fname,
@@ -102,16 +189,20 @@ class AlignmentManager:
             **kwargs,
     ) -> Iterable[list[AlignedSegment]]:
         """
-        Perform combine fetch_by_position for all managed files.
+        Fetch reads from all managed files, grouped by position.
 
-        Parameters:
-            *args (list): Positional arguments for
-                RTAlignmentFile.fetch_by_position
-            **kwargs (dict): Named arguments for
-                RTAlignmentFile.fetch_by_position
+        Parameters
+        ----------
+        *args
+            Arguments passed to the fetch method of pysam.AlignmentFile.
+        **kwargs
+            Keyword arguments passed to the fetch method of
+            pysam.AlignmentFile.
 
-        Yields:
-            list: reads from all managed files that begin at the same position.
+        Yields
+        ------
+        list[AlignedSegment]
+            A list of reads from all files at each genomic position.
         """
         iters = [bam.fetch_by_position(*args, **kwargs) for bam in self._bams]
         fgi = FetchGroupIter(iters)

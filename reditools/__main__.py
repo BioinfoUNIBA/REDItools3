@@ -1,4 +1,3 @@
-"""Commandline tool for REDItools."""
 
 import sys
 
@@ -6,7 +5,9 @@ from reditools.tools import analyze, annotate, find_repeats, index
 
 
 def usage():
-    """Print program usage."""
+    """
+    Print the usage information for the REDItools3 toolkit.
+    """
     usage_str = """usage: reditools {analyze,find-repeats,index,annotate}
 
 REDItools3

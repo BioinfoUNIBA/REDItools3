@@ -1,4 +1,3 @@
-"""Commandline tool for REDItools."""
 import argparse
 import sys
 import traceback
@@ -21,6 +20,26 @@ def analyze(
         region: Region,
         rtqc: RTChecks,
 ) -> str:
+    """Analyze a specific genomic region.
+
+    Parameters
+    ----------
+    options : argparse.Namespace
+        The command-line options.
+    rtools : REDItools
+        The REDItools analysis engine.
+    sam_manager : AlignmentManager
+        The alignment file manager.
+    region : Region
+        The genomic region to analyze.
+    rtqc : RTChecks
+        The quality control checks to apply.
+
+    Returns
+    -------
+    str
+        The path to the temporary file containing the results.
+    """
     rtresults = rtools.analyze(sam_manager, region)
     return write_results(
         rtresults,
@@ -35,16 +54,21 @@ def redi_thread(
         in_queue: Queue,
         out_queue: Queue,
 ) -> bool:
-    """
-    Analyze a genomic segment using REDItools.
+    """Worker thread function for parallel REDItools analysis.
 
-    Parameters:
-        options (namesapce): Configuration options from argparse for REDItools
-        in_queue (Queue): Queue of input arguments for analysis
-        out_queue (Queue): Queue to store paths to analysis results
+    Parameters
+    ----------
+    options : argparse.Namespace
+        The command-line options.
+    in_queue : Queue
+        The queue containing genomic regions to analyze.
+    out_queue : Queue
+        The queue to put analysis results into.
 
-    Returns:
-        bool: True if the in_queue is empty
+    Returns
+    -------
+    bool
+        True when the worker has finished processing all regions.
     """
     rtools = setup_rtools(options)
     sam_manager = setup_alignment_manager(

@@ -15,17 +15,25 @@ def write_results(
         filters: RTChecks,
         logger: Callable,
 ) -> str:
-    """
-    Write the results from a REDItools analysis to a temporary file.
+    """Write analysis results to a temporary file.
 
-    Parameters:
-        rtresults (iterable): REDItools results
-        output_format (dict): keyword arguments for csv.writer constructor.
-        temp_dir (str): Location to save results
-        filters (RTChecks): Filters what to write
+    Parameters
+    ----------
+    rtresults : Iterator[RTResult]
+        The analysis results for each position.
+    output_format : dict
+        The CSV formatting options.
+    temp_dir : str
+        The directory to save temporary files.
+    filters : RTChecks
+        The quality control checks to apply.
+    logger : Callable
+        The logger function for debug messages.
 
-    Returns:
-        string: Name of the results file.
+    Returns
+    -------
+    str
+        The path to the temporary file containing the results.
     """
     with NamedTemporaryFile(mode='w', delete=False, dir=temp_dir) as stream:
         writer = csv.writer(stream, **output_format)

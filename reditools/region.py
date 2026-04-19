@@ -1,4 +1,3 @@
-"""Genomic Region."""
 
 import re
 from dataclasses import dataclass
@@ -8,17 +7,31 @@ from pysam import AlignmentFile
 
 @dataclass(slots=True, order=True, frozen=True)
 class Region:
+    """
+    Represent a genomic region.
+
+    Parameters
+    ----------
+    contig : str
+        The name of the contig or chromosome.
+    start : int
+        The 0-based start position.
+    stop : int
+        The 0-based stop position (exclusive).
+    """
+
     contig: str
     start: int
     stop: int
-    """Genomic Region."""
 
     def __str__(self):
         """
-        Put the region into standard string format.
+        Return a string representation of the region.
 
-        Returns:
-            (str): contig:start-stop
+        Returns
+        -------
+        str
+            The region string in 'contig:start-stop' format.
         """
         one_idx_start = self.start + 1
         if self.stop is None:
@@ -29,16 +42,22 @@ class Region:
 
     def split(self, window: int) -> list['Region']:
         """
-        Split the region into a list of smaller regions.
+        Split the region into smaller sub-regions of a specified window size.
 
-        Parameters:
-            window (int): The size of the sub regions in bp
+        Parameters
+        ----------
+        window : int
+            The size of each sub-region.
 
-        Returns:
-            list
+        Returns
+        -------
+        list[Region]
+            A list of smaller sub-regions.
 
-        Raises:
-            IndexError: The region is missing a start or stop
+        Raises
+        ------
+        IndexError
+            If either start or stop is None.
         """
         if self.stop is None or self.start is None:
             raise IndexError('Can only split a region with a start and stop.')
@@ -52,6 +71,28 @@ class Region:
 
     @classmethod
     def from_string(cls, region_str: str, alignment_file: str) -> 'Region':
+        """
+        Create a Region object from a string and an alignment file.
+
+        Parameters
+        ----------
+        region_str : str
+            The region string in the format 'contig:start-stop',
+            'contig:start', or 'contig'.
+        alignment_file : str
+            Path to the alignment file (BAM/CRAM) to get contig length if stop
+            is missing.
+
+        Returns
+        -------
+        Region
+            The created Region object.
+
+        Raises
+        ------
+        ValueError
+            If start is less than 0 or if stop is less than or equal to start.
+        """
         contig, start, stop = Region.parse_string(region_str)
         if start is None:
             start = 0
@@ -72,6 +113,26 @@ class Region:
 
     @classmethod
     def parse_string(cls, region_str: str) -> tuple[str, int, int | None]:
+        """
+        Parse a region string into its components.
+
+        Parameters
+        ----------
+        region_str : str
+            The region string in the format 'contig:start-stop',
+            'contig:start', or 'contig'.
+
+        Returns
+        -------
+        tuple[str, int, int | None]
+            A tuple containing (contig, start, stop). Returns None if
+            region_str is None.
+
+        Raises
+        ------
+        ValueError
+            If the region string format is unrecognized.
+        """
         if region_str is None:
             return None
         pa = re.compile(

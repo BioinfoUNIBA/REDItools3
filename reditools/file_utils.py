@@ -1,22 +1,29 @@
-"""Miscellaneous utility functions."""
 
 import csv
 import os
 from gzip import open as gzip_open
-from typing import Iterator, IO
+from typing import IO, Iterator
+
 from reditools.region import Region
+
 
 def open_stream(path: str, mode: str='rt', encoding: str='utf-8'):
     """
-    Open a input or output stream from a file, accounting for gzip.
+    Open a file stream, handling both plain and gzipped files.
 
-    Parameters:
-        path (str): Path to file for reading or writing
-        mode (str): File mode
-        encoding (str): File encoding
+    Parameters
+    ----------
+    path : str
+        The path to the file.
+    mode : str, optional
+        The mode in which the file is opened (default is 'rt').
+    encoding : str, optional
+        The encoding to use (default is 'utf-8').
 
-    Returns:
-        TextIOWrapper to the file
+    Returns
+    -------
+    file-like object
+        The opened file stream.
     """
     if path.endswith('gz'):
         return gzip_open(path, mode, encoding=encoding)
@@ -25,13 +32,17 @@ def open_stream(path: str, mode: str='rt', encoding: str='utf-8'):
 
 def read_bed_file(*path: str) -> Iterator[Region]:
     """
-    Return an iterator for a BED file.
+    Read genomic regions from one or more BED files.
 
-    Parameters:
-        path (str): Path to a BED file for reading.
+    Parameters
+    ----------
+    *path : str
+        Paths to the BED files.
 
-    Yields:
-        BED file contents as Regions.
+    Yields
+    ------
+    Region
+        The regions defined in the BED files.
     """
     if len(path) > 1:
         yield from read_bed_file(*path[1:])
@@ -55,13 +66,19 @@ def concat(
         encoding: str='utf-8',
 ) -> None:
     """
-    Combine one or more files into another file.
+    Concatenate multiple files into a single output stream.
 
-    Parameters:
-        output (file): A file like object for writing
-        *fnames (string): Paths to files for concatenation
-        clean_up (bool): If True, deletes the files after concatenation
-        encoding (string): File encoding
+    Parameters
+    ----------
+    output : IO
+        The output stream to write to.
+    *fnames : str
+        The names of the files to concatenate.
+    clean_up : bool, optional
+        Whether to remove the source files after concatenation
+        (default is True).
+    encoding : str, optional
+        The encoding to use when reading files (default is 'utf-8').
     """
     for fname in fnames:
         with open(fname, 'r', encoding=encoding) as stream:
@@ -73,19 +90,25 @@ def concat(
 
 def load_text_file(file_name: str) -> list[str]:
     """
-    Extract file contents to a list.
+    Load lines from a text file into a list, stripping whitespace.
 
-    Parameters:
-        file_name (str): The file to open.
+    Parameters
+    ----------
+    file_name : str
+        The name of the file to load.
 
-    Returns:
-        List of content
+    Returns
+    -------
+    list[str]
+        A list of stripped lines from the file.
     """
     with open_stream(file_name, 'r') as stream:
         return [line.strip() for line in stream]
 
 
-def _read_splice_sites(stream: IO) -> Iterator[tuple[str, int, str, str]]:
+def _read_splice_sites(  # noqa: WPS231
+        stream: IO,
+) -> Iterator[tuple[str, int, str, str]]:
     reader = csv.reader(stream, delimiter=' ')
     for idx, row in enumerate(reader, start=1):
         if row[0].startswith('#'):
@@ -125,14 +148,26 @@ def load_splicing_file(
         splicing_span: int,
 ) -> Iterator[Region]:
     """
-    Read splicing positions from a file.
+    Load genomic regions around splice sites from a file.
 
-    Parameters:
-        splicing_file (str): File path
-        splicing_span(int): Width of splice sites
+    Splice site files are space delimited and have five columns:
+    1. Chromosome/contig
+    2. Genomic start
+    3. Genomic stop (ignored)
+    4. Splice type (A or D)
+    5. Strand (+ or -)
 
-    Yeilds:
-        Splicing file contents as Regions.
+    Parameters
+    ----------
+    splicing_file : str
+        The path to the splice sites file.
+    splicing_span : int
+        The number of bases around each splice site to include in the region.
+
+    Yields
+    ------
+    Region
+        The genomic regions around the splice sites.
     """
 
     with open_stream(splicing_file) as stream:

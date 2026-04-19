@@ -6,14 +6,17 @@ from reditools.region import Region
 
 
 def region_args(options: argparse.Namespace) -> list[Region]:
-    """
-    Split a region into segments for paralllel processing.
+    """Parse region-related arguments and return a list of Regions.
 
-    Parameters:
-        options (namespace): analyze tool options
+    Parameters
+    ----------
+    options : argparse.Namespace
+        The command-line options containing region specifications.
 
-    Returns:
-        list: region windows
+    Returns
+    -------
+    list[Region]
+        A list of genomic regions to be analyzed.
     """
     if options.region is not None:
         region = Region.from_string(options.region, options.file[0])

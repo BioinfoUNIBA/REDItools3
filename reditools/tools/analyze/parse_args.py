@@ -5,9 +5,25 @@ from typing import Callable
 
 def check_number_bounds(
         number: float,
-        min_value: float | None=None,
-        max_value: float | None=None,
+        min_value: float | None = None,
+        max_value: float | None = None,
 ) -> None:
+    """Check if a number is within specified bounds.
+
+    Parameters
+    ----------
+    number : float
+        The number to check.
+    min_value : float | None, optional
+        The minimum allowed value, by default None.
+    max_value : float | None, optional
+        The maximum allowed value, by default None.
+
+    Raises
+    ------
+    argparse.ArgumentTypeError
+        If the number is outside the specified bounds.
+    """
     if min_value is not None and number < min_value:
         raise argparse.ArgumentTypeError(f'Value must be at least {min_value}.')
     if max_value is not None and number > max_value:
@@ -16,9 +32,23 @@ def check_number_bounds(
         )
 
 def bounded_int(
-        min_value: int | None=None,
-        max_value: int | None=None,
+        min_value: int | None = None,
+        max_value: int | None = None,
 ) -> Callable:
+    """Create a function that parses a string to a bounded integer.
+
+    Parameters
+    ----------
+    min_value : int | None, optional
+        The minimum allowed value, by default None.
+    max_value : int | None, optional
+        The maximum allowed value, by default None.
+
+    Returns
+    -------
+    Callable
+        A function that takes a string and returns a bounded integer.
+    """
     def subfn(cli_value):  # noqa: WPS430
         try:
             int_value = int(cli_value)
@@ -30,9 +60,23 @@ def bounded_int(
 
 
 def bounded_float(
-        min_value: float | None=None,
-        max_value: float | None=None,
+        min_value: float | None = None,
+        max_value: float | None = None,
 ) -> Callable:
+    """Create a function that parses a string to a bounded float.
+
+    Parameters
+    ----------
+    min_value : float | None, optional
+        The minimum allowed value, by default None.
+    max_value : float | None, optional
+        The maximum allowed value, by default None.
+
+    Returns
+    -------
+    Callable
+        A function that takes a string and returns a bounded float.
+    """
     def subfn(cli_value):  # noqa: WPS430
         try:
             float_value = float(cli_value)
@@ -46,11 +90,12 @@ def bounded_float(
 
 
 def build_argument_parser() -> argparse.ArgumentParser:  # noqa: WPS213, WPS210
-    """
-    Parse commandline options for REDItools.
+    """Build the argument parser for reditools analyze.
 
-    Returns:
-        namespace: commandline args
+    Returns
+    -------
+    argparse.ArgumentParser
+        The configured argument parser.
     """
     parser = argparse.ArgumentParser(
         prog="reditools analyze",
@@ -379,6 +424,24 @@ def build_argument_parser() -> argparse.ArgumentParser:  # noqa: WPS213, WPS210
     return parser
 
 def fix_legacy_options(args: argparse.Namespace) -> None:
+    """Adjust arguments to handle legacy options.
+
+    The specific fixes are:
+    - --dna sets --strand 0
+    - --exclude-multis sets --max-editing-nucleotides 1
+    - --strict sets --min-edits 1
+    - --load-omopolymeric-file adds the input to --exclude-regions
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        The parsed command-line arguments.
+
+    Raises
+    ------
+    Exception
+        If mutually exclusive options are provided.
+    """
     if args.strand != 0 and args.dna:
         raise Exception('-N/--dna can only be used with -s/--strand 0.')
     delattr(args, 'dna')  # noqa: WPS421
@@ -401,6 +464,18 @@ def fix_legacy_options(args: argparse.Namespace) -> None:
     delattr(args, 'load_omopolymeric_file')  # noqa: WPS421
 
 def parse_args(sys_args: list[str] | None = None) -> argparse.Namespace:
+    """Parse command-line arguments for reditools analyze.
+
+    Parameters
+    ----------
+    sys_args : list[str] | None, optional
+        The list of command-line arguments, by default None.
+
+    Returns
+    -------
+    argparse.Namespace
+        The parsed and validated command-line arguments.
+    """
     parser = build_argument_parser()
     args = parser.parse_args(sys_args)
     try:

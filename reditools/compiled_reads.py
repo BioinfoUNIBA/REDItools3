@@ -1,4 +1,3 @@
-"""Organizational structure for tracking base coverage of genomic positions."""
 from typing import Iterator, Optional
 
 from pysam import AlignedSegment
@@ -8,20 +7,76 @@ from reditools.fasta_file import RTFastaFile
 
 
 class RefFetch:
-    def __init__(self, fasta_file_path: Optional[str]=None):
+    """Helper class to fetch reference sequences.
+
+    Depending on whether a FASTA file path is provided, it can either
+    fetch the reference sequence from the FASTA file or directly from
+    the AlignedSegment if MD tags are available.
+    """
+
+    def __init__(self, fasta_file_path: Optional[str] = None):
+        """Initialize RefFetch.
+
+        Parameters
+        ----------
+        fasta_file_path : str, optional
+            Path to the reference FASTA file. If None, fetch from read.
+        """
         if fasta_file_path:
             self.fasta_file = RTFastaFile(fasta_file_path)
-            self.get_refseq = self.get_ref_from_fasta
+            self._refseq_fn = self.get_ref_from_fasta
         else:
-            self.get_refseq = self.get_ref_from_read
+            self._refseq_fn = self.get_ref_from_read
+
+    def get_refseq(self, read: AlignedSegment) -> Iterator[str]:
+        """Fetch reference sequence. If a FASTA file was provided in the
+        constructor, this function calla get_ref_from_fasta. Otherwise it
+        calls get_ref_from_read.
+
+        Parameters
+        ----------
+        read : AlignedSegment
+            The alignment segment to extract the reference from.
+
+        Returns
+        -------
+        Iterator[str]
+            An iterator of reference nucleotides.
+        """
+        return self._refseq_fn(read)
+
 
     def get_ref_from_read(self, read: AlignedSegment) -> Iterator[str]:
+        """Fetch reference sequence from the read itself.
+
+        Parameters
+        ----------
+        read : AlignedSegment
+            The alignment segment to extract the reference from.
+
+        Returns
+        -------
+        Iterator[str]
+            An iterator of reference nucleotides.
+        """
         return (_[2].upper() for _ in read.get_aligned_pairs(
             with_seq=True,
             matches_only=True,
         ))
 
     def get_ref_from_fasta(self, read: AlignedSegment) -> Iterator[str]:
+        """Fetch reference sequence from a FASTA file.
+
+        Parameters
+        ----------
+        read : AlignedSegment
+            The alignment segment providing the coordinates.
+
+        Returns
+        -------
+        Iterator[str]
+            An iterator of reference nucleotides.
+        """
         pairs = read.get_aligned_pairs(matches_only=True)
         indices = [ref for _, ref in pairs]
         return self.fasta_file.get_base(
@@ -31,27 +86,37 @@ class RefFetch:
 
 
 class CompiledReads:
-    """Manager for CompiledPositions."""
+    """Class to compile read information into positions.
+
+    It processes AlignedSegments and organizes base information by position
+    and strand.
+    """
 
     _strands = ('-', '+', '*')
 
     def __init__(
         self,
-        strand: int=0,
-        min_base_position: int=0,
-        max_base_position: int=0,
-        min_base_quality: int=0,
-        fasta_file: Optional[str]=None,
+        strand: int = 0,
+        min_base_position: int = 0,
+        max_base_position: int = 0,
+        min_base_quality: int = 0,
+        fasta_file: Optional[str] = None,
     ):
-        """
-        Create a new CompiledReads object.
+        """Initialize CompiledReads.
 
-        Parameters:
-            strand (int): Strand detection mode
-            min_base_position (int): Left trims bases
-            max_base_position (int): Right trims bases
-            min_base_quality (int): Minimum base quality to report
-            fasat_file (RTFastaFile): Optional genomic reference
+        Parameters
+        ----------
+        strand : int, default 0
+            Strandness of the data. 0 for unstranded, 1 for forward, 2 for
+            reverse.
+        min_base_position : int, default 0
+            Minimum position from the start of the read to consider a base.
+        max_base_position : int, default 0
+            Minimum position from the end of the read to consider a base.
+        min_base_quality : int, default 0
+            Minimum Phred quality score to consider a base.
+        fasta_file : str, optional
+            Path to the reference FASTA file.
         """
         self._nucleotides: dict[int, CompiledPosition] = {}
         if strand == 0:
@@ -72,14 +137,12 @@ class CompiledReads:
         }
 
     def add_reads(self, reads: list[AlignedSegment]) -> None:
-        """
-        Add iterable of pysam reads to the object.
+        """Process and add reads to the compilation.
 
-        The reads are broken down. into individual nucleotides that are
-        tracked by chromosomal location.
-
-        Parameters:
-            reads (iterable): pysam reads
+        Parameters
+        ----------
+        reads : list[AlignedSegment]
+            List of AlignedSegment objects to process.
         """
         for read in reads:
             strand = self._strands[self.get_strand(read)]
@@ -93,15 +156,19 @@ class CompiledReads:
                 self._nucleotides[pos].add_base(quality, strand, base)
 
     def pop_range(self, start, stop) -> Iterator[CompiledPosition]:
-        """
-        Iteratively calls pop across a genomic range.
+        """Yield and remove CompiledPosition objects within a range.
 
-        Params:
-            start (int): Genomic start (zero index, inclusive)
-            stop (int): Genomic stop (zero index, exclusive)
+        Parameters
+        ----------
+        start : int
+            Start position (inclusive).
+        stop : int
+            Stop position (exclusive).
 
-        Yields:
-            CompiledPosition
+        Yields
+        ------
+        CompiledPosition
+            The compiled position object.
         """
         for position in range(start, stop):
             if not self._nucleotides:

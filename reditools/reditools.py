@@ -1,10 +1,3 @@
-"""
-Analysis system for RNA editing events.
-
-Authors:
-    flat - 2017
-    ahanden - 2022
-"""
 
 from typing import Iterator
 
@@ -16,10 +9,16 @@ from reditools.region import Region
 
 
 class REDItools:
-    """Analysis system for RNA editing events."""
+    """
+    Main class for running REDItools analysis.
+
+    Provides methods to set up analysis parameters and process alignment data.
+    """
 
     def __init__(self):
-        """Create a new REDItools object."""
+        """
+        Initialize REDItools with default parameters.
+        """
         self._min_column_length = 1
         self._min_edits = 0
         self._min_edits_per_nucleotide = 0
@@ -44,20 +43,24 @@ class REDItools:
     @property
     def log_level(self) -> str:
         """
-        The logging level.
+        Get the current logging level.
 
-        Returns:
-            Log level
+        Returns
+        -------
+        str
+            The current logging level.
         """
         return self._logger.level
 
     @log_level.setter
     def log_level(self, level: str):
         """
-        Set the class logging level.
+        Set the logging level.
 
-        Parameters:
-            level (str): logging level
+        Parameters
+        ----------
+        level : str
+            The logging level to set (e.g., 'debug', 'info', or 'silent').
         """
         self._logger = Logger(level)
         self.log = self._logger.log
@@ -68,14 +71,19 @@ class REDItools:
             region: Region,
     ) -> Iterator[RTResult]:
         """
-        Detect RNA editing events.
+        Analyze a genomic region using alignment data.
 
-        Parameters:
-            alignment_manager (AlignmentManager): Source of reads
-            region (Region): Where to look for edits
+        Parameters
+        ----------
+        alignment_manager : AlignmentManager
+            The manager providing access to alignment files.
+        region : Region
+            The genomic region to analyze.
 
-        Yields:
-            Analysis results for each base position in region
+        Yields
+        ------
+        Iterator[RTResult]
+            The results of the analysis for each position in the region.
         """
         nucleotides = CompiledReads(
             self.strand,
@@ -128,15 +136,23 @@ class REDItools:
         )
 
     def use_strand_correction(self) -> None:
-        """Only reports reads/positions that match `strand`."""
+        """
+        Enable strand correction during analysis.
+
+        Strand correction will filter reads to only those of the consensus
+        strand and also report the complement of the edits and reference base
+        if the strand is '-'.
+        """
         self._use_strand_correction = True
 
     def add_reference(self, reference_fname: str):
         """
-        Use a reference fasta file instead of reference from the BAM files.
+        Add a reference FASTA file for genomic reference sequences.
 
-        Parameters:
-            reference_fname (str): File path to FASTA reference
+        Parameters
+        ----------
+        reference_fname : str
+            The path to the reference FASTA file.
         """
         self.reference = reference_fname
 

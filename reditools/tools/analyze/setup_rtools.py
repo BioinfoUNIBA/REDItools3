@@ -5,14 +5,17 @@ from reditools.logger import Logger
 
 
 def setup_rtools(options: argparse.Namespace) -> reditools.REDItools:
-    """
-    Create a REDItools object.
+    """Initialize and configure a REDItools object based on provided options.
 
-    Parameters:
-        options (namespace): Commandline arguments from argparse
+    Parameters
+    ----------
+    options : argparse.Namespace
+        The command-line options containing configuration parameters.
 
-    Returns:
-        A configured REDItools object
+    Returns
+    -------
+    reditools.REDItools
+        A configured REDItools instance.
     """
     rtools = reditools.REDItools()
 

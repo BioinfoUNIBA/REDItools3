@@ -1,4 +1,3 @@
-"""Commandline tool for REDItools."""
 
 import csv
 import sys
@@ -25,17 +24,25 @@ fieldnames = [
 
 def concat_output(
     tfs: list[str],
-    output_file: str | None=None,
-    mode: str='w',
-    encoding: str='utf-8',
+    output_file: str | None = None,
+    mode: str = 'w',
+    encoding: str = 'utf-8',
     **format_args,
 ) -> None:
-    """
-    Write the output of a REDItools analysis.
+    """Concatenate temporary results files into the final output.
 
-    Parameters:
-        options (namespace): Commandline options for file formatting.
-        tfs (list): Temporary files containing REDItools results
+    Parameters
+    ----------
+    tfs : list[str]
+        List of paths to temporary files.
+    output_file : str, optional
+        Path to the final output file. If None, write to stdout.
+    mode : str, default 'w'
+        Mode in which the output file is opened.
+    encoding : str, default 'utf-8'
+        Encoding for the output file.
+    **format_args
+        Additional arguments for csv.writer.
     """
     # Setup final output file
     if output_file is None:

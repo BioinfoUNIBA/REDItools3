@@ -1,4 +1,3 @@
-"""Commandline tool for REDItools."""
 from __future__ import annotations
 
 import sys
@@ -7,14 +6,15 @@ from queue import Empty as EmptyQueueException
 
 
 def check_dead(processes: list[Process]):
-    """
-    Look through processes to determine if any have died unexpectedly.
+    """Check if any of the processes have failed.
 
-    If any process has an exit code of 1, this method will terminate all other
-    processes and then exit with code 1.
+    If a process has exited with code 1, all other processes are killed
+    and the program exits.
 
-    Parameters:
-        processes (list): Processes to check
+    Parameters
+    ----------
+    processes : list[Process]
+        The list of processes to monitor.
     """
     for proc in processes:
         if proc.exitcode == 1:
@@ -28,16 +28,21 @@ def monitor(
         out_queue: Queue[tuple[int, str]],
         chunks: int,
 ) -> list[str]:
-    """
-    Monitor parallel REDItools jobs.
+    """Monitor progress of parallel analysis processes.
 
-    Parameters:
-        processes (list): Threads
-        out_queue (Queue): Output of threads
-        chunks (int): Number of chunks for analysis
+    Parameters
+    ----------
+    processes : list[Process]
+        The list of worker processes.
+    out_queue : Queue[tuple[int, str]]
+        The queue containing analysis result filenames and their indices.
+    chunks : int
+        The total number of work chunks.
 
-    Returns:
-        list: Temporary files containing the output of each chunk.
+    Returns
+    -------
+    list[str]
+        A list of filenames containing analysis results, ordered by chunk index.
     """
     tfs = ['' for _ in range(chunks - len(processes))]
 
