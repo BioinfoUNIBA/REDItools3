@@ -1,15 +1,17 @@
-"""Genomic Region Collection."""
 from collections import defaultdict
+from typing import Iterable
+
+from reditools.region import Region
 
 
 class RegionCollection:
-    """Collections of REDItools3 region objects. This class is meant to
-    provide fast lookups of overlaps, and so behaves as a queue."""
+    """
+    A collection of genomic regions, providing efficient ordered lookup.
+    """
 
     def __init__(self):
         """
-        Creates a new region collection.
-
+        Initialize an empty RegionCollection.
         """
 
         self._regions = defaultdict(list)
@@ -17,60 +19,94 @@ class RegionCollection:
         self._last_contig = None
         self._sorted = False
 
-    def _sort(self):
+    def __bool__(self):
+        """
+        Check whether the collection is empty.
+
+        Returns
+        -------
+        bool
+            True if there are regions in the collection, False otherwise.
+        """
+        return bool(self._regions)
+
+    def sort(self) -> None:
+        """
+        Sort all regions within each contig.
+        """
         for contig, regions in self._regions.items():
-            self._regions[contig] = sorted(
-                regions,
-                key=lambda _: (_.start, _.stop),
-            )
+            self._regions[contig] = sorted(regions)
         self._sorted = True
 
-    def contains(self, contig, position):
+    def contains(self, contig: str, position: int) -> bool:
         """
-        Checks whether the given position or range overlaps with the
+        Check if a given position is contained within any region of the
         collection.
 
-        Parameters:
-            contig (str): Chromomsome/contig name from reference.
-            position_start (int): Position to check for.
+        This method only works if each subsequent call is done in sorted order.
+        Otherwise the output will be inconsistent.
 
-        Returns:
-            True if there is an overlap, False otherwise.
+        Parameters
+        ----------
+        contig : str
+            The name of the contig or chromosome.
+        position : int
+            The 0-based position to check.
+
+        Returns
+        -------
+        bool
+            True if the position is within a region, False otherwise.
         """
         if not self._sorted:
-            self._sort()
+            self.sort()
             self._last_contig = contig
-            self._index = 0
+            idx = 0
         elif contig != self._last_contig:
             self._last_contig = contig
-            self._index = 0
+            idx = 0
+        else:
+            idx = self._index
 
-        for self._index in range(self._index, len(self._regions[contig])):
-            region = self._regions[contig][self._index]
+
+        for idx, region in enumerate(
+               self._regions[contig][idx:],
+               start=idx,
+        ):
             if position < region.start:
+                self._index = idx
                 return False
             if region.start <= position < region.stop:
+                self._index = idx
                 return True
-        self._index += 1
-
+        self._index = len(self.get_contig(contig))
         return False
 
-    def add_region(self, region):
+    def add_regions(self, regions: Iterable[Region]) -> None:
         """
-        Add a region to the collection.
+        Add multiple regions to the collection.
 
-        Parameters:
-            region (Region): region to add.
+        Parameters
+        ----------
+        regions : Iterable[Region]
+            An iterable of Region objects to add.
         """
         self._sorted = False
-        self._regions[region.contig].append(region)
+        for _ in regions:
+            self._regions[_.contig].append(_)
 
-    def add_regions(self, regions):
+    def get_contig(self, contig: str) -> list[Region]:
         """
-        Add a list or iterable of regions to the collection.
+        Retrieve the regions for a specific chromosome/contig.
 
-        Parameters:
-            regions (iterable): List of regions.
+        Parameters
+        ----------
+        contig : str
+            Chromosome/contig to retrieve.
+
+        Returns
+        -------
+        list[Region]
+            Regions found in the given contig.
         """
-        for r in regions:
-            self.add_region(r)
+        return self._regions[contig]

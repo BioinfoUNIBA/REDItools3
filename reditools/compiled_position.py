@@ -1,160 +1,75 @@
-"""Organizational structure for tracking base coverage of genomic positions."""
+from dataclasses import dataclass, field
+from typing import Iterator
 
 
+@dataclass
 class CompiledPosition:
-    """Tracks base frequency for a genomic position."""
+    """Class to store compiled information for a specific genomic position.
 
-    _bases = 'ACGT'
+    Attributes
+    ----------
+    ref : str
+        The reference nucleotide at this position.
+    position : int
+        The genomic position (0-based).
+    contig : str
+        The name of the contig/chromosome.
+    qualities : list[int]
+        List of Phred quality scores for each base at this position.
+    strands : list[str]
+        List of strand orientations ('+', '-', or '*') for each base.
+    bases : list[str]
+        List of nucleotides observed at this position.
+    """
+
+    ref: str
+    position: int
+    contig: str
+    qualities: list[int] = field(default_factory=list)
+    strands: list[str] = field(default_factory=list)
+    bases: list[str] = field(default_factory=list)
+
     _comp = {'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C'}
 
-    def __init__(self, ref, contig, position):
-        """
-        Create a new compiled position.
+    def __len__(self) -> int:
+        """Return the number of bases at this position.
 
-        Parameters:
-            ref (string): The reference base for this position
-            contig (string): Chromosome name
-            position (int): Genomic coordinate
-        """
-        self.qualities = []
-        self.strands = []
-        self.bases = []
-        self.counter = False
-        self.ref = ref
-        self.contig = contig
-        self.position = position
-        self._strand = None
-
-    def __len__(self):
-        """
-        Position depth.
+        Returns
+        -------
+        int
+            Number of bases.
         """
         return len(self.bases)
 
-    def __getitem__(self, base):
-        """
-        Frequency of a given nucleotide at this position.
+    def add_base(self, quality: int, strand: str, base: str) -> None:
+        """Add a base observation to this position.
 
-        Parameters:
-            base (str): The nucleotide (A, C, G, T, or REF)
-
-        Returns:
-            int: The total number of reads with the given base
+        Parameters
+        ----------
+        quality : int
+            Phred quality score of the base.
+        strand : str
+            Strand orientation of the read containing the base
+            ('+', '-', or '*').
+        base : str
+            The observed nucleotide.
         """
-        if not self.counter:
-            self.counter = {base: 0 for base in self._bases}
-            for base_member in self.bases:
-                self.counter[base_member] += 1
-        if base.upper() == 'REF':
-            return self.counter[self.ref]
-        return self.counter[base]
-
-    def __iter__(self):
-        """
-        Iterate over each base frequency in order A, C, G, T.
-        """
-        return (self[base] for base in self._bases)
-
-    def add_base(self, quality, strand, base):
-        """
-        Add details for a base at this position.
-
-        Parameters:
-            quality (int): The quality of the read
-            strand (str): The strand the base is on (+, -, or *)
-            base (str): The nucleotide at the position (A, C, G, or T)
-        """
-        self.qualities.append(quality)
-        self.strands.append(strand)
         self.bases.append(base)
-        self.counter = False
+        self.strands.append(strand)
+        self.qualities.append(quality)
 
-    def complement(self):
-        """
-        Modify all the summarized nucleotides to their complements.
-        """
-        self.bases = [self._comp[base] for base in self.bases]
-        self.ref = self._comp[self.ref]
-        if not self.counter:
-            return
-        complements = self._comp.items()
-        self.counter = {sb: self.counter[bs] for bs, sb in complements}
+    def calculate_strand(self, threshold: float = 0) -> str:
+        """Calculate the consensus strand based on observations.
 
-    @property
-    def reference(self):
-        """
-        str: Reference base at this position.
-        (alias for ref)
-        """
-        return self.ref
+        Parameters
+        ----------
+        threshold : float, default 0
+            The fraction of observations required to assign a strand.
 
-    @property
-    def alts(self):
-        """
-        list: Detected alternate bases.
-        """
-        return [b for b in self._bases if self[b] and b != self.ref]
-
-    @property
-    def variants(self):
-        """
-        list: Observed edits at this position (e.g. AG).
-        """
-        return [f'{self.ref}{base}' for base in self.alts]
-
-    @property
-    def mean_quality(self):
-        """
-        int: Mean read quality of the base position.
-        """
-        if len(self) == 0:
-            return 0
-        return sum(self.qualities) / len(self)
-
-    @property
-    def edit_ratio(self):
-        """
-        float: Edit ratio as most edited base frequency divided by sum of most
-        edited base and reference base.
-        """
-        max_edits = 0
-        for base, count in zip(self._bases, self):
-            if base != self.ref and count > max_edits:
-                max_edits = count
-        try:
-            return max_edits / (self['REF'] + max_edits)
-        except ZeroDivisionError:
-            return 0
-
-    @property
-    def depth(self):
-        """
-        int: Number of reads covering this position.
-        (alias for __len__)
-        """
-        return len(self)
-
-    @property
-    def strand(self):
-        """
-        str: Get the strand information for this position ('+', '-', or '*')
-
-        Raises:
-            ValueError: If calculate_strand has not yet been run.
-        """
-        if self._strand is None:
-            raise ValueError('Must run calculate_strand first.')
-        return self._strand
-
-    def calculate_strand(self, threshold=0):
-        """
-        Determine the strandedness.
-
-        Parameters:
-            threshold (int): Confidence minimum for strand identification
-
-        Returns:
-            '+', '-', or '*'
+        Returns
+        -------
+        str
+            The calculated strand ('+', '-', or '*').
         """
         pos_count = 0
         neg_count = 0
@@ -164,34 +79,153 @@ class CompiledPosition:
             elif strand == '-':
                 neg_count += 1
         if pos_count == neg_count:
-            self._strand = '*'
-        elif pos_count / (pos_count + neg_count) >= threshold:
-            self._strand = '+'
-        elif neg_count / (pos_count + neg_count) >= threshold:
-            self._strand = '-'
-        else:
-            self._strand = '*'
-        return self._strand
+            return '*'
+        if pos_count / (pos_count + neg_count) >= threshold:
+            return '+'
+        if neg_count / (pos_count + neg_count) >= threshold:
+            return '-'
+        return '*'
 
-    def filter_by_strand(self):
+    def filter_by_strand(self, strand: str) -> None:
+        """Filter observations to keep only those from a specific strand.
+
+        Parameters
+        ----------
+        strand : str
+            The strand to keep ('+', '-', or '*'). If '*', no filtering is done.
         """
-        Remove all bases not on the strand.
-        """
-        if self.strand == '*':
+        if strand == '*':
             return
-        keep = range(len(self.bases))
-        keep = [idx for idx in keep if self.strands[idx] == self.strand]
-        self.qualities = self._filter(self.qualities, keep)
-        self.strands = self._filter(self.strands, keep)
-        self.bases = self._filter(self.bases, keep)
-        self.counter = False
+        keep = [
+            idx for idx in range(len(self.bases))
+            if self.strands[idx] == strand
+        ]
+        self.qualities = [self.qualities[_] for _ in keep]
+        self.strands = [self.strands[_] for _ in keep]
+        self.bases = [self.bases[_] for _ in keep]
 
-    def _filter(self, lst, indx):
-        return [lst[idx] for idx in indx]
+    def complement(self) -> None:
+        """Replace all bases and the reference with their complements."""
+        self.bases = [self._comp[base] for base in self.bases]
+        self.ref = self._comp[self.ref]
+
+
+class RTResult:
+    """Class to represent the results of REDItools analysis at a position.
+
+    Attributes
+    ----------
+    cp : CompiledPosition
+        The compiled position data.
+    strand : str
+        The strand assigned to this position.
+    reference : str
+        The reference nucleotide.
+    position : int
+        The genomic position.
+    contig : str
+        The contig name.
+    counter : dict
+        A dictionary counting occurrences of each nucleotide.
+    variants : list
+        A list of observed variants (e.g., ['AG']).
+    """
+
+    _base_order = 'ACGT'
+
+    def __init__(self, compiled_position: CompiledPosition, strand: str):
+        """Initialize RTResult.
+
+        Parameters
+        ----------
+        compiled_position : CompiledPosition
+            The compiled position data.
+        strand : str
+            The strand assigned to this position.
+        """
+        self.cp = compiled_position
+        self.strand = strand
+
+        self.reference = self.cp.ref
+        self.position = self.cp.position
+        self.contig = self.cp.contig
+
+        self.counter = {_: 0 for _ in self._base_order}
+        for base in self.cp.bases:
+            self.counter[base] += 1
+
+        self.variants = [
+            f'{self.reference}{_}' for _ in self._base_order
+            if self[_] and _ != self.reference
+        ]
+
+    def __getitem__(self, base: str):
+        """Get the count of a specific base or the reference base.
+
+        Parameters
+        ----------
+        base : str
+            The nucleotide ('A', 'C', 'G', 'T') or 'REF'.
+
+        Returns
+        -------
+        int
+            The count of the requested base.
+        """
+        if base.upper() == 'REF':
+            return self.counter[self.reference]
+        return self.counter[base]
+
+    def __iter__(self) -> Iterator[int]:
+        """Iterate over the counts of bases in ACGT order.
+
+        Yields
+        ------
+        int
+            The count of each base in order: 'A, 'C', 'G', 'T'.
+        """
+        return (self[base] for base in self._base_order)
+
+    def __len__(self) -> int:
+        """Return the total number of reads at this position.
+
+        Returns
+        -------
+        int
+            Total reads.
+        """
+        return len(self.cp)
 
     @property
-    def per_base_depth(self):
+    def edit_ratio(self) -> float:
+        """Calculate the editing ratio at this position.
+
+        The ratio of the most frequent variant to the sum of reference
+        and that variant.
+
+        Returns
+        -------
+        float
+            The editing ratio.
         """
-        list: Get the depth per base for this position in order A, C, G, T.
+        max_edits = 0
+        for base, count in zip(self._base_order, self):
+            if base != self.reference and count > max_edits:
+                max_edits = count
+        try:
+            return max_edits / (self['REF'] + max_edits)
+        except ZeroDivisionError:
+            return 0
+
+    @property
+    def mean_quality(self) -> float:
+        """Calculate the mean quality score at this position.
+
+        Returns
+        -------
+        float
+            The mean quality score.
         """
-        return list(self)
+        if len(self) == 0:
+            return 0
+        return sum(self.cp.qualities) / len(self)

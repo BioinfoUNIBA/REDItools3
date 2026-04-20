@@ -1,47 +1,66 @@
-"""Wrappers for PysamFastaFile."""
+from typing import Iterator
 
 from pysam.libcfaidx import FastaFile as PysamFastaFile
 
 
 class RTFastaFile(PysamFastaFile):
-    """Wrapper for pysam.FastaFile to provide sequence cache."""
+    """
+    A wrapper around pysam.FastaFile for genomic sequence access.
+    """
 
     def __new__(cls, *args, **kwargs):
         """
-        Create a wrapper for pysam.FastaFile.
+        Create a new instance of RTFastaFile.
 
-        Parameters:
-            *args (list): positional arguments for PysamFastaFile constructor
-            **kwargs (dict): named arguments for PysamFastaFile constructor
+        Parameters
+        ----------
+        *args
+            Arguments passed to pysam.FastaFile.
+        **kwargs
+            Keyword arguments passed to pysam.FastaFile.
 
-        Returns:
-            PysamFastaFIle
+        Returns
+        -------
+        RTFastaFile
+            A new instance of RTFastaFile.
         """
         return PysamFastaFile.__new__(cls, *args, **kwargs)
 
     def __init__(self, *args, **kwargs):
         """
-        Create a wrapper for pysam.FastaFile.
+        Initialize the RTFastaFile.
 
-        Parameters:
-            *args (list): positional arguments for PysamFastaFile constructor
-            **kwargs (dict): named arguments for PysamFastaFile constructor
+        Parameters
+        ----------
+        *args
+            Arguments passed to pysam.FastaFile.
+        **kwargs
+            Keyword arguments passed to pysam.FastaFile.
         """
         PysamFastaFile.__init__(self)
 
-    def get_base(self, contig, *position):
+    def get_base(self, contig: str, *position: int) -> Iterator[str]:
         """
-        Retrieve the base at the given position.
+        Retrieve bases at specified positions from a contig.
 
-        Parameters:
-            contig (string): Chromsome name
-            position (int): Zero-indexed position on reference
+        Parameters
+        ----------
+        contig : str
+            The name of the contig or chromosome.
+        *position : int
+            One or more 0-based positions to retrieve bases for.
 
-        Returns:
-            Base the position as a string.
+        Returns
+        -------
+        Iterator[str]
+            An iterator over the upper-case bases at the specified positions.
 
-        Raises:
-            IndexError: The position is not within the contig
+        Raises
+        ------
+        KeyError
+            If the contig is not found in the FASTA file.
+        IndexError
+            If a position is outside the bounds of the contig.
         """
 
         if contig not in self:
@@ -55,8 +74,12 @@ class RTFastaFile(PysamFastaFile):
                 )
             contig = new_contig
         sorted_pos = sorted(position)
+        seq = self.fetch(
+            contig,
+            sorted_pos[0],
+            sorted_pos[-1] + 1,
+        )
         try:
-            seq = self.fetch(contig, sorted_pos[0], sorted_pos[-1] + 1)
             return (seq[_ - sorted_pos[0]].upper() for _ in position)
         except IndexError as exc:
             raise IndexError(

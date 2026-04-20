@@ -1,28 +1,30 @@
-"""
-Analysis system for RNA editing events.
 
-Authors:
-    flat - 2017
-    ahanden - 2022
-"""
+from typing import Iterator
 
+from reditools.alignment_manager import AlignmentManager
+from reditools.compiled_position import CompiledPosition, RTResult
 from reditools.compiled_reads import CompiledReads
-from reditools.fasta_file import RTFastaFile
 from reditools.logger import Logger
-from reditools.region_collection import RegionCollection
-from reditools import rtchecks
+from reditools.region import Region
 
 
 class REDItools:
-    """Analysis system for RNA editing events."""
+    """
+    Main class for running REDItools analysis.
+
+    Provides methods to set up analysis parameters and process alignment data.
+    """
 
     def __init__(self):
-        """Create a new REDItools object."""
+        """
+        Initialize REDItools with default parameters.
+        """
         self._min_column_length = 1
         self._min_edits = 0
         self._min_edits_per_nucleotide = 0
 
-        self.log_level = Logger.silent_level
+        self._logger = Logger(Logger.silent_level)
+        self.log = self._logger.log
 
         self.strand = 0
         self._use_strand_correction = False
@@ -32,213 +34,64 @@ class REDItools:
         self.min_base_position = 0
         self.max_base_position = 0
 
-        self._rtqc = rtchecks.RTChecks()
-
         self._min_read_quality = 0
 
-        self._target_regions = RegionCollection()
-        self._exclude_regions = RegionCollection()
         self._specific_edits = None
 
         self.reference = None
 
-        self._include_refs = None
-
     @property
-    def include_refs(self):
+    def log_level(self) -> str:
         """
-        Genome reference bases to report on.
+        Get the current logging level.
 
-        Returns:
-            list
+        Returns
+        -------
+        str
+            The current logging level.
         """
-        return self._include_refs
-
-    @property
-    def specific_edits(self):
-        """
-        Specific edit events to report.
-
-        Returns:
-            set
-        """
-        return self._specific_edits
-
-    @specific_edits.setter
-    def specific_edits(self, edits):
-        if list(edits) == ["ALL"]:
-            self._specific_edits = set()
-        else:
-            self._specific_edits = set(edits)
-
-        for alt in self._specific_edits:
-            if not self._verify_alt(alt):
-                raise Exception(
-                        f'Specific edit "{alt}" is not valid. ' +
-                        'Edits must be two character strings of ATCG.')
-
-        qc_check = rtchecks.check_specific_alts
-        if self._specific_edits:
-            self._rtqc.add(qc_check)
-        else:
-            self._rtqc.discard(qc_check)
-
-    def _verify_alt(self, alt):
-        if not isinstance(alt, str):
-            return False
-        if len(alt) != 2:
-            return False
-        if alt[0] not in 'ATCG' and alt[1] not in 'ATCG':
-            return False
-        return True
-
-    @property
-    def target_regions(self):
-        """
-        Only report results for these locations.
-
-        Returns:
-            list
-        """
-        return self._target_regions
-
-    def add_target_regions(self, regions):
-        """
-        Only report results for these locations.
-
-        Parameters:
-            regions (iterable): List of Region objects.
-        """
-        if regions:
-            self._target_regions.add_regions(regions)
-            self._rtqc.add(rtchecks.check_target_positions)
-
-    @property
-    def log_level(self):
-        """
-        The logging level.
-
-        Returns:
-            Log level
-        """
-        return self._log_level
+        return self._logger.level
 
     @log_level.setter
-    def log_level(self, level):
+    def log_level(self, level: str):
         """
-        Set the class logging level.
+        Set the logging level.
 
-        Parameters:
-            level (str): logging level
+        Parameters
+        ----------
+        level : str
+            The logging level to set (e.g., 'debug', 'info', or 'silent').
         """
         self._logger = Logger(level)
         self.log = self._logger.log
 
-    @property
-    def min_read_quality(self):
-        """Minimum read quality for inclusion."""
-        return self._min_read_quality
-
-    @min_read_quality.setter
-    def min_read_quality(self, threshold):
-        self._min_read_quality = threshold
-        qc_check = rtchecks.check_column_quality
-        if self._min_read_quality > 0:
-            self._rtqc.add(qc_check)
-        else:
-            self._rtqc.discard(qc_check)
-
-    @property
-    def min_column_length(self):
-        """Minimum depth for a position to be reported."""
-        return self._min_column_length
-
-    @min_column_length.setter
-    def min_column_length(self, threshold):
-        self._min_column_length = threshold
-        qc_check = rtchecks.check_column_min_length
-        if threshold > 1:
-            self._rtqc.add(qc_check)
-        else:
-            self._rtqc.discard(qc_check)
-
-    @property
-    def min_edits(self):
-        """Minimum number of editing events for reporting."""
-        return self._min_edits
-
-    @min_edits.setter
-    def min_edits(self, threshold):
-        self._min_edits = threshold
-        qc_check = rtchecks.check_column_edit_frequency
-        if threshold > 0:
-            self._rtqc.add(qc_check)
-        else:
-            self._rtqc.discard(qc_check)
-
-    @property
-    def min_edits_per_nucleotide(self):
-        """Minimum number of edits for a single nucleotide for reporting."""
-        return self._min_edits_per_nucleotide
-
-    @min_edits_per_nucleotide.setter
-    def min_edits_per_nucleotide(self, threshold):
-        self._min_edits_per_nucleotide = threshold
-        qc_check = rtchecks.check_column_min_edits
-        if threshold > 0:
-            self._rtqc.add(qc_check)
-        else:
-            self._rtqc.discard(qc_check)
-
-    @property
-    def exclude_regions(self):
-        """Regions to exclude from analysis"""
-        return self._exclude_regions
-
-    def add_exclude_regions(self, regions):
+    def analyze(
+            self,
+            alignment_manager: AlignmentManager,
+            region: Region,
+    ) -> Iterator[RTResult]:
         """
-        Regions to exclude from analysis
+        Analyze a genomic region using alignment data.
 
-        Parameters:
-            regions (iterable): List of Region objects.
-        """
-        if regions:
-            self._exclude_regions.add_regions(regions)
-            self._rtqc.add(rtchecks.check_exclusions)
+        Parameters
+        ----------
+        alignment_manager : AlignmentManager
+            The manager providing access to alignment files.
+        region : Region
+            The genomic region to analyze.
 
-    @property
-    def max_alts(self):
-        """Maximum number of alternative bases for a position."""
-        return self._max_alts
-
-    @max_alts.setter
-    def max_alts(self, max_alts):
-        self._max_alts = max_alts
-        qc_check = rtchecks.check_max_alts
-        if max_alts < 3:
-            self._rtqc.add(qc_check)
-        else:
-            self._rtqc.discard(qc_check)
-
-    def analyze(self, alignment_manager, region):
-        """
-        Detect RNA editing events.
-
-        Parameters:
-            alignment_manager (AlignmentManager): Source of reads
-            region (Region): Where to look for edits
-
-        Yields:
-            Analysis results for each base position in region
+        Yields
+        ------
+        Iterator[RTResult]
+            The results of the analysis for each position in the region.
         """
         nucleotides = CompiledReads(
             self.strand,
             self.min_base_position,
             self.max_base_position,
             self.min_base_quality,
+            self.reference,
         )
-        if self.reference:
-            nucleotides.add_reference(self.reference)
         total = 0
 
         self.log(
@@ -247,56 +100,34 @@ class REDItools:
             alignment_manager.file_list,
             region,
         )
-        read_iter = alignment_manager.fetch_by_position(region=region)
 
-        reads = next(read_iter, None)
-        while reads is not None:
-            position = reads[0].reference_start
+        for reads in alignment_manager.fetch_by_position(region=region):
             self.log(
                 Logger.debug_level,
                 'Adding {} reads starting from {}:{}',
                 len(reads),
                 region.contig,
-                position,
+                reads[0].reference_start,
             )
             total += len(reads)
             nucleotides.add_reads(reads)
 
-            reads = next(read_iter, None)
-            if reads is None or reads[0].reference_start > region.stop:
+            next_read_start = alignment_manager.next_read_start
+            if next_read_start is None or next_read_start > region.stop:
                 next_read_start = region.stop
-            else:
-                next_read_start = reads[0].reference_start
 
-            for position in range(position, next_read_start):
-                if nucleotides.is_empty():
-                    break
-                bases = nucleotides.pop(position)
-                if position < region.start:
-                    continue
-                self.log(
-                    Logger.debug_level,
-                    'Analyzing position {} {}',
-                    region.contig,
-                    position,
-                )
-                if bases is None:
-                    self.log(Logger.debug_level, 'DISCARD COLUMN no reads')
-                    continue
-                bases.calculate_strand(
-                    threshold=self.strand_confidence_threshold,
-                )
-                if self._use_strand_correction:
-                    bases.filter_by_strand()
-                    if bases.strand == '-':
-                        bases.complement()
-                if self._rtqc.check(self, bases):
+            for bases in nucleotides.pop_range(
+                    reads[0].reference_start,
+                    next_read_start,
+            ):
+                rtresult = self._process_bases(bases)
+                if bases.position >= region.start:
                     self.log(
                         Logger.debug_level,
                         'Yielding output for {} reads',
-                        len(bases),
+                        len(rtresult),
                     )
-                    yield bases
+                    yield rtresult
         self.log(
             Logger.info_level,
             '[REGION={}] {} total reads',
@@ -304,15 +135,42 @@ class REDItools:
             total,
         )
 
-    def use_strand_correction(self):
-        """Only reports reads/positions that match `strand`."""
+    def use_strand_correction(self) -> None:
+        """
+        Enable strand correction during analysis.
+
+        Strand correction will filter reads to only those of the consensus
+        strand and also report the complement of the edits and reference base
+        if the strand is '-'.
+        """
         self._use_strand_correction = True
 
-    def add_reference(self, reference_fname):
+    def add_reference(self, reference_fname: str):
         """
-        Use a reference fasta file instead of reference from the BAM files.
+        Add a reference FASTA file for genomic reference sequences.
 
-        Parameters:
-            reference_fname (str): File path to FASTA reference
+        Parameters
+        ----------
+        reference_fname : str
+            The path to the reference FASTA file.
         """
-        self.reference = RTFastaFile(reference_fname)
+        self.reference = reference_fname
+
+    def _process_bases(self, bases: CompiledPosition) -> RTResult:
+        self.log(
+            Logger.debug_level,
+            'Analyzing position {} {}',
+            bases.position,
+            bases.contig,
+        )
+        if self.strand == 2:
+            strand = '*'
+        else:
+            strand = bases.calculate_strand(
+                threshold=self.strand_confidence_threshold,
+            )
+            if self._use_strand_correction and strand != '*':
+                bases.filter_by_strand(strand)
+                if strand == '-':
+                    bases.complement()
+        return RTResult(bases, strand)

@@ -1,0 +1,10 @@
+[flake8]
+select = WPS
+ignore = WPS230
+max-local-variables = 6
+max-cognitive-score = 13
+
+per-file-ignores =
+     test/*: WPS432, WPS226, WPS204, WPS213, WPS214
+     test/__main__.py: WPS201
+     reditools/tools/*/parse_args.py: WPS432, WPS226

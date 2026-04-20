@@ -1,83 +1,123 @@
-"""Commandline tool for REDItools."""
+from __future__ import annotations
 
+import argparse
 import sys
-
 from multiprocessing import Process, Queue
-from reditools import file_utils
+
+from reditools.logger import Logger
 from reditools.region import Region
+from reditools.tools.analyze.concat_output import concat_output
+from reditools.tools.analyze.monitor import monitor
+from reditools.tools.analyze.parse_args import parse_args
+from reditools.tools.analyze.redi_thread import redi_thread
+from reditools.tools.analyze.region_args import region_args
 
-from .concat_output import concat_output
-from .monitor import monitor
-from .parse_args import parse_args
-from .region_args import region_args
-from .run_proc import run_proc
 
+def options_to_string(options: argparse.Namespace) -> str:
+    """
+    Convert argparse options to a comma-separated string of key:value pairs.
 
-def main():
-    """Perform RNA editing analysis."""
-    options = parse_args()
+    Parameters
+    ----------
+    options : argparse.Namespace
+        The parsed command line options.
 
-    is_verbose = options.debug or options.verbose
+    Returns
+    -------
+    str
+        A string representation of the options.
+    """
+    return ", ".join(
+        [f"{_}:{getattr(options, _)}" for _ in vars(options)],  # noqa: WPS421
+    )
 
-    if is_verbose:
-        options_string = ", ".join(
-            [f"{_}:{getattr(options, _)}" for _ in vars(options)],
-        )
-        sys.stderr.write(
-            "Starting REDItools\n"
-            f"Summary of command line parameters: {options_string}\n",
-        )
+def setup_logger(options: argparse.Namespace) -> Logger:
+    """
+    Configure a logger based on the command line options.
 
-    options.output_format = {'delimiter': '\t', 'lineterminator': '\n'}
-    options.encoding = 'utf-8'
-    if options.exclude_reads:
-        options.exclude_reads = file_utils.load_text_file(
-            options.exclude_reads,
-        )
+    Parameters
+    ----------
+    options : argparse.Namespace
+        The parsed command line options.
 
-    # Put analysis chunks into queue
-    if options.region is None:
-        region = None
-    else:
-        region = Region.from_string(options.region, options.file[0])
+    Returns
+    -------
+    Logger
+        The configured Logger object.
+    """
+    if options.debug:
+        return Logger(Logger.debug_level)
+    if options.verbose:
+        return Logger(Logger.info_level)
+    return Logger(Logger.silent_level)
 
+def fill_queue(options: argparse.Namespace) -> Queue[tuple[int, Region] | None]:
+    """
+    Fill the input queue with genomic regions to be analyzed.
+
+    Parameters
+    ----------
+    options : argparse.Namespace
+        The parsed command line options.
+
+    Returns
+    -------
+    Queue[tuple[int, Region] | None]
+        A queue containing indexed Region objects.
+
+    Raises
+    ------
+    SystemExit
+        If a required file is not found.
+    """
+    in_queue: Queue[tuple[int, Region] | None] = Queue()
     try:
-        regions = region_args(
-            options.file[0],
-            region,
-            options.window,
-        )
-    except FileNotFoundError as e:
-        sys.stderr.write(f'[ERROR] {e}\n')
+        for _ in enumerate(region_args(options)):  # noqa: WPS468
+            in_queue.put(_)
+    except FileNotFoundError as exc:
+        sys.stderr.write(f'[ERROR] {exc}\n')
         sys.exit(1)
 
     # Check thread count
-    if len(regions) < options.threads:
+    if in_queue.qsize() < options.threads:
         sys.stderr.write(
             "[WARNING] You have assigned more threads "
             f"({options.threads}) than there are genomic ranges "
-            f"({len(regions)})\n",
+            f"({in_queue.qsize()})\n",
         )
-        options.threads = len(regions)
-
-    in_queue = Queue()
-    for args in enumerate(regions):
-        in_queue.put(args)
+        options.threads = in_queue.qsize()
     for _ in range(options.threads):
         in_queue.put(None)
+    return in_queue
+
+def main():
+    """
+    The main entry point for the REDItools analyze command.
+    """
+    options = parse_args()
+
+    logger = setup_logger(options)
+
+    logger.log(logger.info_level, 'Starting REDItools')
+    logger.log(
+        logger.info_level,
+        "Summary of command line parameters: {}",
+        options_to_string(options),
+    )
+
+    options.output_format = {'delimiter': '\t', 'lineterminator': '\n'}
+    options.encoding = 'utf-8'
+
+    in_queue = fill_queue(options)
 
     # Start parallel jobs
     out_queue = Queue()
-    processes = [
-        Process(
-            target=run_proc,
+    processes = []
+    for _ in range(options.threads):
+        processes.append(Process(
+            target=redi_thread,
             args=(options, in_queue, out_queue),
-        ) for _ in range(options.threads)
-    ]
-    if is_verbose:
-        sys.stderr.write(
-            "All processes complete. Concatenating temporary files.\n",
-        )
+        ))
 
     concat_output(
         monitor(processes, out_queue, in_queue.qsize()),
@@ -86,5 +126,4 @@ def main():
         options.encoding,
         **options.output_format)
 
-    if is_verbose:
-        sys.stderr.write("Analaysis Complete!\n")
+    logger.log(Logger.info_level, 'Analyze Complete!')

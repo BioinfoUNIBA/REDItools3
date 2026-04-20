@@ -1,46 +1,101 @@
 import argparse
 import tempfile
+from typing import Callable
 
-__all__ = ('parse_args',)
 
+def check_number_bounds(
+        number: float,
+        min_value: float | None = None,
+        max_value: float | None = None,
+) -> None:
+    """Check if a number is within specified bounds.
 
-def check_number_bounds(value, min=None, max=None):
-    if min is not None and value < min:
-        raise argparse.ArgumentTypeError(f'Value must be at least {min}.')
-    if max is not None and value > max:
+    Parameters
+    ----------
+    number : float
+        The number to check.
+    min_value : float | None, optional
+        The minimum allowed value, by default None.
+    max_value : float | None, optional
+        The maximum allowed value, by default None.
+
+    Raises
+    ------
+    argparse.ArgumentTypeError
+        If the number is outside the specified bounds.
+    """
+    if min_value is not None and number < min_value:
+        raise argparse.ArgumentTypeError(f'Value must be at least {min_value}.')
+    if max_value is not None and number > max_value:
         raise argparse.ArgumentTypeError(
-            f'Value cannot be larger than {max}.',
+            f'Value cannot be larger than {max_value}.',
         )
 
+def bounded_int(
+        min_value: int | None = None,
+        max_value: int | None = None,
+) -> Callable:
+    """Create a function that parses a string to a bounded integer.
 
-def bounded_int(min=None, max=None):
-    def subfn(value):
-        try:
-            value = int(value)
-        except ValueError:
-            raise argparse.ArgumentTypeError(f'invalid int value: {value}')
-        check_number_bounds(value, min, max)
-        return value
-    return subfn
+    Parameters
+    ----------
+    min_value : int | None, optional
+        The minimum allowed value, by default None.
+    max_value : int | None, optional
+        The maximum allowed value, by default None.
 
-
-def bounded_float(min=None, max=None):
-    def subfn(value):
-        try:
-            value = float(value)
-        except ValueError:
-            raise argparse.ArgumentTypeError(f'invalid float value: {value}')
-        check_number_bounds(value, min, max)
-        return value
-    return subfn
-
-
-def build_argument_parser():
+    Returns
+    -------
+    Callable
+        A function that takes a string and returns a bounded integer.
     """
-    Parse commandline options for REDItools.
+    def subfn(cli_value):  # noqa: WPS430
+        try:
+            int_value = int(cli_value)
+        except ValueError:
+            raise argparse.ArgumentTypeError(f'invalid int value: {cli_value}')
+        check_number_bounds(int_value, min_value, max_value)
+        return int_value
+    return subfn
 
-    Returns:
-        namespace: commandline args
+
+def bounded_float(
+        min_value: float | None = None,
+        max_value: float | None = None,
+) -> Callable:
+    """Create a function that parses a string to a bounded float.
+
+    Parameters
+    ----------
+    min_value : float | None, optional
+        The minimum allowed value, by default None.
+    max_value : float | None, optional
+        The maximum allowed value, by default None.
+
+    Returns
+    -------
+    Callable
+        A function that takes a string and returns a bounded float.
+    """
+    def subfn(cli_value):  # noqa: WPS430
+        try:
+            float_value = float(cli_value)
+        except ValueError:
+            raise argparse.ArgumentTypeError(
+                f'invalid float value: {cli_value}'
+            )
+        check_number_bounds(float_value, min_value, max_value)
+        return float_value
+    return subfn
+
+
+def build_argument_parser() -> argparse.ArgumentParser:  # noqa: WPS213, WPS210
+    """Build the argument parser for reditools analyze.
+
+    Returns
+    -------
+    argparse.ArgumentParser
+        The configured argument parser.
     """
     parser = argparse.ArgumentParser(
         prog="reditools analyze",
@@ -113,14 +168,14 @@ def build_argument_parser():
     bqf_group.add_argument(
         '-mbp',
         '--min-base-position',
-        type=bounded_int(min=0),
+        type=bounded_int(min_value=0),
         default=0,
         help='Ignores the first -mbp bases in each read.',
     )
     bqf_group.add_argument(
         '-Mbp',
         '--max-base-position',
-        type=bounded_int(min=0),
+        type=bounded_int(min_value=0),
         default=0,
         help='Ignores the last -Mpb bases in each read.',
     )
@@ -185,7 +240,7 @@ def build_argument_parser():
     rf_group.add_argument(
         '-Men',
         '--max-editing-nucleotides',
-        type=bounded_int(min=0, max=4),
+        type=bounded_int(min_value=0, max_value=4),
         default=4,
         help=(
             'Positions with more than -Men unique variants (listed in the '
@@ -206,7 +261,7 @@ def build_argument_parser():
     rf_group.add_argument(
         '-l',
         '--min-read-depth',
-        type=bounded_int(min=1),
+        type=bounded_int(min_value=1),
         default=1,
         help=(
             'Only report on positions with at least -l reads (corresponds to '
@@ -237,7 +292,7 @@ def build_argument_parser():
     strand_group.add_argument(
         '-T',
         '--strand-confidence-threshold',
-        type=bounded_float(max=1),
+        type=bounded_float(max_value=1),
         default=0.7,
         help=(
             'Only report the strandedness if at least -T proportion of '
@@ -268,7 +323,7 @@ def build_argument_parser():
             'chromosomes in your alignment genome unless you use the --window '
             'option.'
         ),
-        type=bounded_int(min=1),
+        type=bounded_int(min_value=1),
         default=1,
     )
     para_group.add_argument(
@@ -278,7 +333,7 @@ def build_argument_parser():
             'How many bp should be processed by each thread at a time. '
             'Zero uses the full contig.'
         ),
-        type=bounded_int(min=0),
+        type=bounded_int(min_value=0),
         default=0,
     )
     tech_group = parser.add_argument_group(
@@ -359,7 +414,7 @@ def build_argument_parser():
     leg_group.add_argument(
         '-ss',
         '--splicing-span',
-        type=bounded_int(min=1),
+        type=bounded_int(min_value=1),
         default=4,
         help=(
             'The splicing span. Used in conjunction with -sf/--splicing-file.'
@@ -368,64 +423,75 @@ def build_argument_parser():
 
     return parser
 
+def fix_legacy_options(args: argparse.Namespace) -> None:
+    """Adjust arguments to handle legacy options.
 
-def check_dna_mode(args):
+    The specific fixes are:
+    - --dna sets --strand 0
+    - --exclude-multis sets --max-editing-nucleotides 1
+    - --strict sets --min-edits 1
+    - --load-omopolymeric-file adds the input to --exclude-regions
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        The parsed command-line arguments.
+
+    Raises
+    ------
+    Exception
+        If mutually exclusive options are provided.
+    """
     if args.strand != 0 and args.dna:
         raise Exception('-N/--dna can only be used with -s/--strand 0.')
-    delattr(args, 'dna')
+    delattr(args, 'dna')  # noqa: WPS421
 
-
-def check_exclude_multis(args):
     if args.exclude_multis:
         setattr(args, 'max_editing_nucleotides', 1)
-    delattr(args, 'exclude_multis')
+    delattr(args, 'exclude_multis')  # noqa: WPS421
 
-
-def check_strict_mode(args):
     if args.strict:
         if args.min_edits != 1:
             raise Exception(
                 '-S/--strict can only be used with -me/--min-edits 1.'
             )
-    delattr(args, 'strict')
+    delattr(args, 'strict')  # noqa: WPS421
 
-
-def check_load_omopolymeric_file(args):
     if args.load_omopolymeric_file:
         if args.exclude_regions is None:
-            setattr(args, 'exclude_regions', [args.load_omopolymeric_file])
-        else:
-            args.exclude_regions.append(args.load_omopolymeric_file)
-    delattr(args, 'load_omopolymeric_file')
+            args.exclude_regions = []
+        args.exclude_regions.append(args.load_omopolymeric_file)
+    delattr(args, 'load_omopolymeric_file')  # noqa: WPS421
 
+def parse_args(sys_args: list[str] | None = None) -> argparse.Namespace:
+    """Parse command-line arguments for reditools analyze.
 
-def test_edit_frequency(args):
+    Parameters
+    ----------
+    sys_args : list[str] | None, optional
+        The list of command-line arguments, by default None.
+
+    Returns
+    -------
+    argparse.Namespace
+        The parsed and validated command-line arguments.
+    """
+    parser = build_argument_parser()
+    args = parser.parse_args(sys_args)
+    try:
+        fix_legacy_options(args)
+    except Exception as exc:
+        parser.error(message=str(exc))
+
     if args.max_editing_nucleotides < args.min_edits:
-        raise Exception(
+        parser.error(
             '-Men/--max-editing-nucleotides cannot be smaller than '
             '-me/--min-edits.',
         )
 
-
-def test_strand_args(args):
     if args.strand == 0 and args.strand_correction:
-        raise Exception(
+        parser.error(
             '-s/--strand 0 and -C/--strand-correction are mutually exclusive.'
         )
-
-
-def parse_args(sys_args=None):
-    parser = build_argument_parser()
-    args = parser.parse_args(sys_args)
-    try:
-        check_dna_mode(args)
-        check_exclude_multis(args)
-        check_strict_mode(args)
-        check_load_omopolymeric_file(args)
-
-        test_edit_frequency(args)
-        test_strand_args(args)
-    except Exception as e:
-        parser.error(message=str(e))
 
     return args

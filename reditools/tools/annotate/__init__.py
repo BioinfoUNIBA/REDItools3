@@ -1,3 +1,1 @@
-from .main import main
-
-__all__ = ('main',)
+from reditools.tools.annotate.main import main

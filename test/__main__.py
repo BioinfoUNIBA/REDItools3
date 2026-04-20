@@ -1,15 +1,18 @@
 import unittest
-from .region import TestRegion
-from .fasta_file import TestRTFastaFile
-from .region_collection import TestRegionCollection
-from .file_utils import TestFileUtils
-from .compiled_position import TestCompiledPosition
-from .analyze.region_args import TestRegionArgs
-from .analyze.parse_args_utils import TestParseArgsUtils
-from .analyze.parse_args import TestParseArgs
-from .alignment_file import TestRTAlignmentFile
-from .alignment_manager import TestAlignmentManager
-from .compiled_reads import TestCompiledReads
-from .rtchecks import TestRTChecks
+from test.alignment_file import TestRTAlignmentFile
+from test.alignment_manager import TestAlignmentManager
+from test.analyze.parse_args import TestParseArgs
+from test.analyze.parse_args_utils import TestParseArgsUtils
+from test.analyze.region_args import TestRegionArgs
+from test.analyze.rtchecks import TestRTChecks
+from test.analyze.setup_alignment_manager import TestSetupAlignmentManager
+from test.analyze.setup_rtools import TestSetupRTools
+from test.compiled_position import TestCompiledPosition
+from test.compiled_reads import TestCompiledReads
+from test.fasta_file import TestRTFastaFile
+from test.file_utils import TestFileUtils
+from test.reditools import TestREDItools
+from test.region import TestRegion
+from test.region_collection import TestRegionCollection
 
 unittest.main()

@@ -1,0 +1,30 @@
+name: mypy
+on:
+  push:
+    paths:
+      - 'reditools/**py'
+  pull_request:
+    paths:
+      - 'reditools/**py'
+jobs:
+  mypy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ConorMacBride/install-package@v1
+        with:
+          apt: libbz2-dev  zlib1g-dev liblzma-dev build-essential
+      - uses: actions/checkout@master
+      - name: Set Up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version-file: "pyproject.toml"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+      - name: Install reditools
+        run: uv sync --dev
+      - name: Install mypy
+        run: uv pip install mypy
+      - name: Add mypy annotator
+        uses: pr-annotators/mypy-pr-annotator@v1.0.0
+      - name: Run mypy
+        run: uv run mypy reditools/

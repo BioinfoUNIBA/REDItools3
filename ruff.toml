@@ -1,2 +1,5 @@
+line-length = 80
+
 [per-file-ignores]
 "test/__main__.py" = ["F401"]
+"*/__init__.py" = ["F401", "E501"]

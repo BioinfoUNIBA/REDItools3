@@ -2,20 +2,8 @@ import sys
 import unittest
 from contextlib import contextmanager
 from io import StringIO
+
 from reditools.tools.analyze.parse_args import parse_args
-
-__all__ = ('TestParseArgs')
-
-
-@contextmanager
-def capture_sys_output():
-    capture_out, capture_err = StringIO(), StringIO()
-    current_out, current_err = sys.stdout, sys.stderr
-    try:
-        sys.stdout, sys.stderr = capture_out, capture_err
-        yield capture_out, capture_err
-    finally:
-        sys.stdout, sys.stderr = current_out, current_err
 
 
 class TestParseArgs(unittest.TestCase):
@@ -72,7 +60,7 @@ class TestParseArgs(unittest.TestCase):
 
     def test_edit_frequency(self):
         with self.assertRaises(SystemExit):
-            with capture_sys_output() as (stdout, stderr):
+            with self.capture_sys_output() as (stdout, stderr):
                 parse_args([
                     'test/test.bam',
                     '--max-editing-nucleotides', '1',
@@ -81,9 +69,22 @@ class TestParseArgs(unittest.TestCase):
 
     def test_unstranded(self):
         with self.assertRaises(SystemExit):
-            with capture_sys_output() as (stdout, stderr):
+            with self.capture_sys_output() as (stdout, stderr):
                 parse_args([
                     'test/test.bam',
                     '--strand', '0',
                     '--strand-correction',
                 ])
+
+    @contextmanager
+    def capture_sys_output(self):
+        capture_out, capture_err = StringIO(), StringIO()
+        current_out, current_err = sys.stdout, sys.stderr
+        try:  # noqa: WPS229
+            sys.stdout = capture_out
+            sys.stderr = capture_err
+            yield capture_out, capture_err
+        finally:
+            sys.stdout = current_out
+            sys.stderr = current_err
+

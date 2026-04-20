@@ -1,3 +1,1 @@
-from .main import main, find_homo_seqs
-
-__all__ = ('main', 'find_homo_seqs')
+from reditools.tools.find_repeats.main import find_homo_seqs, main

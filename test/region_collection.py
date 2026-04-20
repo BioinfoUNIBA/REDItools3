@@ -1,4 +1,5 @@
 import unittest
+
 from reditools.region import Region
 from reditools.region_collection import RegionCollection
 
@@ -7,9 +8,11 @@ class TestRegionCollection(unittest.TestCase):
 
     def setUp(self):
         self.rc = RegionCollection()
-        self.rc.add_region(Region('chr1', 0, 99))
-        self.rc.add_region(Region('chr1', 100, 199))
-        self.rc.add_region(Region('chr2', 50, 150))
+        self.rc.add_regions([
+            Region('chr1', 0, 99),
+            Region('chr1', 100, 199),
+            Region('chr2', 50, 150),
+        ])
 
     def test_add_region_and_contains(self):
         # RegionCollection contains method requires ordered queries.

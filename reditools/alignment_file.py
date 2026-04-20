@@ -1,98 +1,246 @@
-"""Wrappers for pysam files."""
 
+from typing import Collection, Iterator
+
+from pysam import AlignedSegment
 from pysam.libcalignmentfile import AlignmentFile as PysamAlignmentFile
 
+from reditools.region import Region
 
-class RTAlignmentFile(PysamAlignmentFile):
-    """Wrapper for pysam.AlignmentFile to provide filtering on fetch."""
 
-    def __new__(cls, *args, **kwargs):
+class ReadQC:
+    """
+    Perform quality control checks on aligned reads.
+
+    Parameters
+    ----------
+    min_quality : int
+        Minimum mapping quality required.
+    min_length : int
+        Minimum read length required.
+    excluded_read_names : Collection[str] | None
+        A collection of read names to be excluded.
+    """
+    _flags_to_keep = {0, 16, 83, 99, 147, 163}
+
+    def __init__(
+            self,
+            min_quality: int,
+            min_length: int,
+            excluded_read_names: Collection[str] | None,
+    ):
         """
-        Create a wrapper for pysam.AlignmentFile.
+        Initialize the ReadQC with quality and length thresholds.
 
-        Parameters:
-            *args (list): Positional arguments for pysam.AlignmentFile()
-            **kwargs (dict): Keyword arguments for pysam.AlignmentFile()
-
-        Returns:
-            PysamAlignmentFile
+        Parameters
+        ----------
+        min_quality : int
+            Minimum mapping quality required.
+        min_length : int
+            Minimum read length required.
+        excluded_read_names : Collection[str] | None
+            A collection of read names to be excluded.
         """
-        kwargs.pop('min_quality', None)
-        kwargs.pop('min_length', None)
-        return PysamAlignmentFile.__new__(cls, *args, **kwargs)
+        self.min_quality = min_quality
+        self.min_length = min_length
+        self.excluded_read_names = excluded_read_names
 
-    def __init__(self, *args, min_quality=0, min_length=0, **kwargs):
+        self.check_list = [self.check_baseline]
+        if self.min_quality > 0:
+            self.check_list.append(self.check_quality)
+        if self.min_length > 0:
+            self.check_list.append(self.check_length)
+        if self.excluded_read_names:
+            self.excluded_read_names = set(self.excluded_read_names)
+            self.check_list.append(self.check_excluded_read_names)
+
+    def check_baseline(self, read: AlignedSegment) -> bool:
         """
-        Create a wrapper for pysam.AlignmentFile.
+        Check if the read passes baseline flag and tag requirements.
 
-        This wrapper will only yield aligned reads that pass internal quality
-        controls like minimum read length and minimum MAPQ.
+        Parameters
+        ----------
+        read : AlignedSegment
+            The aligned read to check.
 
-        Parameters:
-            *args (list): Positional arguments for pysam.AlignmentFile()
-            min_quality (int): Minimum MAPQ
-            min_length (int): Minimum read length
-            **kwargs (dict): Keyword arguments for pysam.AlignmentFile()
+        Returns
+        -------
+        bool
+            True if the read passes, False otherwise.
         """
-        PysamAlignmentFile.__init__(self)
-
-        self._checklist = []
-
-        if min_quality > 0:
-            self._min_quality = min_quality
-            self._checklist.append(self._check_quality)
-
-        if min_length > 0:
-            self._min_length = min_length
-            self._checklist.append(self._check_length)
-
-    @property
-    def exclude_reads(self):
+        return read.flag in self._flags_to_keep and not read.has_tag('SA')
+    
+    def check_quality(self, read: AlignedSegment) -> bool:
         """
-        Set of read names not to be fetched.
+        Check if the read passes the minimum mapping quality threshold.
+
+        Parameters
+        ----------
+        read : AlignedSegment
+            The aligned read to check.
+
+        Returns
+        -------
+        bool
+            True if the read passes, False otherwise.
         """
-        return self._exclude_reads
+        return read.mapping_quality >= self.min_quality
 
-    @exclude_reads.setter
-    def exclude_reads(self, read_names):
-        self._exclude_reads = set(read_names)
-        self._checklist.append(self._check_read_name)
-
-    def fetch(self, *args, **kwargs):
+    def check_length(self, read: AlignedSegment) -> bool:
         """
-        Fetch reads that pass interal quality control filters.
+        Check if the read passes the minimum length threshold.
 
-        Parameters:
-            *args (list): Positional arguments for pysam.AlignmentFile.fetch
-            *kwargs (list): Keyword arguments for pysam.AlignmentFile.fetch
+        Parameters
+        ----------
+        read : AlignedSegment
+            The aligned read to check.
 
-        Yields:
-             pysam.AlignedSegment
+        Returns
+        -------
+        bool
+            True if the read passes, False otherwise.
         """
-        if 'region' in kwargs:
-            kwargs['region'] = str(kwargs['region'])
-        try:
-            iterator = super().fetch(*args, **kwargs)
-        except ValueError:
-            return
-        for read in iterator:
-            if self._check_read(read):
-                yield read
+        return read.query_length >= self.min_length
 
-    def fetch_by_position(self, *args, **kwargs):
+    def check_excluded_read_names(self, read: AlignedSegment) -> bool:
         """
-        Retrieve reads that all start at the same point on the reference.
+        Check if the read name is not in the excluded list.
 
-        Parameters:
-            *args (list): Positional arguments for fetch
-            **kwargs (dict): Named arguments for fetch
+        Parameters
+        ----------
+        read : AlignedSegment
+            The aligned read to check.
 
-        Yields:
-            Lists of pysam.AlignedSegment
+        Returns
+        -------
+        bool
+            True if the read name is not excluded, False otherwise.
         """
-        iterator = self.fetch(*args, **kwargs)
+        return read.query_name not in self.excluded_read_names  # type: ignore
+
+    def run_check(self, read: AlignedSegment) -> bool:
+        """
+        Run all configured quality control checks on the read.
+
+        Parameters
+        ----------
+        read : AlignedSegment
+            The aligned read to check.
+
+        Returns
+        -------
+        bool
+            True if the read passes all checks, False otherwise.
+        """
+        return all(_(read) for _ in self.check_list)
+
+
+class RTAlignmentFile:
+    """
+    A wrapper around pysam.AlignmentFile with integrated quality control.
+
+    Parameters
+    ----------
+    *args
+        Arguments passed to pysam.AlignmentFile.
+    min_quality : int, optional
+        Minimum mapping quality (default is 0).
+    min_length : int, optional
+        Minimum read length (default is 0).
+    excluded_read_names : Collection[str] | None, optional
+        A collection of read names to exclude (default is None).
+    **kwargs
+        Keyword arguments passed to pysam.AlignmentFile.
+    """
+
+    def __init__(
+            self,
+            *args,
+            min_quality: int=0,
+            min_length: int=0,
+            excluded_read_names: Collection[str] | None=None,
+            **kwargs,
+    ):
+        """
+        Initialize the RTAlignmentFile.
+
+        Parameters
+        ----------
+        *args
+            Arguments passed to pysam.AlignmentFile.
+        min_quality : int, optional
+            Minimum mapping quality (default is 0).
+        min_length : int, optional
+            Minimum read length (default is 0).
+        excluded_read_names : Collection[str] | None, optional
+            A collection of read names to exclude (default is None).
+        **kwargs
+            Keyword arguments passed to pysam.AlignmentFile.
+        """
+        kwargs['ignore_truncation'] = True
+        self.alignment_file = PysamAlignmentFile(
+            *args,
+            **kwargs,
+        )
+        self.alignment_file.check_index()
+        self.readqc = ReadQC(min_quality, min_length, excluded_read_names)
+
+    def __enter__(self):
+        """
+        Enter the runtime context related to this object.
+
+        Returns
+        -------
+        RTAlignmentFile
+            The RTAlignmentFile instance.
+        """
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        """
+        Exit the runtime context related to this object.
+
+        Parameters
+        ----------
+        exc_type : type | None
+            The exception type.
+        exc_value : Exception | None
+            The exception value.
+        traceback : TracebackType | None
+            The traceback.
+        """
+        self.alignment_file.close()
+
+    def fetch_by_position(
+            self,
+            region: Region | str,
+            *args,
+            **kwargs,
+    ) -> Iterator[list[AlignedSegment]]:
+        """
+        Fetch reads from the alignment file grouped by their reference start
+        position.
+
+        Parameters
+        ----------
+        region : Region | str
+            The genomic region to fetch reads from.
+        *args
+            Arguments passed to the pysam.AlignmentFile.fetch method.
+        **kwargs
+            Keyword arguments passed to the pysam.AlignmentFile.fetch method.
+
+        Yields
+        ------
+        list[AlignedSegment]
+            A list of reads that share the same reference start position.
+        """
+        iterator = self.alignment_file.fetch(
+            region=str(region, *args, **kwargs),
+        )
 
         first_read = next(iterator, None)
+        while first_read is not None and not self.readqc.run_check(first_read):
+            first_read = next(iterator, None)
         if first_read is None:
             return
 
@@ -100,6 +248,8 @@ class RTAlignmentFile(PysamAlignmentFile):
         ref_start = first_read.reference_start
 
         for read in iterator:
+            if not self.readqc.run_check(read):
+                continue
             if read.reference_start == ref_start:
                 reads.append(read)
             else:
@@ -107,25 +257,3 @@ class RTAlignmentFile(PysamAlignmentFile):
                 reads = [read]
                 ref_start = read.reference_start
         yield reads
-
-    def _check_quality(self, read):
-        return read.mapping_quality >= self._min_quality
-
-    def _check_length(self, read):
-        return read.query_length >= self._min_length
-
-    def _check_read_name(self, read):
-        return read.query_name not in self._exclude_reads
-
-    _flags_to_keep = {0, 16, 83, 99, 147, 163}
-
-    def _check_read(self, read):
-        if read.has_tag('SA'):
-            return False
-        if read.flag not in self._flags_to_keep:
-            return False
-
-        for check in self._checklist:
-            if not check(read):
-                return False
-        return True

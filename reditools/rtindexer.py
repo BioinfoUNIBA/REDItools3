@@ -5,107 +5,85 @@ from json import loads as load_json
 from reditools.file_utils import open_stream, read_bed_file
 from reditools.region_collection import RegionCollection
 
-__all__ = ('RTIndexer',)
-
 _ref = 'Reference'
 _position = 'Position'
 _contig = 'Region'
 _count = 'BaseCount[A,C,G,T]'
 _strand = 'Strand'
 _nucs = 'ACGT'
-_ref_set = {f'{nuc}-{nuc}' for nuc in _nucs}
 
 
 class RTIndexer(object):
-    """Utility for calculating editing indices."""
+    """
+    Calculate editing indices from REDItools output.
 
-    def __init__(self, region=None, strand=0):
-        """
-        Create a new Index.
+    Parameters
+    ----------
+    region : tuple[str, int, int | None] | None, optional
+        Genomic region (contig, start, stop) to limit analysis (default is
+        None).
+    strand : int, optional
+        Strand to analyze (0 for both, 1 for '-', 2 for '+') (default is 0).
+    """
 
-        Parameters:
-            region (Region): Limit results to the given genomic region
-            strand (int): Either 0, 1, or 2 for unstranded, reverse, or forward
+    def __init__(
+            self,
+            region: tuple[str, int, int | None] | None=None,
+            strand: int=0,
+    ):
         """
-        self.targets = False
-        self.exclusions = False
+        Initialize the RTIndexer.
+
+        Parameters
+        ----------
+        region : tuple[str, int, int | None] | None, optional
+            Genomic region (contig, start, stop) to limit analysis (default is
+            None).
+        strand : int, optional
+            Strand to analyze (0 for both, 1 for '-', 2 for '+')
+            (default is 0).
+        """
+        self.targets = RegionCollection()
+        self.exclusions = RegionCollection()
         self.counts = {'-'.join(_): 0 for _ in permutations(_nucs, 2)}
         self.region = region
         self.strand = ['*', '-', '+'][strand]
 
-    def add_target_from_bed(self, fname):
+    def add_target_from_bed(self, fname: str) -> None:
         """
-        Only report index data for regions from a given bed file.
+        Add target regions from a BED file.
 
-        Parameters:
-            fname (str): Path to BED formatted file.
+        Parameters
+        ----------
+        fname : str
+            Path to the BED file.
         """
-        if not self.targets:
-            self.targets = RegionCollection()
         self.targets.add_regions(read_bed_file(fname))
 
-    def add_exclusions_from_bed(self, fname):
+    def add_exclusions_from_bed(self, fname: str) -> None:
         """
-        Exclude index data for regions from a given bed file.
+        Exclude regions from a BED file.
 
-        Parameters:
-            fname (str): Path to BED formatted file.
+        Parameters
+        ----------
+        fname : str
+            Path to the BED file.
         """
-        if not self.exclusions:
-            self.exclusions = RegionCollection()
         self.exclusions.add_regions(read_bed_file(fname))
 
-    def in_region_list(self, region_list, contig, position):
+    def do_ignore(self, row: dict) -> bool:
         """
-        Check if a genomic position is in a list of regions.
+        Check if a row from REDItools output should be ignored.
 
-        Parameters:
-            region_list (dict): Region list to check
-            contig (str): Contig/Chromsome name
-            position (int): Coordinate
+        Parameters
+        ----------
+        row : dict
+            A dictionary representing a row of REDItools output.
 
-        Returns:
-            True if the position is present, else False
-        """
-        return position in region_list.get(contig, [])
-
-    def in_targets(self, contig, position):
-        """
-        Check if a genomic position is in the target list.
-
-        Parameters:
-            contig (str): Contig/Chromsome name
-            position (int): Coordiante
-
-        Returns:
-            True if there are no targets or the position is in the target
-            list; else False
-        """
-        return not self.targets or self.targets.contains(contig, position)
-
-    def in_exclusions(self, contig, position):
-        """
-        Check if a genomic position is in the exclusions list.
-
-        Parameters:
-            contig (str): Contig/Chromsome name
-            position (int): Coordiante
-
-        Returns:
-            True if there are no exclusions or the position is in the
-            exclusions list; else False
-        """
-        return self.exclusions and self.in_region_list(self.exclusions)
-
-    def do_ignore(self, row):
-        """
-        Check whether a row should meets analysis criteria.
-
-        Parameters:
-            row (dict): Row from REIDtools output file.
-
-        Returns:
-            True if the row should be discarded; else False
+        Returns
+        -------
+        bool
+            True if the row should be ignored, False otherwise.
         """
         if '*' != self.strand != row[_strand]:
             return True
@@ -115,39 +93,48 @@ class RTIndexer(object):
                     self.region[1] > position or \
                     self.region[2] is not None and self.region[2] < position:
                 return True
-        if self.in_exclusions(row[_contig], row[_position]):
+        if self.exclusions and self.exclusions.contains(
+                row[_contig],
+                int(row[_position]),
+        ):
             return True
-        return not self.in_targets(row[_contig], int(row[_position]))
+        if self.targets:
+             return not self.targets.contains(
+                 row[_contig],
+                 int(row[_position]),
+            )
+        return False
 
-    def add_rt_output(self, fname):
-        """
-        Count the number of reads with matches and substitutions.
 
-        Parameters:
-            fname (str): File path to a REDItools output
+    def add_rt_output(self, fname: str) -> None:
         """
-        stream = open_stream(fname)
-        reader = csv.DictReader(stream, delimiter='\t')
-        for row in reader:
-            if self.do_ignore(row):
-                continue
-            ref = row[_ref]
-            reads = load_json(row[_count])
-            for nuc, count in zip(_nucs, reads):
-                key = f'{nuc}-{ref}'
-                self.counts[key] = self.counts.get(key, 0) + count
-        stream.close()
+        Add base counts from a REDItools output file.
 
-    def calc_index(self):
+        Parameters
+        ----------
+        fname : str
+            Path to the REDItools output file.
         """
-        Compute all editing indices.
+        with open_stream(fname) as stream:
+            for row in csv.DictReader(stream, delimiter='\t'):
+                if self.do_ignore(row):
+                    continue
+                for nuc, count in zip(_nucs, load_json(row[_count])):
+                    key = f'{nuc}-{row[_ref]}'
+                    self.counts[key] = self.counts.get(key, 0) + count
 
-        Returns:
-            Dictionary of indices
+    def calc_index(self) -> dict[str, float]:
         """
-        keys = set(self.counts) - _ref_set
-        indices = {}
-        for idx in keys:
+        Calculate editing indices for all base transitions.
+
+        Returns
+        -------
+        dict[str, float]
+            A dictionary mapping transition keys (e.g., 'G-A') to editing
+            indices.
+        """
+        indices: dict[str, float] = {}
+        for idx in set(self.counts) - {f'{nuc}-{nuc}' for nuc in _nucs}:
             ref = idx[-1]
             numerator = self.counts[idx]
             denominator = self.counts.get(self.ref_edit(ref), 0) + numerator
@@ -157,14 +144,18 @@ class RTIndexer(object):
                 indices[idx] = 100 * numerator / denominator
         return indices
 
-    def ref_edit(self, ref):
+    def ref_edit(self, ref: str) -> str:
         """
-        Format a base as a non-edit.
+        Return the key for a homozygous reference base.
 
-        Parameters:
-            ref (str): Reference base
+        Parameters
+        ----------
+        ref : str
+            The reference nucleotide.
 
-        Returns:
-            A string in the format of {ref}-{ref}
+        Returns
+        -------
+        str
+            The key in the format 'ref-ref'.
         """
         return f'{ref}-{ref}'

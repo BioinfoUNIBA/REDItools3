@@ -1,12 +1,13 @@
 import argparse
 
 
-def parse_args():
-    """
-    Parse commandline options for REDItools.
+def parse_args() -> argparse.Namespace:
+    """Parse command-line arguments for reditools index.
 
-    Returns:
-        namespace: commandline args
+    Returns
+    -------
+    argparse.Namespace
+        The parsed command-line arguments.
     """
     parser = argparse.ArgumentParser(
         prog="reditools index",

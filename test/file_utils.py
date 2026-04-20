@@ -1,83 +1,129 @@
+import gzip
+import os
 import unittest
 from tempfile import NamedTemporaryFile
-import os
-import reditools.file_utils as file_utils
+
+from reditools import file_utils
 from reditools.region import Region
-import gzip
 
 
 class TestFileUtils(unittest.TestCase):
+    def write_file(self, data_list, sep=' '):
+        with NamedTemporaryFile(
+                delete=False,
+                mode='w',
+                encoding='utf-8',
+        ) as stream:
+            for row in data_list:
+                if isinstance(row, str):
+                    stream.write(row)
+                else:
+                    stream.write(sep.join([str(_) for _ in row]))
+                stream.write('\n')
+            return stream.name
+
+    def check_test_data(self, test_data, real_data):
+        self.assertEqual([_[1] for _ in test_data], real_data)
+
     def test_open_stream_plain(self):
-        with NamedTemporaryFile(delete=False,
-                                mode='w',
-                                encoding='utf-8') as f:
-            f.write('test123')
-            fname = f.name
+        test_str = 'test123'
+        with NamedTemporaryFile(
+                delete=False,
+                mode='w',
+                encoding='utf-8',
+        ) as stream:
+            stream.write(test_str)
+            fname = stream.name
         with file_utils.open_stream(fname, 'rt') as stream:
-            content = stream.read()
-        self.assertEqual(content, 'test123')
+            file_content = stream.read()
+        self.assertEqual(file_content, test_str)
         os.remove(fname)
 
     def test_open_stream_gzip(self):
-        with NamedTemporaryFile(delete=False,
-                                suffix='.gz',
-                                mode='wb') as f:
-            f.write(gzip.compress(b'test_gzip'))
-            fname = f.name
+        test_str = 'test_gzip'
+        with NamedTemporaryFile(
+                delete=False,
+                suffix='.gz',
+                mode='wb',
+        ) as stream:
+            stream.write(gzip.compress(bytes(test_str, 'utf-8')))
+            fname = stream.name
         with file_utils.open_stream(fname, 'rt') as stream:
-            content = stream.read()
-        self.assertEqual('test_gzip', content)
+            file_content = stream.read()
+        self.assertEqual(file_content, test_str)
         os.remove(fname)
 
     def test_read_bed_file(self):
-        bed_lines = ["chr1\t10\t20", "chr2\t30\t40"]
-        with NamedTemporaryFile(delete=False,
-                                mode='w',
-                                encoding='utf-8') as f:
-            fname = f.name
-            for line in bed_lines:
-                f.write(line + "\n")
-        f.close()
-
-        result = list(file_utils.read_bed_file(fname))
-        self.assertEqual(result[0], Region('chr1', 10, 20))
-        self.assertEqual(result[1], Region('chr2', 30, 40))
+        bed_data = (
+            (
+                ('chr1', 10, 20),
+                Region('chr1', 10, 20),
+            ),
+            (
+                ('chr1', 30, 40),
+                Region('chr1', 30, 40),
+            ),
+        )
+        fname = self.write_file((_[0] for _ in bed_data), sep='\t')
+        region_list = list(file_utils.read_bed_file(fname))
+        self.check_test_data(bed_data, region_list)
         os.remove(fname)
 
+    def test_read_many_bed_files(self):
+        bed_data = (
+            (
+                ('chr1', 10, 20),
+                Region('chr1', 10, 20),
+            ),
+            (
+                ('chr1', 30, 40),
+                Region('chr1', 30, 40),
+            ),
+        )
+        fnames = []
+        for row in bed_data:
+            fnames.append(self.write_file([row[0]], sep='\t'))
+        region_list = list(file_utils.read_bed_file(*fnames))
+        self.check_test_data(bed_data, sorted(region_list))
+        for fname in fnames:
+            os.remove(fname)
+
     def test_concat(self):
-        file_contents = ['file1', 'file2', 'file3']
-        file_names = []
-        for content in file_contents:
-            with NamedTemporaryFile(delete=False,
-                                    mode='w',
-                                    encoding='utf-8') as stream:
-                file_names.append(stream.name)
-                stream.write(f'{content}\n')
+        file_contents = ('file1', 'file2', 'file3')
+        file_names = [self.write_file([_]) for _ in file_contents]
 
-        output = NamedTemporaryFile(delete=False, mode='w+', encoding='utf-8')
-        file_utils.concat(output, *file_names, encoding='utf-8')
-        output.seek(0)
-        result = output.read()
-        self.assertEqual(result, ''.join([f'{_}\n' for _ in file_contents]))
-
+        with NamedTemporaryFile(
+                delete=False,
+                mode='w',
+                encoding='utf-8') as stream:
+            file_utils.concat(stream, *file_names, encoding='utf-8')
+            concat_filename = stream.name
         for fname in file_names:
             self.assertFalse(os.path.exists(fname))
-        output.close()
-        os.remove(output.name)
+
+        with open(concat_filename, 'r') as stream:
+            self.assertEqual(
+                stream.read(),
+                ''.join([f'{_}\n' for _ in file_contents]),
+            )
+
+        os.remove(concat_filename)
 
     def test_load_text_file(self):
         text_lines = ["rowA", "rowB", "rowC"]
-        with NamedTemporaryFile(delete=False,
-                                mode='w',
-                                encoding='utf-8') as f:
-            fname = f.name
-            f.write('\n'.join(text_lines))
-        result = file_utils.load_text_file(fname)
-        self.assertEqual(result, text_lines)
+        with NamedTemporaryFile(
+                delete=False,
+                mode='w',
+                encoding='utf-8',
+        ) as stream:
+            fname = stream.name
+            stream.write('\n'.join(text_lines))
+        loaded_text = file_utils.load_text_file(fname)
+        self.assertEqual(loaded_text, text_lines)
         os.remove(fname)
 
     def test_splicing_basic(self):
-        data = [
+        test_data = [
             (
                 ('chr1', '10', '25', 'A', '+'),
                 Region(contig='chr1', start=4, stop=9),
@@ -95,36 +141,20 @@ class TestFileUtils(unittest.TestCase):
                 Region(contig='chr3', start=4, stop=9),
             ),
         ]
-        with NamedTemporaryFile(delete=False,
-                                mode='w',
-                                encoding='utf-8') as f:
-            fname = f.name
-            f.write('#Header\n')
-            for entry, _ in data:
-                f.write(' '.join(entry))
-                f.write('\n')
-        test_iter = zip(
-            file_utils.load_splicing_file(fname, 5),
-            data,
+        fname = self.write_file(
+            ['#Header'] + [_[0] for _ in test_data],
         )
-        for splice_region, (_, test_region) in test_iter:
-            self.assertEqual(splice_region, test_region)
+        splice_sites = list(file_utils.load_splicing_file(fname, 5))
+        self.check_test_data(test_data, splice_sites)
         os.remove(fname)
 
     def test_splicing_edge(self):
-        data = [
+        test_data = [
             ('chr1', '1', '25', 'A', '+'),
             ('chr1', '1', '25', 'D', '-'),
             ('chr1', '3', '25', 'D', '-'),
         ]
-        with NamedTemporaryFile(delete=False,
-                                mode='w',
-                                encoding='utf-8') as f:
-            fname = f.name
-            f.write('#Header\n')
-            for entry in data:
-                f.write(' '.join(entry))
-                f.write('\n')
+        fname = self.write_file(['#Header'] + test_data)
         splice_sites = list(file_utils.load_splicing_file(fname, 5))
         self.assertEqual(
             splice_sites,
