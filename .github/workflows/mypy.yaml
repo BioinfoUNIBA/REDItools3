@@ -1,19 +1,24 @@
 name: mypy
 on: [push, pull_request]
 jobs:
-  build:
+  mypy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
-      - name: Set up Python 3.8
-        uses: actions/setup-python@v2
+      - uses: ConorMacBride/install-package@v1
         with:
-          python-version: "3.8"
+          apt: libbz2-dev  zlib1g-dev liblzma-dev build-essential
+      - uses: actions/checkout@master
+      - name: Set Up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version-file: "pyproject.toml"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+      - name: Install reditools
+        run: uv sync --dev
       - name: Install mypy
-        run: |
-          pip install mypy
+        run: uv pip install mypy
       - name: Add mypy annotator
         uses: pr-annotators/mypy-pr-annotator@v1.0.0
       - name: Run mypy
-        run: |
-          mypy reditools/
+        run: mypy reditools/
