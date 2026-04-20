@@ -21,4 +21,4 @@ jobs:
       - name: Add mypy annotator
         uses: pr-annotators/mypy-pr-annotator@v1.0.0
       - name: Run mypy
-        run: uvx mypy reditools/
+        run: uvx mypy --python-executable python reditools/
