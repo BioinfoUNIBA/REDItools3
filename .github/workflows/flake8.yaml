@@ -1,6 +1,9 @@
 name: WPS
 
 on: [push, pull_request]
+  paths:
+    - 'reditools/**py'
+    - 'test/**py'
 
 jobs:
   unittest:

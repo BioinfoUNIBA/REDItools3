@@ -1,5 +1,7 @@
 name: mypy
 on: [push, pull_request]
+  paths:
+    - 'reditools/**py'
 jobs:
   mypy:
     runs-on: ubuntu-latest
