@@ -22,14 +22,11 @@ class RTIndexer(object):
     region : tuple[str, int, int | None] | None, optional
         Genomic region (contig, start, stop) to limit analysis (default is
         None).
-    strand : int, optional
-        Strand to analyze (0 for both, 1 for '-', 2 for '+') (default is 0).
     """
 
     def __init__(
             self,
             region: tuple[str, int, int | None] | None=None,
-            strand: int=0,
     ):
         """
         Initialize the RTIndexer.
@@ -39,15 +36,11 @@ class RTIndexer(object):
         region : tuple[str, int, int | None] | None, optional
             Genomic region (contig, start, stop) to limit analysis (default is
             None).
-        strand : int, optional
-            Strand to analyze (0 for both, 1 for '-', 2 for '+')
-            (default is 0).
         """
         self.targets = RegionCollection()
         self.exclusions = RegionCollection()
         self.counts = {'-'.join(_): 0 for _ in permutations(_nucs, 2)}
         self.region = region
-        self.strand = ['*', '-', '+'][strand]
 
     def add_target_from_bed(self, fname: str) -> None:
         """
@@ -85,8 +78,6 @@ class RTIndexer(object):
         bool
             True if the row should be ignored, False otherwise.
         """
-        if '*' != self.strand != row[_strand]:
-            return True
         if self.region:
             position = int(row[_position])
             if self.region[0] != row[_contig] or \
