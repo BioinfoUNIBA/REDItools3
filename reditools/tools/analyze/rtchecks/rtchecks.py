@@ -37,13 +37,13 @@ class RTChecks(object):
             if check.is_needed(options):
                 self.check_list.append(check(options))
 
-    def check(self, bases: RTResult) -> None | tuple:
+    def check(self, rtresult: RTResult) -> None | tuple:
         """
         Run all enabled checks against a set of base results.
 
         Parameters
         ----------
-        bases : RTResult
+        rtresult : RTResult
             The REDItools analysis result for a position.
 
         Returns
@@ -51,5 +51,5 @@ class RTChecks(object):
         Optional[tuple]
             The result of the first failing check, or None if all checks pass.
         """
-        generator = (_.run_check(bases) for _ in self.check_list)
+        generator = (_.run_check(rtresult) for _ in self.check_list)
         return next((_ for _ in generator if _ is not None), None)

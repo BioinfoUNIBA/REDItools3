@@ -41,12 +41,12 @@ class CheckTargetPositions:
         """
         return options.bed_file is not None
 
-    def run_check(self, bases: RTResult) -> None | tuple:
+    def run_check(self, rtresult: RTResult) -> None | tuple:
         """Run the check on a specific position.
 
         Parameters
         ----------
-        bases : RTResult
+        rtresult : RTResult
             The REDItools analysis result for a position.
 
         Returns
@@ -55,6 +55,6 @@ class CheckTargetPositions:
             None if the position is within target regions, a tuple with
             error message otherwise.
         """
-        if not self.regions.contains(bases.contig, bases.position):
+        if not self.regions.contains(rtresult.contig, rtresult.position):
             return ('DISCARD COLUMN not in target regions',)
         return None

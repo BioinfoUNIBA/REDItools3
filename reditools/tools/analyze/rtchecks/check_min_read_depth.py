@@ -38,12 +38,12 @@ class CheckMinReadDepth:
         """
         return options.min_read_depth > 1
 
-    def run_check(self, bases: RTResult) -> None | tuple:
+    def run_check(self, rtresult: RTResult) -> None | tuple:
         """Run the check on a specific position.
 
         Parameters
         ----------
-        bases : RTResult
+        rtresult : RTResult
             The REDItools analysis result for a position.
 
         Returns
@@ -52,10 +52,10 @@ class CheckMinReadDepth:
             None if read depth is sufficient, a tuple with error message
             otherwise.
         """
-        if len(bases) < self.min_read_depth:
+        if len(rtresult) < self.min_read_depth:
             return (
                 'DISCARDING COLUMN {} [MIN_READ_DEPTH={}]',
-                len(bases),
+                len(rtresult),
                 self.min_read_depth,
             )
         return None

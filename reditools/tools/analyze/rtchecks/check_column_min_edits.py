@@ -42,12 +42,12 @@ class CheckColumnMinEdits:
         """
         return options.min_edits_per_nucleotide > 0
 
-    def run_check(self, bases: RTResult) -> tuple | None:
+    def run_check(self, rtresult: RTResult) -> tuple | None:
         """Run the check on a specific position.
 
         Parameters
         ----------
-        bases : RTResult
+        rtresult : RTResult
             The REDItools analysis result for a position.
 
         Returns
@@ -57,11 +57,11 @@ class CheckColumnMinEdits:
             error message otherwise.
         """
         for base in self._bases:
-            if base != bases.reference and \
-                    0 < bases[base] < self.min_edits_per_nucleotide:
+            if base != rtresult.reference and \
+                    0 < rtresult[base] < self.min_edits_per_nucleotide:
                 return (
                     'DISCARDING COLUMN edits={} < {}',
-                    bases[base],
+                    rtresult[base],
                     self.min_edits_per_nucleotide,
                 )
         return None
