@@ -110,3 +110,11 @@ class RegionCollection:
             Regions found in the given contig.
         """
         return self._regions[contig]
+
+    def reset(self) -> None:
+        """
+        Restart the search parameters. RegionCollection requires checks be
+        done in order. This moves the checks back to the beginning of the
+        collections.
+        """
+        self._last_contig = None

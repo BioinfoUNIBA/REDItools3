@@ -1,6 +1,5 @@
 import csv
 from itertools import permutations
-from json import loads as load_json
 
 from reditools.file_utils import open_stream, read_bed_file
 from reditools.region_collection import RegionCollection
@@ -106,11 +105,13 @@ class RTIndexer(object):
         fname : str
             Path to the REDItools output file.
         """
+        self.targets.reset()
+        self.exclusions.reset()
         with open_stream(fname) as stream:
             for row in csv.DictReader(stream, delimiter='\t'):
                 if self.do_ignore(row):
                     continue
-                for nuc, count in zip(_nucs, load_json(row[_count])):
+                for nuc, count in zip(_nucs, self._counts_to_list(row[_count])):
                     key = f'{nuc}-{row[_ref]}'
                     self.counts[key] = self.counts.get(key, 0) + count
 
@@ -128,25 +129,14 @@ class RTIndexer(object):
         for idx in set(self.counts) - {f'{nuc}-{nuc}' for nuc in _nucs}:
             ref = idx[-1]
             numerator = self.counts[idx]
-            denominator = self.counts.get(self.ref_edit(ref), 0) + numerator
+            denominator = self.counts.get(f'{ref}-{ref}', 0) + numerator
             if denominator == 0:
                 indices[idx] = 0
             else:
                 indices[idx] = 100 * numerator / denominator
         return indices
 
-    def ref_edit(self, ref: str) -> str:
-        """
-        Return the key for a homozygous reference base.
-
-        Parameters
-        ----------
-        ref : str
-            The reference nucleotide.
-
-        Returns
-        -------
-        str
-            The key in the format 'ref-ref'.
-        """
-        return f'{ref}-{ref}'
+    @classmethod
+    def _counts_to_list(cls, counts_str):
+        pieces = counts_str[1:-1].split(', ')
+        return (int(_) for _ in pieces)
