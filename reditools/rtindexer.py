@@ -1,5 +1,6 @@
 import csv
 from itertools import permutations
+from typing import Iterator
 
 from reditools.file_utils import open_stream, read_bed_file
 from reditools.region_collection import RegionCollection
@@ -144,6 +145,6 @@ class RTIndexer(object):
         return indices
 
     @classmethod
-    def _counts_to_list(cls, counts_str):
+    def _counts_to_list(cls, counts_str: str) -> Iterator[int]:
         pieces = counts_str[1:-1].split(', ')
         return (int(_) for _ in pieces)
