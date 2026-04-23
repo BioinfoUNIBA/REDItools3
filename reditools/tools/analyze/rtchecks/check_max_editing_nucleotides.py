@@ -38,12 +38,12 @@ class CheckMaxEditingNucleotides:
         """
         return options.max_editing_nucleotides < 3
 
-    def run_check(self, bases: RTResult) -> None | tuple:
+    def run_check(self, rtresult: RTResult) -> None | tuple:
         """Run the check on a specific position.
 
         Parameters
         ----------
-        bases : RTResult
+        rtresult : RTResult
             The REDItools analysis result for a position.
 
         Returns
@@ -52,7 +52,7 @@ class CheckMaxEditingNucleotides:
             None if number of variants is within limits, a tuple with
             error message otherwise.
         """
-        variants = bases.variants
+        variants = rtresult.variants
         if len(variants) > self.max_editing_nucleotides:
             return (
                 'DISCARD COLUMN variants={} > {}',

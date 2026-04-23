@@ -57,13 +57,13 @@ class CheckVariants:
         """
         return 'ALL' not in [_.upper() for _ in options.variants]
 
-    def run_check(self, bases: RTResult) -> None | tuple:
+    def run_check(self, rtresult: RTResult) -> None | tuple:
         """
         Verify that detected variants are among the allowed ones.
 
         Parameters
         ----------
-        bases : RTResult
+        rtresult : RTResult
             The REDItools analysis result for a position.
 
         Returns
@@ -72,10 +72,10 @@ class CheckVariants:
             None if at least one variant is allowed, otherwise a failure
             message.
         """
-        if any(_ in self.variants for _ in bases.variants):
+        if any(_ in self.variants for _ in rtresult.variants):
             return None
         return (
             'DISCARD COLUMN Edits {} not in requested alts {}',
-            bases.variants,
+            rtresult.variants,
             self.variants,
         )

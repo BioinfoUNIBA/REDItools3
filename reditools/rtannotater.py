@@ -21,13 +21,18 @@ class RTAnnotater:
         ('gCoverage-q30', 'gCoverage'),
     )
 
-    def __init__(
-            self,
-            rna_file: str,
-            dna_file: str,
-            contig_order: dict[str, int],
-    ):
+    def __init__(self, contig_order: dict[str, int]):
         """Initialize RTAnnotater.
+
+        Parameters
+        ----------
+        contig_order : dict[str, int]
+            A dictionary mapping contig names to their sort order.
+        """
+        self.contig_order = contig_order
+
+    def annotate(self, rna_file: str, dna_file: str, stream: IO):
+        """Read input files and write annotated results to a stream.
 
         Parameters
         ----------
@@ -35,18 +40,6 @@ class RTAnnotater:
             Path to the RNA editing file.
         dna_file : str
             Path to the DNA editing file.
-        contig_order : dict[str, int]
-            A dictionary mapping contig names to their sort order.
-        """
-        self.rna_file = rna_file
-        self.dna_file = dna_file
-        self.contig_order = contig_order
-
-    def annotate(self, stream: IO):
-        """Read input files and write annotated results to a stream.
-
-        Parameters
-        ----------
         stream : IO
             The output stream to write the annotated table.
         """
@@ -66,7 +59,7 @@ class RTAnnotater:
             'gAllSubs',
             'gFrequency'])
         writer.writeheader()
-        writer.writerows(self.merge_files())
+        writer.writerows(self.merge_files(rna_file, dna_file))
 
     def cmp_position(
             self,
@@ -126,7 +119,8 @@ class RTAnnotater:
         rna_row['gFrequency'] = dna_row['Frequency']
         return rna_row
 
-    def legacy_translate(self, row: dict[Any, Any]) -> dict[Any, Any]:
+    @classmethod
+    def legacy_translate(cls, row: dict[Any, Any]) -> dict[Any, Any]:
         """Translate legacy field names to current ones.
 
         Parameters
@@ -139,21 +133,32 @@ class RTAnnotater:
         dict[Any, Any]
             The translated row.
         """
-        for old_key, new_key in self.legacy_map:
+        for old_key, new_key in cls.legacy_map:
             if old_key in row:
                 row[new_key] = row.pop(old_key)
         return row
 
-    def merge_files(self) -> Iterator[dict[Any, Any]]:
+    def merge_files(
+            self,
+            rna_file: str,
+            dna_file: str,
+    ) -> Iterator[dict[Any, Any]]:
         """Merge RNA and DNA files and yield annotated rows.
+
+        Parameters:
+        -----------
+        rna_file : str
+            Path to the RNA editing file.
+        dna_file : str
+            Path to the DNA editing file.
 
         Yields
         ------
         dict[Any, Any]
             Annotated (or original if no match) RNA row.
         """
-        with file_utils.open_stream(self.rna_file, 'r') as rna_stream, \
-                file_utils.open_stream(self.dna_file, 'r') as dna_stream:
+        with file_utils.open_stream(rna_file, 'r') as rna_stream, \
+                file_utils.open_stream(dna_file, 'r') as dna_stream:
             rna_reader = csv.DictReader(rna_stream, delimiter='\t')
             dna_reader = csv.DictReader(dna_stream, delimiter='\t')
 
@@ -164,8 +169,8 @@ class RTAnnotater:
 
                 while self.cmp_position(rna_entry, dna_entry) > 0:
                     dna_entry = next(dna_reader, None)
-                if dna_entry is not None and \
-                        self.cmp_position(rna_entry, dna_entry) == 0:
+                if self.cmp_position(rna_entry, dna_entry) == 0:
+                    assert dna_entry is not None
                     self.legacy_translate(dna_entry)
                     yield self.annotate_row(rna_entry, dna_entry)
                 else:

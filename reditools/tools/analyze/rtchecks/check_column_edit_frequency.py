@@ -38,12 +38,12 @@ class CheckColumnEditFrequency:
         """
         return options.min_edits > 0
 
-    def run_check(self, bases: RTResult) -> None | tuple:
+    def run_check(self, rtresult: RTResult) -> None | tuple:
         """Run the check on a specific position.
 
         Parameters
         ----------
-        bases : RTResult
+        rtresult : RTResult
             The REDItools analysis result for a position.
 
         Returns
@@ -52,7 +52,7 @@ class CheckColumnEditFrequency:
             None if total edits are sufficient, a tuple with error message
             otherwise.
         """
-        edits_no = len(bases) - bases['REF']
+        edits_no = len(rtresult) - rtresult['REF']
         if edits_no < self.min_edits:
             return (
                 'DISCARDING COLUMN edits={} < {}',

@@ -41,12 +41,12 @@ class CheckExclusions:
         """
         return options.exclude_regions is not None
 
-    def run_check(self, bases: RTResult) -> None | tuple:
+    def run_check(self, rtresult: RTResult) -> None | tuple:
         """Run the check on a specific position.
 
         Parameters
         ----------
-        bases : RTResult
+        rtresult : RTResult
             The REDItools analysis result for a position.
 
         Returns
@@ -55,6 +55,6 @@ class CheckExclusions:
             None if the position is not in excluded regions, a tuple with
             error message otherwise.
         """
-        if self.regions.contains(bases.contig, bases.position):
+        if self.regions.contains(rtresult.contig, rtresult.position):
             return ('DISCARD COLUMN in excluded region',)
         return None
