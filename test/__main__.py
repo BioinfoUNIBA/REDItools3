@@ -14,6 +14,7 @@ from test.file_utils import TestFileUtils
 from test.reditools import TestREDItools
 from test.region import TestRegion
 from test.region_collection import TestRegionCollection
+from test.rtannotater import TestRTAnnotater
 from test.rtindexer import TestRTIndexer
 
 unittest.main()
