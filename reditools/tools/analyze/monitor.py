@@ -5,7 +5,7 @@ from multiprocessing import Process, Queue
 from queue import Empty as EmptyQueueException
 
 
-def check_dead(processes: list[Process]):
+def check_dead(processes: list[Process]) -> None:
     """Check if any of the processes have failed.
 
     If a process has exited with code 1, all other processes are killed

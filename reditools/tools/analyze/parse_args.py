@@ -49,7 +49,7 @@ def bounded_int(
     Callable
         A function that takes a string and returns a bounded integer.
     """
-    def subfn(cli_value):  # noqa: WPS430
+    def subfn(cli_value: str) -> int:  # noqa: WPS430
         try:
             int_value = int(cli_value)
         except ValueError:
@@ -77,7 +77,7 @@ def bounded_float(
     Callable
         A function that takes a string and returns a bounded float.
     """
-    def subfn(cli_value):  # noqa: WPS430
+    def subfn(cli_value: str) -> float:  # noqa: WPS430
         try:
             float_value = float(cli_value)
         except ValueError:

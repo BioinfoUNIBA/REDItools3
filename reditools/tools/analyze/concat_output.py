@@ -27,7 +27,6 @@ def concat_output(
     output_file: str | None = None,
     mode: str = 'w',
     encoding: str = 'utf-8',
-    **format_args,
 ) -> None:
     """Concatenate temporary results files into the final output.
 
@@ -41,8 +40,6 @@ def concat_output(
         Mode in which the output file is opened.
     encoding : str, default 'utf-8'
         Encoding for the output file.
-    **format_args
-        Additional arguments for csv.writer.
     """
     # Setup final output file
     if output_file is None:
@@ -55,7 +52,7 @@ def concat_output(
         )
 
     with stream:
-        writer = csv.writer(stream, **format_args)
+        writer = csv.writer(stream, delimiter='\t', lineterminator='\n')
         if 'a' not in mode:
             writer.writerow(fieldnames)
         file_utils.concat(stream, *tfs, encoding=encoding)

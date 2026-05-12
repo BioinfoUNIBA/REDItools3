@@ -24,7 +24,7 @@ class Region:
     start: int
     stop: int
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Return a string representation of the region.
 

@@ -37,7 +37,7 @@ class RTAnnotater:
         """
         self.contig_order = contig_order
 
-    def annotate(self, rna_file: str, dna_file: str, stream: IO):
+    def annotate(self, rna_file: str, dna_file: str, stream: IO) -> None:
         """Read input files and write annotated results to a stream.
 
         Parameters
@@ -69,16 +69,16 @@ class RTAnnotater:
 
     def cmp_position(
             self,
-            rna_entry: dict[Any, Any],
-            dna_entry: dict[Any, Any] | None,
+            rna_entry: dict[str, Any],
+            dna_entry: dict[str, Any] | None,
     ) -> int:
         """Compare the positions of RNA and DNA entries.
 
         Parameters
         ----------
-        rna_entry : dict[Any, Any]
+        rna_entry : dict[str, Any]
             A row from the RNA editing file.
-        dna_entry : dict[Any, Any] | None
+        dna_entry : dict[str, Any] | None
             A row from the DNA editing file, or None if the end is reached.
 
         Returns
@@ -101,21 +101,21 @@ class RTAnnotater:
 
     def annotate_row(
             self,
-            rna_row: dict[Any, Any],
-            dna_row: dict[Any, Any],
-    ) -> dict[Any, Any]:
+            rna_row: dict[str, Any],
+            dna_row: dict[str, Any],
+    ) -> dict[str, Any]:
         """Add DNA information to an RNA row.
 
         Parameters
         ----------
-        rna_row : dict[Any, Any]
+        rna_row : dict[str, Any]
             A row from the RNA editing file.
-        dna_row : dict[Any, Any]
+        dna_row : dict[str, Any]
             A matching row from the DNA editing file.
 
         Returns
         -------
-        dict[Any, Any]
+        dict[str, Any]
             The annotated RNA row.
         """
         if rna_row[self.ref_key] == self.comp_map[dna_row[self.ref_key]]:
@@ -130,17 +130,17 @@ class RTAnnotater:
         return rna_row
 
     @classmethod
-    def legacy_translate(cls, row: dict[Any, Any]) -> dict[Any, Any]:
+    def legacy_translate(cls, row: dict[str, Any]) -> dict[Any, Any]:
         """Translate legacy field names to current ones.
 
         Parameters
         ----------
-        row : dict[Any, Any]
+        row : dict[str, Any]
             A row from an editing file.
 
         Returns
         -------
-        dict[Any, Any]
+        dict[str, Any]
             The translated row.
         """
         for old_key, new_key in cls.legacy_map:
@@ -152,7 +152,7 @@ class RTAnnotater:
             self,
             rna_file: str,
             dna_file: str,
-    ) -> Iterator[dict[Any, Any]]:
+    ) -> Iterator[dict[str, Any]]:
         """Merge RNA and DNA files and yield annotated rows.
 
         Parameters:
@@ -164,7 +164,7 @@ class RTAnnotater:
 
         Yields
         ------
-        dict[Any, Any]
+        dict[str, Any]
             Annotated (or original if no match) RNA row.
         """
         with file_utils.open_stream(rna_file, 'r') as rna_stream, \
@@ -186,7 +186,7 @@ class RTAnnotater:
                 else:
                     yield rna_entry
 
-    def complement(self, row: dict[Any, Any]) -> dict[Any, Any]:
+    def complement(self, row: dict[str, Any]) -> dict[str, Any]:
         row[self.ref_key] = self.comp_map[row[self.ref_key]]
         row[self.sub_key] = ' '.join(sorted([
             ''.join([self.comp_map[_] for _ in sub])

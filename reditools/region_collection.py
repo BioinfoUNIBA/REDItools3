@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Iterable
+from typing import DefaultDict, Iterable
 
 from reditools.region import Region
 
@@ -9,17 +9,17 @@ class RegionCollection:
     A collection of genomic regions, providing efficient ordered lookup.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Initialize an empty RegionCollection.
         """
 
-        self._regions = defaultdict(list)
-        self._index = None
-        self._last_contig = None
+        self._regions: DefaultDict[str, list[Region]] = defaultdict(list)
+        self._index = 0
+        self._last_contig: str | None = None
         self._sorted = False
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         """
         Check whether the collection is empty.
 

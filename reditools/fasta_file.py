@@ -8,7 +8,7 @@ class RTFastaFile(PysamFastaFile):
     A wrapper around pysam.FastaFile for genomic sequence access.
     """
 
-    def __init__(self, filename) -> None:
+    def __init__(self, filename: str) -> None:
         """
         Initialize the RTFastaFile.
 

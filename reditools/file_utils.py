@@ -7,7 +7,11 @@ from typing import IO, Iterator
 from reditools.region import Region
 
 
-def open_stream(path: str, mode: str='rt', encoding: str='utf-8'):
+def open_stream(  # type: ignore
+        path: str,
+        mode: str='rt',
+        encoding: str='utf-8',
+):
     """
     Open a file stream, handling both plain and gzipped files.
 

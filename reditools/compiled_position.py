@@ -159,7 +159,7 @@ class RTResult:
             if self[_] and _ != self.reference
         ]
 
-    def __getitem__(self, base: str):
+    def __getitem__(self, base: str) -> int:
         """Get the count of a specific base or the reference base.
 
         Parameters
