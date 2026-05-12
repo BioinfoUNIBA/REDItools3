@@ -90,7 +90,7 @@ def fill_queue(options: argparse.Namespace) -> Queue[tuple[int, Region] | None]:
         in_queue.put(None)
     return in_queue
 
-def main():
+def main() -> None:
     """
     The main entry point for the REDItools analyze command.
     """
@@ -105,13 +105,12 @@ def main():
         options_to_string(options),
     )
 
-    options.output_format = {'delimiter': '\t', 'lineterminator': '\n'}
     options.encoding = 'utf-8'
 
     in_queue = fill_queue(options)
 
     # Start parallel jobs
-    out_queue = Queue()
+    out_queue: Queue[tuple[int, str]] = Queue()
     processes = []
     for _ in range(options.threads):
         processes.append(Process(
@@ -124,6 +123,6 @@ def main():
         options.output_file,
         'a' if options.append_file else 'w',
         options.encoding,
-        **options.output_format)
+    )
 
     logger.log(Logger.info_level, 'Analyze Complete!')

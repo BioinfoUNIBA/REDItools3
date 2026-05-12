@@ -4,6 +4,7 @@ from typing import Collection, Iterable, Iterator
 from pysam import AlignedSegment
 
 from reditools.alignment_file import RTAlignmentFile
+from reditools.region import Region
 
 
 class ReadGroupIter:
@@ -29,7 +30,7 @@ class ReadGroupIter:
         self.iterator = iterator
         next(self)
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         """
         Check if there are more reads.
 
@@ -94,7 +95,7 @@ class FetchGroupIter:
         while self:
             yield next(self)
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         """
         Check if there are more read groups.
 
@@ -165,7 +166,7 @@ class AlignmentManager:
         self.min_quality = min_quality
         self.min_length = min_length
 
-    def add_file(self, fname: str):
+    def add_file(self, fname: str) -> None:
         """
         Add an alignment file to the manager.
 
@@ -184,27 +185,23 @@ class AlignmentManager:
         self.file_list.append(fname)
 
     def fetch_by_position(
-            self,
-            *args,
-            **kwargs,
+        self,
+        region: Region | str,
     ) -> Iterable[list[AlignedSegment]]:
         """
         Fetch reads from all managed files, grouped by position.
 
         Parameters
         ----------
-        *args
-            Arguments passed to the fetch method of pysam.AlignmentFile.
-        **kwargs
-            Keyword arguments passed to the fetch method of
-            pysam.AlignmentFile.
+        region : Region | str
+            Genomic region to fetch from.
 
         Yields
         ------
         list[AlignedSegment]
             A list of reads from all files at each genomic position.
         """
-        iters = [bam.fetch_by_position(*args, **kwargs) for bam in self._bams]
+        iters = [bam.fetch_by_position(region) for bam in self._bams]
         fgi = FetchGroupIter(iters)
         if not fgi:
             return

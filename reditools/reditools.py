@@ -15,7 +15,7 @@ class REDItools:
     Provides methods to set up analysis parameters and process alignment data.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Initialize REDItools with default parameters.
         """
@@ -38,7 +38,7 @@ class REDItools:
 
         self._specific_edits = None
 
-        self.reference = None
+        self.reference: str | None = None
 
     @property
     def log_level(self) -> str:
@@ -53,7 +53,7 @@ class REDItools:
         return self._logger.level
 
     @log_level.setter
-    def log_level(self, level: str):
+    def log_level(self, level: str) -> None:
         """
         Set the logging level.
 
@@ -145,7 +145,7 @@ class REDItools:
         """
         self._use_strand_correction = True
 
-    def add_reference(self, reference_fname: str):
+    def add_reference(self, reference_fname: str) -> None:
         """
         Add a reference FASTA file for genomic reference sequences.
 

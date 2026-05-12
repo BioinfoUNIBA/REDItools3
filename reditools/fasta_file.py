@@ -1,32 +1,15 @@
+from types import TracebackType
 from typing import Iterator
 
 from pysam.libcfaidx import FastaFile as PysamFastaFile
 
 
-class RTFastaFile(PysamFastaFile):
+class RTFastaFile:
     """
     A wrapper around pysam.FastaFile for genomic sequence access.
     """
 
-    def __new__(cls, *args, **kwargs):
-        """
-        Create a new instance of RTFastaFile.
-
-        Parameters
-        ----------
-        *args
-            Arguments passed to pysam.FastaFile.
-        **kwargs
-            Keyword arguments passed to pysam.FastaFile.
-
-        Returns
-        -------
-        RTFastaFile
-            A new instance of RTFastaFile.
-        """
-        return PysamFastaFile.__new__(cls, *args, **kwargs)
-
-    def __init__(self, *args, **kwargs):
+    def __init__(self, filename: str) -> None:
         """
         Initialize the RTFastaFile.
 
@@ -37,7 +20,30 @@ class RTFastaFile(PysamFastaFile):
         **kwargs
             Keyword arguments passed to pysam.FastaFile.
         """
-        PysamFastaFile.__init__(self)
+        self.pysam_fasta_file = PysamFastaFile(filename)
+
+    def __enter__(self):  # type: ignore
+        return self
+
+    def __exit__(
+        self,
+        exc_type: type,
+        exc_value: Exception,
+        traceback: TracebackType,
+    ) -> None:
+        """
+        Exit the runtime context related to this object.
+
+        Parameters
+        ----------
+        exc_type : type | None
+            The exception type.
+        exc_value : Exception | None
+            The exception value.
+        traceback : TracebackType | None
+            The traceback.
+        """
+        self.pysam_fasta_file.close()
 
     def get_base(self, contig: str, *position: int) -> Iterator[str]:
         """
@@ -63,18 +69,18 @@ class RTFastaFile(PysamFastaFile):
             If a position is outside the bounds of the contig.
         """
 
-        if contig not in self:
+        if contig not in self.pysam_fasta_file:
             if contig.startswith('chr'):
                 new_contig = contig.replace('chr', '')
             else:
                 new_contig = f'chr{contig}'
-            if new_contig not in self:
+            if new_contig not in self.pysam_fasta_file:
                 raise KeyError(
                     f'Reference name {contig} not found in FASTA file.',
                 )
             contig = new_contig
         sorted_pos = sorted(position)
-        seq = self.fetch(
+        seq = self.pysam_fasta_file.fetch(
             contig,
             sorted_pos[0],
             sorted_pos[-1] + 1,

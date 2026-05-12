@@ -1,5 +1,6 @@
 
-from typing import Collection, Iterator
+from types import TracebackType
+from typing import Any, Collection, Iterator
 
 from pysam import AlignedSegment
 from pysam.libcalignmentfile import AlignmentFile as PysamAlignmentFile
@@ -154,19 +155,19 @@ class RTAlignmentFile:
 
     def __init__(
             self,
-            *args,
+            filename: str,
             min_quality: int=0,
             min_length: int=0,
             excluded_read_names: Collection[str] | None=None,
-            **kwargs,
-    ):
+            **kwargs: Any,
+    ) -> None:
         """
         Initialize the RTAlignmentFile.
 
         Parameters
         ----------
-        *args
-            Arguments passed to pysam.AlignmentFile.
+        filename : str
+            Path to BAM file.
         min_quality : int, optional
             Minimum mapping quality (default is 0).
         min_length : int, optional
@@ -177,14 +178,11 @@ class RTAlignmentFile:
             Keyword arguments passed to pysam.AlignmentFile.
         """
         kwargs['ignore_truncation'] = True
-        self.alignment_file = PysamAlignmentFile(
-            *args,
-            **kwargs,
-        )
+        self.alignment_file = PysamAlignmentFile(filename, **kwargs)
         self.alignment_file.check_index()
         self.readqc = ReadQC(min_quality, min_length, excluded_read_names)
 
-    def __enter__(self):
+    def __enter__(self):  # type: ignore
         """
         Enter the runtime context related to this object.
 
@@ -195,7 +193,12 @@ class RTAlignmentFile:
         """
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(
+        self,
+        exc_type: type,
+        exc_value: Exception,
+        traceback: TracebackType,
+    ) -> None:
         """
         Exit the runtime context related to this object.
 
@@ -211,10 +214,8 @@ class RTAlignmentFile:
         self.alignment_file.close()
 
     def fetch_by_position(
-            self,
-            region: Region | str,
-            *args,
-            **kwargs,
+        self,
+        region: Region | str,
     ) -> Iterator[list[AlignedSegment]]:
         """
         Fetch reads from the alignment file grouped by their reference start
@@ -224,19 +225,13 @@ class RTAlignmentFile:
         ----------
         region : Region | str
             The genomic region to fetch reads from.
-        *args
-            Arguments passed to the pysam.AlignmentFile.fetch method.
-        **kwargs
-            Keyword arguments passed to the pysam.AlignmentFile.fetch method.
 
         Yields
         ------
         list[AlignedSegment]
             A list of reads that share the same reference start position.
         """
-        iterator = self.alignment_file.fetch(
-            region=str(region, *args, **kwargs),
-        )
+        iterator = self.alignment_file.fetch(region=str(region))
 
         first_read = next(iterator, None)
         while first_read is not None and not self.readqc.run_check(first_read):

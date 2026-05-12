@@ -45,7 +45,7 @@ class Logger:
         else:
             self._log_fn = self._log_silent
 
-    def log(self, level: str, message: str, *args: Any):
+    def log(self, level: str, message: str, *args: Any) -> None:
         """Conditionally output a message to STDERR.
 
         Parameters
@@ -71,7 +71,7 @@ class Logger:
         """
         return self._level
 
-    def _log_all(self, level: str, message: str, *args: Any):
+    def _log_all(self, level: str, message: str, *args: Any) -> None:
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         message = message.format(*args)
         sys.stderr.write(
@@ -79,9 +79,9 @@ class Logger:
             f'[{level}] {message}\n',
         )
 
-    def _log_info(self, level: str, message: str, *args: Any):
+    def _log_info(self, level: str, message: str, *args: Any) -> None:
         if level == self.info_level:
             self._log_all(level, message, *args)
 
-    def _log_silent(self, level: str, message: str, *args: Any):
+    def _log_silent(self, level: str, message: str, *args: Any) -> None:
         pass  # noqa: WPS420

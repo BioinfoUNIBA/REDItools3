@@ -155,7 +155,7 @@ class CompiledReads:
                     )
                 self._nucleotides[pos].add_base(quality, strand, base)
 
-    def pop_range(self, start, stop) -> Iterator[CompiledPosition]:
+    def pop_range(self, start: int, stop: int) -> Iterator[CompiledPosition]:
         """Yield and remove CompiledPosition objects within a range.
 
         Parameters

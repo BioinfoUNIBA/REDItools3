@@ -10,7 +10,6 @@ _empty = '-'
 
 def write_results(
         rtresults: Iterator[RTResult],
-        output_format: dict,
         temp_dir: str,
         filters: RTChecks,
         logger: Callable,
@@ -21,8 +20,6 @@ def write_results(
     ----------
     rtresults : Iterator[RTResult]
         The analysis results for each position.
-    output_format : dict
-        The CSV formatting options.
     temp_dir : str
         The directory to save temporary files.
     filters : RTChecks
@@ -36,7 +33,7 @@ def write_results(
         The path to the temporary file containing the results.
     """
     with NamedTemporaryFile(mode='w', delete=False, dir=temp_dir) as stream:
-        writer = csv.writer(stream, **output_format)
+        writer = csv.writer(stream, delimiter='\t', lineterminator='\n')
         for rt_result in rtresults:
             msg = filters.check(rt_result)
             if msg:

@@ -4,7 +4,7 @@ import sys
 from reditools.tools import analyze, annotate, find_repeats, index
 
 
-def usage():
+def usage() -> None:
     """
     Print the usage information for the REDItools3 toolkit.
     """
