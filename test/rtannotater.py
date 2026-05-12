@@ -58,6 +58,7 @@ class TestRTAnnotater(unittest.TestCase):
         self.assertEqual(
             rta.annotate_row(
                 {
+                    'Reference': 'A',
                     'gCoverage': '-',
                     'gMeanQ': '-',
                     'gBaseCount[A,C,G,T]': '-',
@@ -66,6 +67,7 @@ class TestRTAnnotater(unittest.TestCase):
                     'AnotherField': 'ABCD',
                 },
                 {
+                    'Reference': 'A',
                     'Coverage': '100',
                     'MeanQ': '40',
                     'BaseCount[A,C,G,T]': '[1, 2, 3, 4]',
@@ -76,6 +78,7 @@ class TestRTAnnotater(unittest.TestCase):
                 },
             ),
             {
+                'Reference': 'A',
                 'gCoverage': '100',
                 'gMeanQ': '40',
                 'gBaseCount[A,C,G,T]': '[1, 2, 3, 4]',
@@ -84,7 +87,50 @@ class TestRTAnnotater(unittest.TestCase):
                 'AnotherField': 'ABCD',
             },
         )
-                
+
+    def test_annotate_complement_row(self):
+        rta = RTAnnotater({})
+        self.assertEqual(
+            rta.annotate_row(
+                {
+                    'Reference': 'A',
+                    'gCoverage': '-',
+                    'gMeanQ': '-',
+                    'gBaseCount[A,C,G,T]': '-',
+                    'gAllSubs': '-',
+                    'gFrequency': '-',
+                    'AnotherField': 'ABCD',
+                },
+                {
+                    'Reference': 'T',
+                    'Coverage': '100',
+                    'MeanQ': '40',
+                    'BaseCount[A,C,G,T]': '[1, 2, 3, 4]',
+                    'AllSubs': 'AC AG AT',
+                    'Frequency': '0.5',
+                    'AnotherField': 'EFGH',
+                    'YetAnotherField': 'IJKL',
+                },
+            ),
+            {
+                'Reference': 'A',
+                'gCoverage': '100',
+                'gMeanQ': '40',
+                'gBaseCount[A,C,G,T]': '[4, 3, 2, 1]',
+                'gAllSubs': 'TA TC TG',
+                'gFrequency': '0.5',
+                'AnotherField': 'ABCD',
+            },
+        )
+
+    def test_mismatched_reference(self):
+        rta = RTAnnotater({})
+        with self.assertRaises(ValueError):
+            rta.annotate_row(
+                { 'Reference': 'A'},
+                { 'Reference': 'G'},
+            )
+
     def test_merge_files(self): 
         fieldnames = [
             'Region',

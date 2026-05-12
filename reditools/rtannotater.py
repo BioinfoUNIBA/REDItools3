@@ -21,6 +21,12 @@ class RTAnnotater:
         ('gCoverage-q30', 'gCoverage'),
     )
 
+    comp_map = {'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C'}
+
+    ref_key = 'Reference'
+    sub_key = 'AllSubs'
+    bases_key = 'BaseCount[A,C,G,T]'
+
     def __init__(self, contig_order: dict[str, int]):
         """Initialize RTAnnotater.
 
@@ -46,12 +52,12 @@ class RTAnnotater:
         writer = csv.DictWriter(stream, delimiter='\t', fieldnames=[
             'Region',
             'Position',
-            'Reference',
+            self.ref_key,
             'Strand',
             'Coverage',
             'MeanQ',
-            'BaseCount[A,C,G,T]',
-            'AllSubs',
+            self.bases_key,
+            self.sub_key,
             'Frequency',
             'gCoverage',
             'gMeanQ',
@@ -112,10 +118,14 @@ class RTAnnotater:
         dict[Any, Any]
             The annotated RNA row.
         """
+        if rna_row[self.ref_key] == self.comp_map[dna_row[self.ref_key]]:
+            self.complement(dna_row)
+        elif rna_row[self.ref_key] !=  dna_row[self.ref_key]:
+            raise ValueError('Files do not appear to use the same reference.')
         rna_row['gCoverage'] = dna_row['Coverage']
         rna_row['gMeanQ'] = dna_row['MeanQ']
-        rna_row['gBaseCount[A,C,G,T]'] = dna_row['BaseCount[A,C,G,T]']
-        rna_row['gAllSubs'] = dna_row['AllSubs']
+        rna_row['gBaseCount[A,C,G,T]'] = dna_row[self.bases_key]
+        rna_row['gAllSubs'] = dna_row[self.sub_key]
         rna_row['gFrequency'] = dna_row['Frequency']
         return rna_row
 
@@ -175,3 +185,14 @@ class RTAnnotater:
                     yield self.annotate_row(rna_entry, dna_entry)
                 else:
                     yield rna_entry
+
+    def complement(self, row: dict[Any, Any]) -> dict[Any, Any]:
+        row[self.ref_key] = self.comp_map[row[self.ref_key]]
+        row[self.sub_key] = ' '.join(sorted([
+            ''.join([self.comp_map[_] for _ in sub])
+            for sub in row[self.sub_key].split(' ')
+        ]))
+        base_counts = row[self.bases_key][1:-1].split(', ')
+        base_counts = [int(_) for _ in base_counts]
+        row[self.bases_key] = str(list(reversed(base_counts)))
+        return row
