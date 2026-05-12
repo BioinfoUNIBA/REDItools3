@@ -1,9 +1,10 @@
+from types import TracebackType
 from typing import Iterator
 
 from pysam.libcfaidx import FastaFile as PysamFastaFile
 
 
-class RTFastaFile(PysamFastaFile):
+class RTFastaFile:
     """
     A wrapper around pysam.FastaFile for genomic sequence access.
     """
@@ -20,6 +21,29 @@ class RTFastaFile(PysamFastaFile):
             Keyword arguments passed to pysam.FastaFile.
         """
         self.pysam_fasta_file = PysamFastaFile(filename)
+
+    def __enter__(self):  # type: ignore
+        return self
+
+    def __exit__(
+        self,
+        exc_type: type,
+        exc_value: Exception,
+        traceback: TracebackType,
+    ) -> None:
+        """
+        Exit the runtime context related to this object.
+
+        Parameters
+        ----------
+        exc_type : type | None
+            The exception type.
+        exc_value : Exception | None
+            The exception value.
+        traceback : TracebackType | None
+            The traceback.
+        """
+        self.pysam_fasta_file.close()
 
     def get_base(self, contig: str, *position: int) -> Iterator[str]:
         """
