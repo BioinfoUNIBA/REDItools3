@@ -8,25 +8,7 @@ class RTFastaFile(PysamFastaFile):
     A wrapper around pysam.FastaFile for genomic sequence access.
     """
 
-    def __new__(cls, *args, **kwargs):
-        """
-        Create a new instance of RTFastaFile.
-
-        Parameters
-        ----------
-        *args
-            Arguments passed to pysam.FastaFile.
-        **kwargs
-            Keyword arguments passed to pysam.FastaFile.
-
-        Returns
-        -------
-        RTFastaFile
-            A new instance of RTFastaFile.
-        """
-        return PysamFastaFile.__new__(cls, *args, **kwargs)
-
-    def __init__(self, *args, **kwargs):
+    def __init__(self, filename) -> None:
         """
         Initialize the RTFastaFile.
 
@@ -37,7 +19,7 @@ class RTFastaFile(PysamFastaFile):
         **kwargs
             Keyword arguments passed to pysam.FastaFile.
         """
-        PysamFastaFile.__init__(self)
+        self.pysam_fasta_file = PysamFastaFile(filename)
 
     def get_base(self, contig: str, *position: int) -> Iterator[str]:
         """
@@ -63,18 +45,18 @@ class RTFastaFile(PysamFastaFile):
             If a position is outside the bounds of the contig.
         """
 
-        if contig not in self:
+        if contig not in self.pysam_fasta_file:
             if contig.startswith('chr'):
                 new_contig = contig.replace('chr', '')
             else:
                 new_contig = f'chr{contig}'
-            if new_contig not in self:
+            if new_contig not in self.pysam_fasta_file:
                 raise KeyError(
                     f'Reference name {contig} not found in FASTA file.',
                 )
             contig = new_contig
         sorted_pos = sorted(position)
-        seq = self.fetch(
+        seq = self.pysam_fasta_file.fetch(
             contig,
             sorted_pos[0],
             sorted_pos[-1] + 1,
