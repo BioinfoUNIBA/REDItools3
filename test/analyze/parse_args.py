@@ -3,6 +3,7 @@ import unittest
 from contextlib import contextmanager
 from io import StringIO
 
+from reditools import reditools
 from reditools.tools.analyze.parse_args import parse_args
 
 
@@ -19,7 +20,7 @@ class TestParseArgs(unittest.TestCase):
             'test/test.bam',
             '--dna',
         ])
-        self.assertEqual(args.strand, 0)
+        self.assertEqual(args.strand, reditools.UNSTRANDED_MODE)
         self.assertFalse(hasattr(args, 'dna'))
 
     def test_exclude_multis(self):

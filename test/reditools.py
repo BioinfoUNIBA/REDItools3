@@ -2,9 +2,9 @@ import os
 import unittest
 from test.sam_gen import SAM, Genome, Sequence, ntf
 
+from reditools import reditools
 from reditools.alignment_manager import AlignmentManager
 from reditools.compiled_position import CompiledPosition
-from reditools.reditools import REDItools
 from reditools.region import Region
 
 
@@ -12,7 +12,7 @@ class TestREDItools(unittest.TestCase):
     complement = {'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C'}
 
     def setUp(self):
-        self.rtools = REDItools()
+        self.rtools = reditools.REDItools()
 
         self.bam_file = ntf(suffix='.bam')
         self.fa_file = ntf(suffix='.fa')
@@ -39,13 +39,12 @@ class TestREDItools(unittest.TestCase):
         cp.add_base(30, '+', 'G')
         cp.add_base(30, '+', 'G')
 
-        self.rtools.strand = 2
         rtresult = self.rtools._process_bases(cp)
         self.assertEqual(rtresult.reference, 'A')
         self.assertEqual(rtresult.strand, '*')
         self.assertEqual(rtresult.variants, ['AG'])
 
-        self.rtools.strand = 1
+        self.rtools.strand = reditools.FORWARD_STRAND_MODE
         self.rtools.strand_confidence_threshold = 0.5
         rtresult = self.rtools._process_bases(cp)
         self.assertEqual(rtresult.strand, '-')
