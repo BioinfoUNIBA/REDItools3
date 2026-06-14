@@ -163,7 +163,7 @@ class REDItools:
             bases.position,
             bases.contig,
         )
-        if self.strand == 2:
+        if self.strand == 0:
             strand = '*'
         else:
             strand = bases.calculate_strand(
