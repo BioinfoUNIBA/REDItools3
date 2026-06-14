@@ -1,7 +1,7 @@
 import argparse
 import tempfile
 from typing import Callable
-
+from reditools import reditools
 
 def check_number_bounds(
         number: float,
@@ -275,16 +275,23 @@ def build_argument_parser() -> argparse.ArgumentParser:  # noqa: WPS213, WPS210
     strand_group.add_argument(
         '-s',
         '--strand',
-        choices=(0, 1, 2),
+        choices=(
+            reditools.UNSTRANDED_MODE,
+            reditools.FORWARD_STRAND_MODE,
+            reditools.REVERSE_STRAND_MODE,
+        ),
         type=int,
-        default=0,
+        default=reditools.UNSTRANDED_MODE,
         help=(
-            'Strand can be 0 (unstranded), 1 (read1 is original RNA), or '
-            '2 (read2 is original RNA). '
+            f'Strand can be {reditools.UNSTRANDED_MODE} (unstranded), '
+            f'{reditools.FORWARD_STRAND_MODE} (read1 is original RNA), or '
+            f'{reditools.REVERSE_STRAND_MODE} (read2 is original RNA). '
             'From RSeQC infer_experiment.py, 1++,1--,2+-,2-+ should be run '
-            'as --strand 1 and 1+-,1-+,2++,2-- should be run as --strand 2. '
+            f'as --strand {reditools.FORWARD_STRAND_MODE} and 1+-,1-+,2++,2-- '
+            f'should be run as --strand {reditools.REVERSE_STRAND_MODE}. '
             'From Salmon, forward libraries (ISF, MSF, OSF) should be run as '
-            '--strand 1 and reverse libraries (ISR, MSR, OSR) as --strand 2. '
+            f'--strand {reditools.FORWARD_STRAND_MODE} and reverse libraries '
+            f'(ISR, MSR, OSR) as --strand {reditools.REVERSE_STRAND_MODE}. '
             'All DNA sequencing experiments and non-stranded experiments '
             'should be run with --strand 0.'
         ),
