@@ -2,9 +2,9 @@ import os
 import unittest
 from test.sam_gen import SAM, Genome, Sequence, ntf
 
+from reditools import reditools
 from reditools.alignment_manager import AlignmentManager
 from reditools.compiled_position import CompiledPosition
-from reditools import reditools
 from reditools.region import Region
 
 

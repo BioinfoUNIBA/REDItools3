@@ -1,7 +1,9 @@
 import argparse
 import tempfile
 from typing import Callable
+
 from reditools import reditools
+
 
 def check_number_bounds(
         number: float,
