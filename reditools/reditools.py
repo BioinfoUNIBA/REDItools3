@@ -7,6 +7,23 @@ from reditools.compiled_reads import CompiledReads
 from reditools.logger import Logger
 from reditools.region import Region
 
+"""
+Set the strand property to UNSTRANDED_MODE for unstranded analysis.
+"""
+UNSTRANDED_MODE = 0
+
+"""
+Set the strand property to FORWARD_STRAND_MODE for forward stranded
+analysis.
+"""
+FORWARD_STRAND_MODE = 1
+
+"""
+Set the strand property to REVERSE_STRAND_MODE mode for reverse stranded
+analysis.
+"""
+REVERSE_STRAND_MODE = 2
+
 
 class REDItools:
     """
@@ -14,6 +31,7 @@ class REDItools:
 
     Provides methods to set up analysis parameters and process alignment data.
     """
+
 
     def __init__(self) -> None:
         """
@@ -26,7 +44,7 @@ class REDItools:
         self._logger = Logger(Logger.silent_level)
         self.log = self._logger.log
 
-        self.strand = 0
+        self.strand = UNSTRANDED_MODE
         self._use_strand_correction = False
         self.strand_confidence_threshold = 0.5
 
@@ -163,7 +181,7 @@ class REDItools:
             bases.position,
             bases.contig,
         )
-        if self.strand == 0:
+        if self.strand == UNSTRANDED_MODE:
             strand = '*'
         else:
             strand = bases.calculate_strand(
