@@ -295,7 +295,7 @@ def build_argument_parser() -> argparse.ArgumentParser:  # noqa: WPS213, WPS210
             f'--strand {reditools.FORWARD_STRAND_MODE} and reverse libraries '
             f'(ISR, MSR, OSR) as --strand {reditools.REVERSE_STRAND_MODE}. '
             'All DNA sequencing experiments and non-stranded experiments '
-            'should be run with --strand 0.'
+            f'should be run with --strand {reditools.UNSTRANDED_MODE}.'
         ),
     )
     strand_group.add_argument(
