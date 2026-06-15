@@ -1,0 +1,204 @@
+import csv
+from typing import IO, Iterator
+
+from reditools import file_utils
+
+
+class RTAnnotater:
+    """Class to annotate RNA editing sites with DNA data.
+
+    It merges RNA and DNA editing tables by matching positions.
+
+    Attributes
+    ----------
+    legacy_map : tuple
+        Mapping of old field names to new field names for backward
+        compatibility.
+    """
+
+    legacy_map = (
+        ('Coverage-q30', 'Coverage'),
+        ('gCoverage-q30', 'gCoverage'),
+    )
+
+    comp_map = {'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C'}
+
+    ref_key = 'Reference'
+    sub_key = 'AllSubs'
+    bases_key = 'BaseCount[A,C,G,T]'
+
+    def __init__(self, contig_order: dict[str, int], do_complement: bool=False):
+        """Initialize RTAnnotater.
+
+        Parameters
+        ----------
+        contig_order : dict[str, int]
+            A dictionary mapping contig names to their sort order.
+        do_complement : bool
+            If True, annotate() will report the DNA complement if the RNA data
+            comes from the minus strand.
+        """
+        self.contig_order = contig_order
+        self.do_complement = do_complement
+
+    def annotate(self, rna_file: str, dna_file: str, stream: IO) -> None:
+        """Read input files and write annotated results to a stream.
+
+        Parameters
+        ----------
+        rna_file : str
+            Path to the RNA editing file.
+        dna_file : str
+            Path to the DNA editing file.
+        stream : IO
+            The output stream to write the annotated table.
+        """
+        writer = csv.DictWriter(stream, delimiter='\t', fieldnames=[
+            'Region',
+            'Position',
+            self.ref_key,
+            'Strand',
+            'Coverage',
+            'MeanQ',
+            self.bases_key,
+            self.sub_key,
+            'Frequency',
+            'gCoverage',
+            'gMeanQ',
+            'gBaseCount[A,C,G,T]',
+            'gAllSubs',
+            'gFrequency'])
+        writer.writeheader()
+        writer.writerows(self.merge_files(rna_file, dna_file))
+
+    def cmp_position(
+            self,
+            rna_entry: dict[str, str],
+            dna_entry: dict[str, str] | None,
+    ) -> int:
+        """Compare the positions of RNA and DNA entries.
+
+        Parameters
+        ----------
+        rna_entry : dict[str, str]
+            A row from the RNA editing file.
+        dna_entry : dict[str, str] | None
+            A row from the DNA editing file, or None if the end is reached.
+
+        Returns
+        -------
+        int
+            Negative if RNA < DNA, positive if RNA > DNA, zero if equal.
+        """
+        if dna_entry is None:
+            return -1
+        rna_contig_idx = self.contig_order[rna_entry['Region']]
+        # If the DNA contig is not in the RNA file, assume its position is
+        # earlier than the current RNA contig to induce fast-forwarding.
+        dna_contig_idx = self.contig_order.get(
+            dna_entry['Region'],
+            0
+        )
+        if rna_contig_idx == dna_contig_idx:
+            return int(rna_entry['Position']) - int(dna_entry['Position'])
+        return rna_contig_idx - dna_contig_idx
+
+    def annotate_row(
+            self,
+            rna_row: dict[str, str],
+            dna_row: dict[str, str],
+    ) -> dict[str, str]:
+        """Add DNA information to an RNA row.
+
+        Parameters
+        ----------
+        rna_row : dict[str, str]
+            A row from the RNA editing file.
+        dna_row : dict[str, str]
+            A matching row from the DNA editing file.
+
+        Returns
+        -------
+        dict[str, str]
+            The annotated RNA row.
+        """
+        if rna_row[self.ref_key] == self.comp_map[dna_row[self.ref_key]]:
+            if self.do_complement:
+                self.complement(dna_row)
+        elif rna_row[self.ref_key] !=  dna_row[self.ref_key]:
+            raise ValueError('Files do not appear to use the same reference.')
+        rna_row['gCoverage'] = dna_row['Coverage']
+        rna_row['gMeanQ'] = dna_row['MeanQ']
+        rna_row['gBaseCount[A,C,G,T]'] = dna_row[self.bases_key]
+        rna_row['gAllSubs'] = dna_row[self.sub_key]
+        rna_row['gFrequency'] = dna_row['Frequency']
+        return rna_row
+
+    @classmethod
+    def legacy_translate(cls, row: dict[str, str]) -> dict[str, str]:
+        """Translate legacy field names to current ones.
+
+        Parameters
+        ----------
+        row : dict[str, str]
+            A row from an editing file.
+
+        Returns
+        -------
+        dict[str, str]
+            The translated row.
+        """
+        for old_key, new_key in cls.legacy_map:
+            if old_key in row:
+                row[new_key] = row.pop(old_key)
+        return row
+
+    def merge_files(
+            self,
+            rna_file: str,
+            dna_file: str,
+    ) -> Iterator[dict[str, str]]:
+        """Merge RNA and DNA files and yield annotated rows.
+
+        Parameters:
+        -----------
+        rna_file : str
+            Path to the RNA editing file.
+        dna_file : str
+            Path to the DNA editing file.
+
+        Yields
+        ------
+        dict[str, str]
+            Annotated (or original if no match) RNA row.
+        """
+        with file_utils.open_stream(rna_file, 'r') as rna_stream, \
+                file_utils.open_stream(dna_file, 'r') as dna_stream:
+            rna_reader = csv.DictReader(rna_stream, delimiter='\t')
+            dna_reader = csv.DictReader(dna_stream, delimiter='\t')
+
+            dna_entry = next(dna_reader, None)
+
+            for rna_entry in rna_reader:
+                self.legacy_translate(rna_entry)
+
+                while self.cmp_position(rna_entry, dna_entry) > 0:
+                    dna_entry = next(dna_reader, None)
+                if self.cmp_position(rna_entry, dna_entry) == 0:
+                    assert dna_entry is not None
+                    self.legacy_translate(dna_entry)
+                    yield self.annotate_row(rna_entry, dna_entry)
+                else:
+                    yield rna_entry
+
+    def complement(self, row: dict[str, str]) -> dict[str, str]:
+        row[self.ref_key] = self.comp_map[row[self.ref_key]]
+        row[self.sub_key] = ' '.join(sorted([
+            ''.join([self.comp_map[_] for _ in sub])
+            for sub in row[self.sub_key].split(' ')
+        ]))
+        base_counts = row[self.bases_key][1:-1].split(', ')
+        row[self.bases_key] = str(list(reversed([
+            int(_) for _ in base_counts
+        ])))
+        return row

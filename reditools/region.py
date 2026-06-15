@@ -1,132 +1,157 @@
-"""Genomic Region."""
 
 import re
+from dataclasses import dataclass
+
+from pysam import AlignmentFile
 
 
-class Region(object):
-    """Genomic Region."""
+@dataclass(slots=True, order=True, frozen=True)
+class Region:
+    """
+    Represent a genomic region.
 
-    def __init__(self, **kwargs):
+    Parameters
+    ----------
+    contig : str
+        The name of the contig or chromosome.
+    start : int
+        The 0-based start position.
+    stop : int
+        The 0-based stop position (exclusive).
+    """
+
+    contig: str
+    start: int
+    stop: int
+
+    def __str__(self) -> str:
         """
-        Create a new genomic region.
+        Return a string representation of the region.
 
-        Parameters:
-            **kwargs (dict):
-                string (str): String representation of a region
-                OR
-                contig (str): Contig name
-                start (int): Genomic start
-                stop (int): Genomic stop
-
-        Raises:
-            ValueError: The contig is missing
+        Returns
+        -------
+        str
+            The region string in 'contig:start-stop' format.
         """
-        if 'string' in kwargs:
-            region = self._parse_string(kwargs['string'])  # noqa:WPS529
-            self.contig = region[0]
-            self.start = region[1]
-            self.stop = region[2]
-        else:
-            if 'contig' not in kwargs:
-                raise ValueError('Region constructor requires a contig.')
-            self.contig = kwargs['contig']
-            self.start = self._to_int(kwargs.get('start', 1)) - 1
-            if 'stop' in kwargs:
-                self.stop = self._to_int(kwargs['stop']) - 1
-            else:
-                self.stop = None
+        one_idx_start = self.start + 1
+        if self.stop is None:
+            if self.start > 0:
+                return f'{self.contig}:{one_idx_start}'
+            return self.contig
+        return f'{self.contig}:{one_idx_start}-{self.stop}'
 
-    def __str__(self):
+    def split(self, window: int) -> list['Region']:
         """
-        Put the region into standard string format.
+        Split the region into smaller sub-regions of a specified window size.
 
-        Returns:
-            (str): contig:start-stop
-        """
-        if self.start > 0:
-            if self.stop:
-                return f'{self.contig}:{self.start}-{self.stop + 1}'
-            return f'{self.contig}:{self.start}'
-        return self.contig
+        Parameters
+        ----------
+        window : int
+            The size of each sub-region.
 
-    def split(self, window):
-        """
-        Split the region into a list of smaller regions.
+        Returns
+        -------
+        list[Region]
+            A list of smaller sub-regions.
 
-        Parameters:
-            window (int): The size of the sub regions in bp
-
-        Returns:
-            list
-
-        Raises:
-            IndexError: The region is missing a start or stop
+        Raises
+        ------
+        IndexError
+            If either start or stop is None.
         """
         if self.stop is None or self.start is None:
             raise IndexError('Can only split a region with a start and stop.')
-        length = self.stop - self.start
         sub_regions = []
-        for offset in range(0, length + 1, window):
+        for new_start in range(self.start, self.stop, window):
             sub_regions.append(Region(
                 contig=self.contig,
-                start=self.start + offset,
-                stop=self.start + offset + window,
-            ))
-        if self.start < length:
-            sub_regions.append(Region(
-                contig=self.contig,
-                start=sub_regions[-1].stop,
-                stop=self.stop,
-            ))
+                start=new_start,
+                stop=min(new_start + window, self.stop)))
         return sub_regions
 
-    def enumerate(self):
+    @classmethod
+    def from_string(cls, region_str: str, alignment_file: str) -> 'Region':
         """
-        Convert a list of regions into a list of individual positions.
+        Create a Region object from a string and an alignment file.
 
-        Returns:
-            Set enumerating the individual positions.
+        Parameters
+        ----------
+        region_str : str
+            The region string in the format 'contig:start-stop',
+            'contig:start', or 'contig'.
+        alignment_file : str
+            Path to the alignment file (BAM/CRAM) to get contig length if stop
+            is missing.
+
+        Returns
+        -------
+        Region
+            The created Region object.
+
+        Raises
+        ------
+        ValueError
+            If start is less than 0 or if stop is less than or equal to start.
         """
-        return set(range(self.start, self.stop))
+        contig, start, stop = Region.parse_string(region_str)
+        if start is None:
+            start = 0
+        elif start < 0:
+            raise ValueError(
+                f'Start position ({start}) must be greater than or '
+                'equal to one.',
+            )
+        if stop is None:
+            with AlignmentFile(alignment_file, ignore_truncation=True) as bam:
+                stop = bam.get_reference_length(contig)
+        if stop <= start:
+            raise ValueError(
+                f'Stop position ({stop}) must be greater than or '
+                f'equal to start ({start}).',
+            )
+        return Region(contig, start, stop)
 
-    def contains(self, contig, position):
+    @classmethod
+    def parse_string(cls, region_str: str) -> tuple[str, int, int | None]:
         """
-        Determines if a given genomic location is within the region.
+        Parse a region string into its components.
 
-        Parameters:
-            contig (str): Contig/Chromosome name
-            position (int): Position
+        Parameters
+        ----------
+        region_str : str
+            The region string in the format 'contig:start-stop',
+            'contig:start', or 'contig'.
 
-        Returns:
-            bool
+        Returns
+        -------
+        tuple[str, int, int | None]
+            A tuple containing (contig, start, stop). Returns None if
+            region_str is None.
+
+        Raises
+        ------
+        ValueError
+            If the region string format is unrecognized.
         """
-        if self.contig != contig:
-            return False
-        left = self.start is None or self.start <= position
-        right = self.stop is None or position < self.stop
-        return left and right
-
-    def _parse_string(self, region_str):
         if region_str is None:
             return None
-        region = re.split('[:-]', region_str)
-        if not region:
-            return None
-        contig = region[0]
-        start = 0
-        stop = None
-
-        if len(region) > 3:
+        pa = re.compile(
+            '(?P<contig>[^:]+)(:(?P<start>[0-9,]+)(-(?P<stop>[0-9,]+))?)?',
+        )
+        match = pa.fullmatch(region_str)
+        if match is None:
             raise ValueError(f'Unrecognized format: {region_str}.')
-        if len(region) > 1:
-            start = self._to_int(region[1])
-            if len(region) == 3:
-                stop = self._to_int(region[2])
+        contig, start, stop = match.group('contig', 'start', 'stop')
+
+        if start is None:
+            start = 0
+        else:
+            start = Region._to_int(start) - 1
+
+        if stop is not None:
+            stop = Region._to_int(stop)
         return (contig, start, stop)
 
-    def _to_int(self, number):
-        if isinstance(number, str):
-            return int(re.sub(r'[\s,]', '', number))
-        if number is None:
-            return None
-        return int(number)
+    @classmethod
+    def _to_int(cls, number: str) -> int:
+        return int(re.sub(r'[\s,]', '', number))

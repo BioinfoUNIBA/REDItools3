@@ -1,66 +1,94 @@
-"""Wrappers for PysamFastaFile."""
+from types import TracebackType
+from typing import Iterator
 
 from pysam.libcfaidx import FastaFile as PysamFastaFile
 
 
-class RTFastaFile(PysamFastaFile):
-    """Wrapper for pysam.FastaFile to provide sequence cache."""
+class RTFastaFile:
+    """
+    A wrapper around pysam.FastaFile for genomic sequence access.
+    """
 
-    def __new__(cls, *args, **kwargs):
-        r"""
-        Create a wrapper for pysam.FastaFile.
-
-        Parameters:
-            *args (list): positional arguments for PysamFastaFile constructor
-            **kwargs (dict): named arguments for PysamFastaFile constructor
-
-        Returns:
-            PysamFastaFIle
+    def __init__(self, filename: str) -> None:
         """
-        return PysamFastaFile.__new__(cls, *args, **kwargs)
+        Initialize the RTFastaFile.
 
-    def __init__(self, *args, **kwargs):
-        r"""
-        Create a wrapper for pysam.FastaFile.
-
-        Parameters:
-            *args (list): positional arguments for PysamFastaFile constructor
-            **kwargs (dict): named arguments for PysamFastaFile constructor
+        Parameters
+        ----------
+        *args
+            Arguments passed to pysam.FastaFile.
+        **kwargs
+            Keyword arguments passed to pysam.FastaFile.
         """
-        PysamFastaFile.__init__(self)
+        self.pysam_fasta_file = PysamFastaFile(filename)
 
-        self._contig_name = False
-        self._contig_cache = None
+    def __enter__(self):  # type: ignore
+        return self
 
-    def get_base(self, contig, *position):
+    def __exit__(
+        self,
+        exc_type: type,
+        exc_value: Exception,
+        traceback: TracebackType,
+    ) -> None:
         """
-        Retrieve the base at the given position.
+        Exit the runtime context related to this object.
 
-        Parameters:
-            contig (string): Chromsome name
-            position (int): Zero-indexed position on reference
-
-        Returns:
-            Base the position as a string.
-
-        Raises:
-            IndexError: The position is not within the contig
+        Parameters
+        ----------
+        exc_type : type | None
+            The exception type.
+        exc_value : Exception | None
+            The exception value.
+        traceback : TracebackType | None
+            The traceback.
         """
-        if contig != self._contig_name:
-            self._update_contig_cache(contig)
+        self.pysam_fasta_file.close()
+
+    def get_base(self, contig: str, *position: int) -> Iterator[str]:
+        """
+        Retrieve bases at specified positions from a contig.
+
+        Parameters
+        ----------
+        contig : str
+            The name of the contig or chromosome.
+        *position : int
+            One or more 0-based positions to retrieve bases for.
+
+        Returns
+        -------
+        Iterator[str]
+            An iterator over the upper-case bases at the specified positions.
+
+        Raises
+        ------
+        KeyError
+            If the contig is not found in the FASTA file.
+        IndexError
+            If a position is outside the bounds of the contig.
+        """
+
+        if contig not in self.pysam_fasta_file:
+            if contig.startswith('chr'):
+                new_contig = contig.replace('chr', '')
+            else:
+                new_contig = f'chr{contig}'
+            if new_contig not in self.pysam_fasta_file:
+                raise KeyError(
+                    f'Reference name {contig} not found in FASTA file.',
+                )
+            contig = new_contig
+        sorted_pos = sorted(position)
+        seq = self.pysam_fasta_file.fetch(
+            contig,
+            sorted_pos[0],
+            sorted_pos[-1] + 1,
+        )
         try:
-            return [self._contig_cache[idx] for idx in position]
+            return (seq[_ - sorted_pos[0]].upper() for _ in position)
         except IndexError as exc:
             raise IndexError(
                 f'Base position {position} is outside the bounds of ' +
                 '{contig}. Are you using the correct reference?',
             ) from exc
-
-    def _update_contig_cache(self, contig):
-        keys = (contig, f'chr{contig}', contig.replace('chr', ''))
-        for ref in keys:
-            if ref in self:
-                self._contig_cache = self.fetch(ref).upper()
-                self._contig_name = contig
-                return
-        raise KeyError(f'Reference name {contig} not found in FASTA file.')
