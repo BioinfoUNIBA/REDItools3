@@ -27,7 +27,7 @@ class RTAnnotater:
     sub_key = 'AllSubs'
     bases_key = 'BaseCount[A,C,G,T]'
 
-    def __init__(self, contig_order: dict[str, int]):
+    def __init__(self, contig_order: dict[str, int], do_complement=False):
         """Initialize RTAnnotater.
 
         Parameters
@@ -36,6 +36,7 @@ class RTAnnotater:
             A dictionary mapping contig names to their sort order.
         """
         self.contig_order = contig_order
+        self.do_complement = do_complement
 
     def annotate(self, rna_file: str, dna_file: str, stream: IO) -> None:
         """Read input files and write annotated results to a stream.
@@ -119,7 +120,8 @@ class RTAnnotater:
             The annotated RNA row.
         """
         if rna_row[self.ref_key] == self.comp_map[dna_row[self.ref_key]]:
-            self.complement(dna_row)
+            if self.do_complement:
+                self.complement(dna_row)
         elif rna_row[self.ref_key] !=  dna_row[self.ref_key]:
             raise ValueError('Files do not appear to use the same reference.')
         rna_row['gCoverage'] = dna_row['Coverage']

@@ -107,7 +107,7 @@ def main() -> None:
         )
         sys.exit(1)
 
-    rta = RTAnnotater(contig_order)
+    rta = RTAnnotater(contig_order, options.strand_correction)
     try:
         rta.annotate(options.rna_file, options.dna_file, sys.stdout)
     except Exception as exc:

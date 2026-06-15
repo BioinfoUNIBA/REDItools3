@@ -21,12 +21,21 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         'dna_file',
         help='The REDItools output from corresponding DNA data',
-    )
+    ) 
     parser.add_argument(
         '-d',
         '--debug',
         help='Report stack trace on crash.',
         action='store_true',
+    )
+    parser.add_argument(
+        '-C',
+        '--strand-correction',
+        help=(
+            'Report the DNA base complement if the RNA data comes from the '
+            'minus strand.'
+        ),
+        action='store_true'
     )
     order_group = parser.add_argument_group(
         title='Contig order options',
