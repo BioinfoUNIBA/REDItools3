@@ -27,13 +27,16 @@ class RTAnnotater:
     sub_key = 'AllSubs'
     bases_key = 'BaseCount[A,C,G,T]'
 
-    def __init__(self, contig_order: dict[str, int], do_complement=False):
+    def __init__(self, contig_order: dict[str, int], do_complement: bool=False):
         """Initialize RTAnnotater.
 
         Parameters
         ----------
         contig_order : dict[str, int]
             A dictionary mapping contig names to their sort order.
+        do_complement : bool
+            If True, annotate() will report the DNA complement if the RNA data
+            comes from the minus strand.
         """
         self.contig_order = contig_order
         self.do_complement = do_complement

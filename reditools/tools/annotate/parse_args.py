@@ -21,7 +21,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         'dna_file',
         help='The REDItools output from corresponding DNA data',
-    ) 
+    )
     parser.add_argument(
         '-d',
         '--debug',
