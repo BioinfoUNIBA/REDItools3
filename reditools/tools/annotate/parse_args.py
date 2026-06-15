@@ -28,6 +28,15 @@ def parse_args() -> argparse.Namespace:
         help='Report stack trace on crash.',
         action='store_true',
     )
+    parser.add_argument(
+        '-C',
+        '--strand-correction',
+        help=(
+            'Report the DNA base complement if the RNA data comes from the '
+            'minus strand.'
+        ),
+        action='store_true'
+    )
     order_group = parser.add_argument_group(
         title='Contig order options',
         description=(
