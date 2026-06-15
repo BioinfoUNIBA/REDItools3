@@ -19,6 +19,7 @@ def analyze(
         sam_manager: AlignmentManager,
         region: Region,
         rtqc: RTChecks,
+        temp_dir: str,
 ) -> str:
     """Analyze a specific genomic region.
 
@@ -34,6 +35,8 @@ def analyze(
         The genomic region to analyze.
     rtqc : RTChecks
         The quality control checks to apply.
+    temp_dir : str
+        Location to save the analysis output.
 
     Returns
     -------
@@ -43,13 +46,14 @@ def analyze(
     rtresults = rtools.analyze(sam_manager, region)
     return write_results(
         rtresults,
-        options.temp_dir,
+        temp_dir,
         rtqc,
         rtools.log,
     )
 
 def redi_thread(
         options: argparse.Namespace,
+        temp_dir : str,
         in_queue: Queue,
         out_queue: Queue,
 ) -> bool:
@@ -59,6 +63,8 @@ def redi_thread(
     ----------
     options : argparse.Namespace
         The command-line options.
+    temp_dir : str
+        Path to save output to.
     in_queue : Queue
         The queue containing genomic regions to analyze.
     out_queue : Queue
@@ -85,7 +91,7 @@ def redi_thread(
         try:  # noqa: WPS229
             out_queue.put((
                 idx,
-                analyze(options, rtools, sam_manager, region, rtqc),
+                analyze(options, rtools, sam_manager, region, rtqc, temp_dir),
             ))
         except Exception as exc:
             if options.debug:

@@ -1,9 +1,40 @@
 import argparse
+import json
 import tempfile
 from typing import Callable
 
 from reditools import reditools
 
+def args_to_json(options: argparse.Namespace, filename: str) -> None:
+    """
+    Save commandline arguments to a JSON file.
+
+    Parameters:
+        options : argparse.Namespace
+            The parsed commandline options.
+        filename : str
+            Path to save arguments to.
+    """
+    with open(filename, 'w') as stream:
+        json.dump(vars(options), stream)
+
+def args_from_json(filename: str) -> argparse.Namespace:
+    """
+    Load commandline arguments from a JSON file.
+
+    Parameters
+    ----------
+    filename : str
+        JSON file to load arguments from
+
+    Returns
+    -------
+    argparse.Namespace
+        Commandline arguments for reditools analyze
+    """
+    with open(filename, 'r') as stream:
+        json_args = json.load(stream)
+    return argparse.Namespace(**json_args)
 
 def check_number_bounds(
         number: float,

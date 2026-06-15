@@ -1,11 +1,31 @@
 
 import csv
 import os
+import tempfile
 from gzip import open as gzip_open
 from typing import IO, Iterator
 
 from reditools.region import Region
 
+def safe_tempfile_name(prefix: str | None=None, dir: str | None=None):
+    """
+    Returns a system safe filename that does not already exist.
+
+    Parameters
+    ----------
+    prefix : str
+        Filename prefix.
+    dir : str
+        Path to file.
+
+    Returns
+    -------
+    str
+        System safe filename.
+    """
+    with tempfile.NamedTemporaryFile(prefix=prefix, dir=dir) as stream:
+        valid_name = stream.name
+    return valid_name
 
 def open_stream(  # type: ignore
         path: str,

@@ -55,4 +55,4 @@ def concat_output(
         writer = csv.writer(stream, delimiter='\t', lineterminator='\n')
         if 'a' not in mode:
             writer.writerow(fieldnames)
-        file_utils.concat(stream, *tfs, encoding=encoding)
+        file_utils.concat(stream, *tfs, encoding=encoding, clean=False)

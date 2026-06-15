@@ -1,16 +1,20 @@
 from __future__ import annotations
 
 import argparse
+import json
+import os
 import sys
+import tempfile
 from multiprocessing import Process, Queue
 
 from reditools.logger import Logger
 from reditools.region import Region
 from reditools.tools.analyze.concat_output import concat_output
 from reditools.tools.analyze.monitor import monitor
-from reditools.tools.analyze.parse_args import parse_args
+import reditools.tools.analyze.parse_args as parse_args
 from reditools.tools.analyze.redi_thread import redi_thread
 from reditools.tools.analyze.region_args import region_args
+from reditools import file_utils
 
 
 def options_to_string(options: argparse.Namespace) -> str:
@@ -94,7 +98,7 @@ def main() -> None:
     """
     The main entry point for the REDItools analyze command.
     """
-    options = parse_args()
+    options = parse_args.parse_args()
 
     logger = setup_logger(options)
 
@@ -107,6 +111,24 @@ def main() -> None:
 
     options.encoding = 'utf-8'
 
+    temp_dir = file_utils.safe_tempfile_name(
+        prefix='reditools_',
+        dir=options.temp_dir,
+    )
+    os.mkdir(temp_dir)
+    logger.log(
+        logger.info_level,
+        "Temporary files will be written to {}",
+        temp_dir,
+    )
+    parse_args.args_to_json(
+        options,
+        os.path.join(
+            temp_dir,
+            'cli_args.json',
+        )
+    )
+
     in_queue = fill_queue(options)
 
     # Start parallel jobs
@@ -115,7 +137,7 @@ def main() -> None:
     for _ in range(options.threads):
         processes.append(Process(
             target=redi_thread,
-            args=(options, in_queue, out_queue),
+            args=(options, in_queue, out_queue, temp_dir),
         ))
 
     concat_output(
@@ -124,5 +146,14 @@ def main() -> None:
         'a' if options.append_file else 'w',
         options.encoding,
     )
+    '''
+    os.remove(
+        os.path.join(
+            temp_dir,
+            'cli_args.json',
+        ),
+    )
+    os.rmdir(temp_dir)
+    '''
 
     logger.log(Logger.info_level, 'Analyze Complete!')
