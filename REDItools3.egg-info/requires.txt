@@ -1,2 +1,8 @@
 pysam>=0.22.0
-sortedcontainers>=2.4.0
+
+[unittest]
+biopython
+
+[wps]
+flake8
+wemake-python-styleguide
