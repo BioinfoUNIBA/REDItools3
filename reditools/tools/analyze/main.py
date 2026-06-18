@@ -137,7 +137,7 @@ def main() -> None:
     for _ in range(options.threads):
         processes.append(Process(
             target=redi_thread,
-            args=(options, in_queue, out_queue, temp_dir),
+            args=(options, temp_dir, in_queue, out_queue),
         ))
 
     concat_output(
