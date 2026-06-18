@@ -70,7 +70,7 @@ class Region:
         return sub_regions
 
     @classmethod
-    def from_string(cls, region_str: str, alignment_file: str) -> 'Region':
+    def from_string(cls, region_str: str, alignment_file: str | None=None) -> 'Region':
         """
         Create a Region object from a string and an alignment file.
 
@@ -102,6 +102,11 @@ class Region:
                 'equal to one.',
             )
         if stop is None:
+            if alignment_file is None:
+                raise ValueError(
+                    'An alignment file must be provided if no stop position '
+                    'is present in the region string.'
+                )
             with AlignmentFile(alignment_file, ignore_truncation=True) as bam:
                 stop = bam.get_reference_length(contig)
         if stop <= start:

@@ -55,7 +55,7 @@ def setup_logger(options: argparse.Namespace) -> Logger:
         return Logger(Logger.info_level)
     return Logger(Logger.silent_level)
 
-def fill_queue(options: argparse.Namespace) -> Queue[tuple[int, Region] | None]:
+def fill_queue(options: argparse.Namespace, temp_filenames) -> Queue[tuple[int, Region] | None]:
     """
     Fill the input queue with genomic regions to be analyzed.
 
@@ -74,10 +74,10 @@ def fill_queue(options: argparse.Namespace) -> Queue[tuple[int, Region] | None]:
     SystemExit
         If a required file is not found.
     """
-    in_queue: Queue[tuple[int, Region] | None] = Queue()
+    in_queue: Queue[tuple[Region, str] | None] = Queue()
     try:
-        for _ in enumerate(region_args(options)):  # noqa: WPS468
-            in_queue.put(_)
+        for arg_tuple in temp_filenames:
+            in_queue.put(arg_tuple)
     except FileNotFoundError as exc:
         sys.stderr.write(f'[ERROR] {exc}\n')
         sys.exit(1)
@@ -102,20 +102,33 @@ def main() -> None:
 
     logger = setup_logger(options)
 
-    logger.log(logger.info_level, 'Starting REDItools')
+    if options.resume:
+        logger.log(
+            logger.info_level,
+            (
+                'Resuming REDItools from directory "{}". Using parameters '
+                'from previous run. All other command line options will be '
+                'ignored.'
+            ),
+            options.temp_dir,
+        )
+    else:
+        logger.log(logger.info_level, 'Starting REDItools')
+
     logger.log(
         logger.info_level,
         "Summary of command line parameters: {}",
         options_to_string(options),
     )
 
-    options.encoding = 'utf-8'
-
-    temp_dir = file_utils.safe_tempfile_name(
-        prefix='reditools_',
-        dir=options.temp_dir,
-    )
-    os.mkdir(temp_dir)
+    if options.resume:
+        temp_dir = options.temp_dir
+    else:
+        temp_dir = file_utils.safe_tempfile_name(
+            prefix='reditools_',
+            dir=options.temp_dir,
+        )
+        os.mkdir(temp_dir)
     logger.log(
         logger.info_level,
         "Temporary files will be written to {}",
@@ -129,22 +142,90 @@ def main() -> None:
         )
     )
 
-    in_queue = fill_queue(options)
+    if options.resume:
+        with open(os.path.join(temp_dir, 'windows.json'), 'r') as stream:
+            temp_filenames = [
+                (Region.from_string(region), filename)
+                for region, filename in json.load(stream)
+            ]
+    else:
+        temp_filenames = [
+            (
+                region,
+                tempfile.NamedTemporaryFile(dir=temp_dir, delete=False).name,
+            )
+            for region in region_args(options)
+        ]
+        with open(os.path.join(temp_dir, 'windows.json'), 'w') as stream:
+            json.dump(temp_filenames, stream, default=str)
+    in_queue = fill_queue(options, temp_filenames)
 
     # Start parallel jobs
-    out_queue: Queue[tuple[int, str]] = Queue()
     processes = []
     for _ in range(options.threads):
         processes.append(Process(
             target=redi_thread,
-            args=(options, temp_dir, in_queue, out_queue),
+            args=(options, temp_dir, in_queue),
         ))
 
+    monitor(processes)
+
     concat_output(
-        monitor(processes, out_queue, in_queue.qsize()),
+        [_[1] for _ in temp_filenames],
         options.output_file,
         'a' if options.append_file else 'w',
-        options.encoding,
+        'utf-8',
+    )
+    '''
+    os.remove(
+        os.path.join(
+            temp_dir,
+            'cli_args.json',
+        ),
+    )
+    os.rmdir(temp_dir)
+    '''
+
+    logger.log(Logger.info_level, 'Analyze Complete!')
+
+def resume(temp_dir: str) -> None:
+    options = parse_args.args_from_json(os.path(json_dir, 'cli_args.json'))
+
+    logger = setup_logger(options)
+
+    logger.log(logger.info_level, 'Starting REDItools')
+    logger.log(
+        logger.info_level,
+        "Summary of command line parameters: {}",
+        options_to_string(options),
+    )
+
+
+    logger.log(
+        logger.info_level,
+        "Temporary files will be written to {}",
+        temp_dir,
+    )
+   
+    with open(os.path.join(temp_dir, 'windows.json'), 'r') as stream:
+        temp_filenames = json.load(stream)
+    in_queue = fill_queue(options, temp_filenames)
+
+    # Start parallel jobs
+    processes = []
+    for _ in range(options.threads):
+        processes.append(Process(
+            target=redi_thread,
+            args=(options, temp_dir, in_queue),
+        ))
+
+    monitor(processes)
+
+    concat_output(
+        [_[1] for _ in temp_filenames],
+        options.output_file,
+        'a' if options.append_file else 'w',
+        'utf-8',
     )
     '''
     os.remove(

@@ -4,6 +4,9 @@ import sys
 from multiprocessing import Process, Queue
 from queue import Empty as EmptyQueueException
 
+def kill_all(processes: list[Process]) -> None:
+    for proc in processes:
+        proc.kill()
 
 def check_dead(processes: list[Process]) -> None:
     """Check if any of the processes have failed.
@@ -25,35 +28,24 @@ def check_dead(processes: list[Process]) -> None:
 
 def monitor(
         processes: list[Process],
-        out_queue: Queue[tuple[int, str]],
-        chunks: int,
-) -> list[str]:
+) -> None:
     """Monitor progress of parallel analysis processes.
 
     Parameters
     ----------
     processes : list[Process]
         The list of worker processes.
-    out_queue : Queue[tuple[int, str]]
-        The queue containing analysis result filenames and their indices.
-    chunks : int
-        The total number of work chunks.
-
-    Returns
-    -------
-    list[str]
-        A list of filenames containing analysis results, ordered by chunk index.
     """
-    tfs = ['' for _ in range(chunks - len(processes))]
-
     for prc in processes:
         prc.start()
 
-    while '' in tfs:
-        try:
-            idx, fname = out_queue.get(block=False, timeout=1)
-        except EmptyQueueException:
-            check_dead(processes)
-        else:
-            tfs[idx] = fname
-    return tfs
+    is_running = True
+    while is_running:
+        is_running = False
+        for proc in processes:
+            if proc.exitcode == 1:
+                kill_all(processes)
+                sys.stderr.write('[ERROR] Killing job\n')
+                sys.exit(1)
+            elif proc.is_alive():
+                is_running = True

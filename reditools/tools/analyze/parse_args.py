@@ -1,3 +1,4 @@
+import os
 import argparse
 import json
 import tempfile
@@ -158,6 +159,14 @@ def build_argument_parser() -> argparse.ArgumentParser:  # noqa: WPS213, WPS210
             'Only analyzes the specified samtools formatted region. '
             '(1-index, start and end inclusive).'
         ),
+    )
+    parser.add_argument(
+        '--resume',
+        help=(
+            'If REDItools crashed, will attempt to resume a stopped job from '
+            'existing temporary files. Note: --temp-dir is required.'
+        ),
+        action='store_true',
     )
     output_group = parser.add_argument_group(
         title='Output Options',
@@ -518,6 +527,17 @@ def parse_args(sys_args: list[str] | None = None) -> argparse.Namespace:
     """
     parser = build_argument_parser()
     args = parser.parse_args(sys_args)
+
+    if args.resume:
+        temp_dir = args.temp_dir
+        try:
+            args = args_from_json(os.path.join(temp_dir, 'cli_args.json'))
+        except Exception as exc:
+            parser.error(f'Unable to resume analysis.\n{exc}')
+        args.resume = True
+        args.temp_dir = temp_dir
+        return args
+
     try:
         fix_legacy_options(args)
     except Exception as exc:
