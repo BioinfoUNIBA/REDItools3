@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 import sys
-from multiprocessing import Process, Queue
-from queue import Empty as EmptyQueueException
+from multiprocessing import Process
 
 def kill_all(processes: list[Process]) -> None:
     for proc in processes:

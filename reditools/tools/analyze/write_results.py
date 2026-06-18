@@ -1,5 +1,4 @@
 import csv
-from tempfile import NamedTemporaryFile
 from typing import Callable, Iterator
 
 from reditools.compiled_position import RTResult

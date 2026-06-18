@@ -70,7 +70,11 @@ class Region:
         return sub_regions
 
     @classmethod
-    def from_string(cls, region_str: str, alignment_file: str | None=None) -> 'Region':
+    def from_string(
+        cls,
+        region_str: str,
+        alignment_file: str | None=None,
+    ) -> 'Region':
         """
         Create a Region object from a string and an alignment file.
 
