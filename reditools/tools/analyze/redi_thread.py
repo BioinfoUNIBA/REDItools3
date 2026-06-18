@@ -22,7 +22,7 @@ def analyze(
         region: Region,
         rtqc: RTChecks,
         output: str,
-) -> str:
+) -> None:
     """Analyze a specific genomic region.
 
     Parameters
@@ -46,7 +46,7 @@ def analyze(
         The path to the temporary file containing the results.
     """
     rtresults = rtools.analyze(sam_manager, region)
-    return write_results(
+    write_results(
         rtresults,
         output,
         rtqc,

@@ -13,7 +13,7 @@ def write_results(
         filename: str,
         filters: RTChecks,
         logger: Callable,
-) -> str:
+) -> None:
     """Write analysis results to a temporary file.
 
     Parameters

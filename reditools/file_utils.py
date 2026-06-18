@@ -7,7 +7,7 @@ from typing import IO, Iterator
 
 from reditools.region import Region
 
-def safe_tempfile_name(prefix: str | None=None, dir: str | None=None):
+def safe_tempfile_name(prefix: str | None=None, dir: str | None=None) -> str:
     """
     Returns a system safe filename that does not already exist.
 
