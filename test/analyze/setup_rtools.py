@@ -1,7 +1,7 @@
 import unittest
 
 from reditools.reditools import REDItools
-from reditools.tools.analyze.parse_args import parse_args
+from reditools.tools.analyze.parse_args.parse_args import parse_args
 from reditools.tools.analyze.setup_rtools import setup_rtools
 
 

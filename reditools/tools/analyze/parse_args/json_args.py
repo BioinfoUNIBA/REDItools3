@@ -15,8 +15,10 @@ def args_to_json(
     Parameters:
         options : argparse.Namespace
             The parsed commandline options.
+        dirname : str
+            Path to save file to.
         filename : str
-            Path to save arguments to.
+            Name of the file (defaults to json_args_filename)
     """
     with open(os.path.join(dirname, filename), 'w') as stream:
         json.dump(vars(options), stream)  # noqa: WPS421
@@ -30,8 +32,10 @@ def args_from_json(
 
     Parameters
     ----------
+    dirname : str
+        Path to the JSON file folder
     filename : str
-        JSON file to load arguments from
+        JSON file to load arguments from (defaults to json_args_filename)
 
     Returns
     -------

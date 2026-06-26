@@ -60,6 +60,23 @@ def get_temp_filenames_list(
     options: argparse.Namespace,
     temp_dir: str,
 ) -> list[tuple[Region, str]]:
+    """
+    Creates a list of genomic ranges and filenames to store analysis results.
+
+    Parameters
+    ----------
+    options : argparse.Namespace
+        CLI options.
+    temp_dir : str
+        Folder to store analysis result files.
+
+    Returns
+    -------
+    list[tuple[Region, str]]
+        Each list element will contain a tuple of the genomic range of the
+        analysis segment and the file path that will eventually contain
+        the analysis results.
+    """
     if options.resume:
         with open(os.path.join(temp_dir, json_windows_file), 'r') as stream:
             temp_filenames = [
@@ -79,6 +96,14 @@ def get_temp_filenames_list(
     return temp_filenames
 
 def cleanup_tempfiles(temp_dir: str) -> None:
+    """
+    Deletes JSON files from the temp dir and then deletes the temp dir too.
+
+    Parameters
+    ----------
+    temp_dir : str
+        Folder containing the temporary files for the analysis.
+    """
     for json_file in (json_args.json_args_filename, json_windows_file):
         os.remove(os.path.join(temp_dir, json_file))
     try:
@@ -90,6 +115,19 @@ def cleanup_tempfiles(temp_dir: str) -> None:
         )
 
 def run_analysis(options: argparse.Namespace, temp_dir: str) -> None:
+    """
+    Starts the actual REDItools analysis.
+
+    This method makes use of the ThreadManager class to handle
+    the analysis process.
+
+    Parameters
+    ----------
+    options : argparse.Namespace
+        CLI arguments.
+    temp_dir : str
+        Folder to store temporary files.
+    """
     temp_filenames = get_temp_filenames_list(options, temp_dir)
 
     thread_manager = ThreadManager(options.threads)

@@ -25,8 +25,6 @@ def analyze(
 
     Parameters
     ----------
-    options : argparse.Namespace
-        The command-line options.
     rtools : REDItools
         The REDItools analysis engine.
     sam_manager : AlignmentManager

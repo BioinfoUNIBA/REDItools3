@@ -38,11 +38,11 @@ class ThreadManager:
         is_running = True
         while is_running:
             is_running = False
-            for proccess in self.processes:
-                if proccess.exitcode == 1:
+            for process in self.processes:
+                if process.exitcode == 1:
                     self.kill_all_threads()
                     raise Exception('Proccess died unexpectedly.')
-                elif proccess.is_alive():
+                elif process.is_alive():
                     is_running = True
 
     def fill_queue(self, temp_filenames: list[tuple[Region, str]]) -> None:

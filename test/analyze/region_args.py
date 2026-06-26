@@ -3,7 +3,7 @@ import unittest
 from test.sam_gen import SAM, ntf
 
 from reditools.region import Region
-from reditools.tools.analyze.parse_args import parse_args
+from reditools.tools.analyze.parse_args.parse_args import parse_args
 from reditools.tools.analyze.region_args import region_args
 
 
