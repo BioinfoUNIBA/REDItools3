@@ -13,7 +13,7 @@ from reditools.tools.analyze.parse_args import json_args, parse_args
 from reditools.tools.analyze.region_args import region_args
 from reditools.tools.analyze.thread_manager import ThreadManager
 
-json_windows_file = 'windows.json'
+json_windows_file = 'tempfile_map.json'
 
 def make_temp_dir(prefix: str | None=None, dir: str | None=None) -> str:
     """
@@ -95,25 +95,6 @@ def get_temp_filenames_list(
             json.dump(temp_filenames, stream, default=str)
     return temp_filenames
 
-def cleanup_tempfiles(temp_dir: str) -> None:
-    """
-    Deletes JSON files from the temp dir and then deletes the temp dir too.
-
-    Parameters
-    ----------
-    temp_dir : str
-        Folder containing the temporary files for the analysis.
-    """
-    for json_file in (json_args.json_args_filename, json_windows_file):
-        os.remove(os.path.join(temp_dir, json_file))
-    try:
-        os.rmdir(temp_dir)
-    except OSError as exc:
-        sys.stderr.write(
-            f'[WARNING] Could not delete temporary files directory {temp_dir}. '
-            f'{exc}\n'
-        )
-
 def run_analysis(options: argparse.Namespace, temp_dir: str) -> None:
     """
     Starts the actual REDItools analysis.
@@ -141,6 +122,19 @@ def run_analysis(options: argparse.Namespace, temp_dir: str) -> None:
         'utf-8',
     )
 
+    for _, temp_file in temp_filenames:
+        os.remove(f'{temp_file}.done')
+
+    for json_file in (json_args.json_args_filename, json_windows_file):
+        os.remove(os.path.join(temp_dir, json_file))
+    try:
+        os.rmdir(temp_dir)
+    except OSError as exc:
+        sys.stderr.write(
+            f'[WARNING] Could not delete temporary files directory {temp_dir}. '
+            f'{exc}\n'
+        )
+
 def main() -> None:
     """
     The main entry point for the REDItools analyze command.
@@ -163,7 +157,7 @@ def main() -> None:
     else:
         logger.log(logger.info_level, 'Starting REDItools')
         temp_dir = make_temp_dir(
-            prefix='_reditools',
+            prefix='reditools_',
             dir=options.temp_dir,
         )
         json_args.args_to_json(options, temp_dir)
@@ -181,6 +175,5 @@ def main() -> None:
    
     run_analysis(options, temp_dir) 
 
-    cleanup_tempfiles(temp_dir)
 
     logger.log(Logger.info_level, 'Analyze Complete!')
