@@ -1,41 +1,10 @@
-import os
 import argparse
-import json
 import tempfile
 from typing import Callable
 
 from reditools import reditools
+from reditools.tools.analyze.parse_args.json_args import args_from_json
 
-def args_to_json(options: argparse.Namespace, filename: str) -> None:
-    """
-    Save commandline arguments to a JSON file.
-
-    Parameters:
-        options : argparse.Namespace
-            The parsed commandline options.
-        filename : str
-            Path to save arguments to.
-    """
-    with open(filename, 'w') as stream:
-        json.dump(vars(options), stream)
-
-def args_from_json(filename: str) -> argparse.Namespace:
-    """
-    Load commandline arguments from a JSON file.
-
-    Parameters
-    ----------
-    filename : str
-        JSON file to load arguments from
-
-    Returns
-    -------
-    argparse.Namespace
-        Commandline arguments for reditools analyze
-    """
-    with open(filename, 'r') as stream:
-        json_args = json.load(stream)
-    return argparse.Namespace(**json_args)
 
 def check_number_bounds(
         number: float,
@@ -531,7 +500,7 @@ def parse_args(sys_args: list[str] | None = None) -> argparse.Namespace:
     if args.resume:
         temp_dir = args.temp_dir
         try:
-            args = args_from_json(os.path.join(temp_dir, 'cli_args.json'))
+            args = args_from_json(temp_dir)
         except Exception as exc:
             parser.error(f'Unable to resume analysis.\n{exc}')
         args.resume = True
@@ -555,3 +524,21 @@ def parse_args(sys_args: list[str] | None = None) -> argparse.Namespace:
         )
 
     return args
+
+def args_to_string(args: argparse.Namespace) -> str:
+    """
+    Convert argparse options to a comma-separated string of key:value pairs.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        The parsed command line options.
+
+    Returns
+    -------
+    str
+        A string representation of the options.
+    """
+    return ", ".join(
+        [f"{_}:{getattr(args, _)}" for _ in vars(args)],  # noqa: WPS421
+    )

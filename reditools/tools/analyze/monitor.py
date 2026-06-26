@@ -3,6 +3,7 @@ from __future__ import annotations
 import sys
 from multiprocessing import Process
 
+
 def kill_all(processes: list[Process]) -> None:
     for proc in processes:
         proc.kill()

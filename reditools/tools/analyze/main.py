@@ -5,35 +5,36 @@ import json
 import os
 import sys
 import tempfile
-from multiprocessing import Process, Queue
 
 from reditools.logger import Logger
 from reditools.region import Region
 from reditools.tools.analyze.concat_output import concat_output
-from reditools.tools.analyze.monitor import monitor
-import reditools.tools.analyze.parse_args as parse_args
-from reditools.tools.analyze.redi_thread import redi_thread
+from reditools.tools.analyze.parse_args import json_args, parse_args
 from reditools.tools.analyze.region_args import region_args
-from reditools import file_utils
+from reditools.tools.analyze.thread_manager import ThreadManager
 
+json_windows_file = 'windows.json'
 
-def options_to_string(options: argparse.Namespace) -> str:
+def make_temp_dir(prefix: str | None=None, dir: str | None=None) -> str:
     """
-    Convert argparse options to a comma-separated string of key:value pairs.
+    Creates a folder.
 
     Parameters
     ----------
-    options : argparse.Namespace
-        The parsed command line options.
+    prefix : str
+        Filename prefix.
+    dir : str
+        Path to folder parent.
 
     Returns
     -------
     str
-        A string representation of the options.
+        Path to the folder.
     """
-    return ", ".join(
-        [f"{_}:{getattr(options, _)}" for _ in vars(options)],  # noqa: WPS421
-    )
+    with tempfile.NamedTemporaryFile(prefix=prefix, dir=dir) as stream:
+        valid_name = stream.name
+    os.mkdir(valid_name)
+    return valid_name
 
 def setup_logger(options: argparse.Namespace) -> Logger:
     """
@@ -55,47 +56,52 @@ def setup_logger(options: argparse.Namespace) -> Logger:
         return Logger(Logger.info_level)
     return Logger(Logger.silent_level)
 
-def fill_queue(
+def get_temp_filenames_list(
     options: argparse.Namespace,
-    temp_filenames: list[tuple[Region, str]],
-) -> Queue[tuple[Region, str] | None]:
-    """
-    Fill the input queue with genomic regions to be analyzed.
+    temp_dir: str,
+) -> list[tuple[Region, str]]:
+    if options.resume:
+        with open(os.path.join(temp_dir, json_windows_file), 'r') as stream:
+            temp_filenames = [
+                (Region.from_string(region), filename)
+                for region, filename in json.load(stream)
+            ]
+    else:
+        temp_filenames = [
+            (
+                region,
+                tempfile.NamedTemporaryFile(dir=temp_dir, delete=False).name,
+            )
+            for region in region_args(options)
+        ]
+        with open(os.path.join(temp_dir, json_windows_file), 'w') as stream:
+            json.dump(temp_filenames, stream, default=str)
+    return temp_filenames
 
-    Parameters
-    ----------
-    options : argparse.Namespace
-        The parsed command line options.
-
-    Returns
-    -------
-    Queue[tuple[int, Region] | None]
-        A queue containing indexed Region objects.
-
-    Raises
-    ------
-    SystemExit
-        If a required file is not found.
-    """
-    in_queue: Queue[tuple[Region, str] | None] = Queue()
+def cleanup_tempfiles(temp_dir: str) -> None:
+    for json_file in (json_args.json_args_filename, json_windows_file):
+        os.remove(os.path.join(temp_dir, json_file))
     try:
-        for arg_tuple in temp_filenames:
-            in_queue.put(arg_tuple)
-    except FileNotFoundError as exc:
-        sys.stderr.write(f'[ERROR] {exc}\n')
-        sys.exit(1)
-
-    # Check thread count
-    if in_queue.qsize() < options.threads:
+        os.rmdir(temp_dir)
+    except OSError as exc:
         sys.stderr.write(
-            "[WARNING] You have assigned more threads "
-            f"({options.threads}) than there are genomic ranges "
-            f"({in_queue.qsize()})\n",
+            f'[WARNING] Could not delete temporary files directory {temp_dir}. '
+            f'{exc}\n'
         )
-        options.threads = in_queue.qsize()
-    for _ in range(options.threads):
-        in_queue.put(None)
-    return in_queue
+
+def run_analysis(options: argparse.Namespace, temp_dir: str) -> None:
+    temp_filenames = get_temp_filenames_list(options, temp_dir)
+
+    thread_manager = ThreadManager(options.threads)
+    thread_manager.fill_queue(temp_filenames)
+    thread_manager.start_threads(options)
+    thread_manager.await_finish()
+    concat_output(
+        [_[1] for _ in temp_filenames],
+        options.output_file,
+        'a' if options.append_file else 'w',
+        'utf-8',
+    )
 
 def main() -> None:
     """
@@ -115,78 +121,28 @@ def main() -> None:
             ),
             options.temp_dir,
         )
+        temp_dir = options.temp_dir
     else:
         logger.log(logger.info_level, 'Starting REDItools')
+        temp_dir = make_temp_dir(
+            prefix='_reditools',
+            dir=options.temp_dir,
+        )
+        json_args.args_to_json(options, temp_dir)
 
     logger.log(
         logger.info_level,
         "Summary of command line parameters: {}",
-        options_to_string(options),
+        parse_args.args_to_string(options),
     )
-
-    if options.resume:
-        temp_dir = options.temp_dir
-    else:
-        temp_dir = file_utils.safe_tempfile_name(
-            prefix='reditools_',
-            dir=options.temp_dir,
-        )
-        os.mkdir(temp_dir)
     logger.log(
         logger.info_level,
         "Temporary files will be written to {}",
         temp_dir,
     )
-    parse_args.args_to_json(
-        options,
-        os.path.join(
-            temp_dir,
-            'cli_args.json',
-        )
-    )
+   
+    run_analysis(options, temp_dir) 
 
-    if options.resume:
-        with open(os.path.join(temp_dir, 'windows.json'), 'r') as stream:
-            temp_filenames = [
-                (Region.from_string(region), filename)
-                for region, filename in json.load(stream)
-            ]
-    else:
-        temp_filenames = [
-            (
-                region,
-                tempfile.NamedTemporaryFile(dir=temp_dir, delete=False).name,
-            )
-            for region in region_args(options)
-        ]
-        with open(os.path.join(temp_dir, 'windows.json'), 'w') as stream:
-            json.dump(temp_filenames, stream, default=str)
-    in_queue = fill_queue(options, temp_filenames)
-
-    # Start parallel jobs
-    processes = []
-    for _ in range(options.threads):
-        processes.append(Process(
-            target=redi_thread,
-            args=(options, temp_dir, in_queue),
-        ))
-
-    monitor(processes)
-
-    concat_output(
-        [_[1] for _ in temp_filenames],
-        options.output_file,
-        'a' if options.append_file else 'w',
-        'utf-8',
-    )
-    '''
-    os.remove(
-        os.path.join(
-            temp_dir,
-            'cli_args.json',
-        ),
-    )
-    os.rmdir(temp_dir)
-    '''
+    cleanup_tempfiles(temp_dir)
 
     logger.log(Logger.info_level, 'Analyze Complete!')

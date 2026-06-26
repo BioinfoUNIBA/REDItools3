@@ -1,4 +1,3 @@
-import os
 import argparse
 import sys
 import traceback
@@ -16,7 +15,6 @@ from reditools.tools.analyze.write_results import write_results
 
 
 def analyze(
-        options: argparse.Namespace,
         rtools: REDItools,
         sam_manager: AlignmentManager,
         region: Region,
@@ -55,7 +53,6 @@ def analyze(
 
 def redi_thread(
         options: argparse.Namespace,
-        filename: str,
         in_queue: Queue,
 ) -> bool:
     """Worker thread function for parallel REDItools analysis.
@@ -64,8 +61,6 @@ def redi_thread(
     ----------
     options : argparse.Namespace
         The command-line options.
-    temp_dir : str
-        Path to save output to.
     in_queue : Queue
         The queue containing genomic regions to analyze.
     """
@@ -82,10 +77,10 @@ def redi_thread(
         if args is None:
             return True
         region, filename = args
-        if os.path.exists(f'{filename}.done'):
+        if Path(f'{filename}.done').exists():
             continue
         try:
-            analyze(options, rtools, sam_manager, region, rtqc, filename)
+            analyze(rtools, sam_manager, region, rtqc, filename)
         except Exception as exc:
             if options.debug:
                 traceback.print_exception(*sys.exc_info())
