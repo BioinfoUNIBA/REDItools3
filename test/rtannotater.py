@@ -59,11 +59,11 @@ class TestRTAnnotater(unittest.TestCase):
             rta.annotate_row(
                 {
                     'Reference': 'A',
-                    'gCoverage': '-',
-                    'gMeanQ': '-',
-                    'gBaseCount[A,C,G,T]': '-',
-                    'gAllSubs': '-',
-                    'gFrequency': '-',
+                    'Coverage': '-',
+                    'MeanQ': '-',
+                    'BaseCount[A,C,G,T]': '[0, 0, 0, 0]',
+                    'AllSubs': '-',
+                    'Frequency': '-',
                     'AnotherField': 'ABCD',
                 },
                 {
@@ -79,12 +79,58 @@ class TestRTAnnotater(unittest.TestCase):
             ),
             {
                 'Reference': 'A',
+                'Coverage': '-',
+                'MeanQ': '-',
+                'BaseCount[A,C,G,T]': '[0, 0, 0, 0]',
+                'AllSubs': '-',
+                'Frequency': '-',
                 'gCoverage': '100',
                 'gMeanQ': '40',
                 'gBaseCount[A,C,G,T]': '[1, 2, 3, 4]',
                 'gAllSubs': 'AC AG AT',
                 'gFrequency': '0.5',
                 'AnotherField': 'ABCD',
+            },
+        )
+
+    def test_annotate_complement_row_no_dna_edit(self):
+        rta = RTAnnotater({}, True)
+        self.assertEqual(
+            rta.annotate_row(
+                {
+                    'Reference': 'T',
+                    'Coverage': '100',
+                    'MeanQ': '40',
+                    'BaseCount[A,C,G,T]': '[1, 2, 3, 4]',
+                    'AllSubs': 'AC AG AT',
+                    'Frequency': '0.5',
+                    'AnotherField': 'EFGH',
+                    'YetAnotherField': 'IJKL',
+                },
+                {
+                    'Reference': 'A',
+                    'Coverage': '-',
+                    'MeanQ': '-',
+                    'BaseCount[A,C,G,T]': '[0, 0, 0, 0]',
+                    'AllSubs': '-',
+                    'Frequency': '-',
+                    'AnotherField': 'ABCD',
+                },
+            ),
+            {
+                'Reference': 'T',
+                'Coverage': '100',
+                'MeanQ': '40',
+                'BaseCount[A,C,G,T]': '[1, 2, 3, 4]',
+                'AllSubs': 'AC AG AT',
+                'Frequency': '0.5',
+                'gCoverage': '-',
+                'gMeanQ': '-',
+                'gBaseCount[A,C,G,T]': '[0, 0, 0, 0]',
+                'gAllSubs': '-',
+                'gFrequency': '-',
+                'AnotherField': 'EFGH',
+                'YetAnotherField': 'IJKL',
             },
         )
 
