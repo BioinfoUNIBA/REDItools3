@@ -4,7 +4,6 @@ import re
 from dataclasses import InitVar, dataclass
 from tempfile import NamedTemporaryFile
 
-from Bio.Align import PairwiseAligner
 from pysam import samtools
 from test.aligner import Aligner
 
