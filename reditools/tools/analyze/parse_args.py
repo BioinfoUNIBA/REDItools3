@@ -285,7 +285,8 @@ def build_argument_parser() -> argparse.ArgumentParser:  # noqa: WPS213, WPS210
         type=int,
         default=reditools.UNSTRANDED_MODE,
         help=(
-            f'Strand can be {reditools.UNSTRANDED_MODE} (unstranded), '
+            f'Infer RNA strand and filter reads not of the same strand. '
+            f'This option may be {reditools.UNSTRANDED_MODE} (unstranded), '
             f'{reditools.FORWARD_STRAND_MODE} (read1 is original RNA), or '
             f'{reditools.REVERSE_STRAND_MODE} (read2 is original RNA). '
             'From RSeQC infer_experiment.py, 1++,1--,2+-,2-+ should be run '
@@ -314,9 +315,10 @@ def build_argument_parser() -> argparse.ArgumentParser:  # noqa: WPS213, WPS210
         '--strand-correction',
         default=False,
         help=(
-            'Once the strand has been inferred, only bases according to this '
-            'strand will be reported. This option is only applicable if '
-            '-s/--strand is not zero.'
+            'Report the base complements for the Reference, AllSubs, and '
+            'BaseCount columns in the output if the detected edit is on '
+            'the minus strand. '
+            'This option is only applicable if -s/--strand is not zero.'
         ),
         action='store_true',
     )
