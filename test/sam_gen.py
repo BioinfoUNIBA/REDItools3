@@ -3,9 +3,9 @@ import random
 import re
 from dataclasses import InitVar, dataclass
 from tempfile import NamedTemporaryFile
+from test.aligner import Aligner
 
 from pysam import samtools
-from test.aligner import Aligner
 
 
 class Genome:
