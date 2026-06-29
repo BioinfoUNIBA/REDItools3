@@ -5,7 +5,13 @@ class Aligner:
         self.gap = 1
 
     def align(self, ref_seq, query_seq):
-        matrix = NWMatrix(ref_seq, query_seq, self.match, self.mismatch, self.gap)
+        matrix = NWMatrix(
+            ref_seq,
+            query_seq,
+            self.match,
+            self.mismatch,
+            self.gap,
+        )
         matrix.run_dp()
         return self.trace_matrix(
             ref_seq,
