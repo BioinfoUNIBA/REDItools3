@@ -21,7 +21,7 @@ class RTAnnotater:
         ('gCoverage-q30', 'gCoverage'),
     )
 
-    comp_map = {'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C'}
+    comp_map = {'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C', '-': '-'}
 
     ref_key = 'Reference'
     sub_key = 'AllSubs'
