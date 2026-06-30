@@ -32,5 +32,4 @@ repository = "https://github.com/BioinfoUNIBA/REDItools3"
 issues = "https://github.com/BioinfoUNIBA/REDItools3/issues"
 
 [project.optional-dependencies]
-unittest = ["biopython"]
 wps = ["flake8", "wemake-python-styleguide"]
