@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: REDItools3
-Version: 3.6
+Version: 3.7
 Author: Ernesto Picardi
 Author-email: Adam Handen <adam.handen@gmail.com>
 License-Expression: GPL-3.0-or-later
@@ -19,7 +19,11 @@ Requires-Python: >=3.7
 Description-Content-Type: text/markdown
 License-File: LICENSE
 Requires-Dist: pysam>=0.22.0
-Requires-Dist: sortedcontainers>=2.4.0
+Provides-Extra: unittest
+Requires-Dist: biopython; extra == "unittest"
+Provides-Extra: wps
+Requires-Dist: flake8; extra == "wps"
+Requires-Dist: wemake-python-styleguide; extra == "wps"
 Dynamic: license-file
 
 # REDItools3

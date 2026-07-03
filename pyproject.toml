@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "REDItools3"
-version = "v3.6"
+version = "v3.7"
 license = "GPL-3.0-or-later"
 authors = [
   { name="Ernesto Picardi" },
@@ -32,5 +32,4 @@ repository = "https://github.com/BioinfoUNIBA/REDItools3"
 issues = "https://github.com/BioinfoUNIBA/REDItools3/issues"
 
 [project.optional-dependencies]
-unittest = ["biopython"]
 wps = ["flake8", "wemake-python-styleguide"]

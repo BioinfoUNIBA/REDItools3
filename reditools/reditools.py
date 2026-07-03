@@ -187,8 +187,7 @@ class REDItools:
             strand = bases.calculate_strand(
                 threshold=self.strand_confidence_threshold,
             )
-            if self._use_strand_correction and strand != '*':
-                bases.filter_by_strand(strand)
-                if strand == '-':
-                    bases.complement()
+            bases.filter_by_strand(strand)
+            if self._use_strand_correction and strand == '-':
+                bases.complement()
         return RTResult(bases, strand)

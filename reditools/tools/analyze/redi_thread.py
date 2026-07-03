@@ -1,11 +1,6 @@
 import argparse
-import sys
-import traceback
-from multiprocessing import Queue
 from pathlib import Path
 
-from reditools.alignment_manager import AlignmentManager
-from reditools.reditools import REDItools
 from reditools.region import Region
 from reditools.tools.analyze.rtchecks import RTChecks
 from reditools.tools.analyze.setup_alignment_manager import \
@@ -14,74 +9,79 @@ from reditools.tools.analyze.setup_rtools import setup_rtools
 from reditools.tools.analyze.write_results import write_results
 
 
-def analyze(
-        rtools: REDItools,
-        sam_manager: AlignmentManager,
-        region: Region,
-        rtqc: RTChecks,
-        output: str,
-) -> None:
-    """Analyze a specific genomic region.
+class REDIThread:
+    def __init__(self, options: argparse.Namespace) -> None:
+        """Worker thread function for parallel REDItools analysis.
 
-    Parameters
-    ----------
-    rtools : REDItools
-        The REDItools analysis engine.
-    sam_manager : AlignmentManager
-        The alignment file manager.
-    region : Region
-        The genomic region to analyze.
-    rtqc : RTChecks
-        The quality control checks to apply.
-    output : str
-        Location to save the analysis output.
+        Parameters
+        ----------
+        options : argparse.Namespace
+            The command-line options.
+        """
+        self.rtools = setup_rtools(options)
+        self.sam_manager = setup_alignment_manager(
+            options.file,
+            options.min_read_quality,
+            options.min_read_length,
+            options.exclude_reads,
+        )
+        self.rtqc = RTChecks(options)
+        self.temp_dir = options.temp_dir
 
-    Returns
-    -------
-    str
-        The path to the temporary file containing the results.
-    """
-    rtresults = rtools.analyze(sam_manager, region)
-    write_results(
-        rtresults,
-        output,
-        rtqc,
-        rtools.log,
-    )
+    def analyze(
+            self,
+            region: Region,
+            filename: str,
+    ) -> None:
+        """Analyze a specific genomic region.
 
-def redi_thread(
-        options: argparse.Namespace,
-        in_queue: Queue,
-) -> bool:
-    """Worker thread function for parallel REDItools analysis.
+        Parameters
+        ----------
+        region : Region
+            The genomic region to analyze.
+        filename : str
+            Path to save output to.
+        """
+        rtresults = self.rtools.analyze(self.sam_manager, region)
+        return write_results(
+            rtresults,
+            filename,
+            self.rtqc,
+            self.rtools.log,
+        )
 
-    Parameters
-    ----------
-    options : argparse.Namespace
-        The command-line options.
-    in_queue : Queue
-        The queue containing genomic regions to analyze.
-    """
-    rtools = setup_rtools(options)
-    sam_manager = setup_alignment_manager(
-        options.file,
-        options.min_read_quality,
-        options.min_read_length,
-        options.exclude_reads,
-    )
-    rtqc = RTChecks(options)
-    while True:
-        args = in_queue.get()
-        if args is None:
-            return True
-        region, filename = args
-        if Path(f'{filename}.done').exists():
-            continue
-        try:
-            analyze(rtools, sam_manager, region, rtqc, filename)
-        except Exception as exc:
-            if options.debug:
-                traceback.print_exception(*sys.exc_info())
-            sys.stderr.write(f'[ERROR] ({type(exc)}) {exc}\n')
-            sys.exit(1)
-        Path(f'{filename}.done').touch()
+class REDIThreadManager:
+    """Manages a worker thread function for parallel REDItools analysis."""
+
+    thread: None | REDIThread = None
+
+    @classmethod
+    def init_thread(cls, options: argparse.Namespace) -> None:
+        """Initialize a REDIThread.
+
+        Parameters
+        ----------
+        options : argparse.Namespace
+            The command-line options.
+        """
+
+        cls.thread = REDIThread(options)
+
+    @classmethod
+    def analyze(cls, region: Region, filename: str) -> None:
+        """Instruct thread to analyze a specific genomic region.
+
+        Parameters
+        ----------
+        region : Region
+            The genomic region to analyze.
+        filename : str
+            Path to save output to.
+        """
+
+        if cls.thread is None:
+            raise AttributeError('REDIThreadManager not initialized.')
+        done_file = f'{filename}.done'
+        if not Path(done_file).exists():
+            cls.thread.analyze(region, filename)
+            Path(done_file).touch()
