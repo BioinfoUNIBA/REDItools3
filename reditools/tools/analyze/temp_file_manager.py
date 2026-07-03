@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-import json
+import csv
 import os
+import pathlib
 import sys
 import tempfile
 from typing import Iterator
@@ -10,7 +11,7 @@ from reditools.region import Region
 from reditools.tools.analyze.concat_output import concat_output
 from reditools.tools.analyze.parse_args import json_args
 
-json_windows_file = 'tempfile_map.json'
+save_file = 'region_file_list.csv'
 
 class TempFileManager:
     def __init__(self, dirpath: str, regions: list[Region] | None=None) -> None:
@@ -23,11 +24,22 @@ class TempFileManager:
             self.region_file_list = list(zip(regions, temp_files))
             with open(os.path.join(
                 self.dirpath,
-                json_windows_file,
+                save_file,
             ), 'w') as stream:
-                json.dump(self.region_file_list, stream, default=str)
+                writer = csv.writer(stream)
+                writer.writerow(['Region', 'Filename'])
+                for region, filename in self.region_file_list:
+                    writer.writerow([region, os.path.basename(filename)])
         else:
-            self._load_from_file()
+            with open(os.path.join(self.dirpath, save_file), 'r') as stream:
+                reader = csv.DictReader(stream)
+                self.region_file_list = [
+                    [
+                        Region.from_string(row['Region']),
+                        os.path.join(self.dirpath, row['Filename']),
+                    ]
+                    for row in reader
+                ]
 
     def __iter__(self) -> Iterator:
         yield from self.region_file_list
@@ -46,7 +58,7 @@ class TempFileManager:
         for _, filename in self.region_file_list:
             os.remove(f'{filename}.done')
 
-        for temp_file in (json_args.json_args_filename, json_windows_file):
+        for temp_file in (json_args.json_args_filename, save_file):
             os.remove(os.path.join(self.dirpath, temp_file))
         try:
             os.rmdir(self.dirpath)
@@ -55,7 +67,3 @@ class TempFileManager:
                 '[WARNING] Could not delete temporary files directory '
                 f'{self.dirpath}. {exc}\n'
             )
-
-    def _load_from_file(self) -> None:
-        with open(os.path.join(self.dirpath, json_windows_file), 'r') as stream:
-            self.region_file_list = json.load(stream)
