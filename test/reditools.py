@@ -27,35 +27,40 @@ class TestREDItools(unittest.TestCase):
         self.rtam = AlignmentManager()
         self.rtam.add_file(self.bam_file)
 
+        self.cp = CompiledPosition(ref='A', position=1, contig='chr1')
+        self.cp.add_base(30, '-', 'A')
+        self.cp.add_base(30, '-', 'A')
+        self.cp.add_base(30, '-', 'A')
+        self.cp.add_base(30, '-', 'T')
+        self.cp.add_base(30, '+', 'G')
+        self.cp.add_base(30, '+', 'G')
+
     def tearDown(self):
         os.remove(self.bam_file)
         os.remove(self.fa_file)
 
     def test_process_bases(self):
-        cp = CompiledPosition(ref='A', position=1, contig='chr1')
-        cp.add_base(30, '-', 'A')
-        cp.add_base(30, '-', 'A')
-        cp.add_base(30, '-', 'A')
-        cp.add_base(30, '+', 'G')
-        cp.add_base(30, '+', 'G')
-
-        rtresult = self.rtools._process_bases(cp)
+        rtresult = self.rtools._process_bases(self.cp)
         self.assertEqual(rtresult.reference, 'A')
         self.assertEqual(rtresult.strand, '*')
-        self.assertEqual(rtresult.variants, ['AG'])
+        self.assertEqual(rtresult.variants, ['AG', 'AT'])
 
+    def test_strand_filter(self):
         self.rtools.strand = reditools.FORWARD_STRAND_MODE
         self.rtools.strand_confidence_threshold = 0.5
-        rtresult = self.rtools._process_bases(cp)
+        rtresult = self.rtools._process_bases(self.cp)
         self.assertEqual(rtresult.strand, '-')
         self.assertEqual(rtresult.reference, 'A')
-        self.assertEqual(rtresult.variants, ['AG'])
+        self.assertEqual(rtresult.variants, ['AT'])
 
+    def test_strand_correction(self):
+        self.rtools.strand = reditools.FORWARD_STRAND_MODE
+        self.rtools.strand_confidence_threshold = 0.5
         self.rtools.use_strand_correction()
-        rtresult = self.rtools._process_bases(cp)
+        rtresult = self.rtools._process_bases(self.cp)
         self.assertEqual(rtresult.strand, '-')
         self.assertEqual(rtresult.reference, 'T')
-        self.assertEqual(rtresult.variants, [])
+        self.assertEqual(rtresult.variants, ['TA'])
 
     def test_add_reference(self):
         rtresult = next(

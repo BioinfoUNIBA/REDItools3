@@ -3,8 +3,8 @@ import random
 import re
 from dataclasses import InitVar, dataclass
 from tempfile import NamedTemporaryFile
+from test.aligner import Aligner
 
-from Bio.Align import PairwiseAligner
 from pysam import samtools
 
 
@@ -53,10 +53,6 @@ class Sequence:
     read_n = 0
     flag_reverse_strand = 16
     phred_default = 30
-    aligner = PairwiseAligner(
-        mismatch_score=-1,
-        query_internal_open_gap_score=-1,
-    )
 
     def __post_init__(self, phred, qname):
         if phred is None:
@@ -89,11 +85,11 @@ class Sequence:
     def cigar_str(self, ref_seq):
         if self._cigar_str is not None:
             return self._cigar_str
-        alignment = Sequence.aligner.align(
+        alignment = Aligner().align(
             ref_seq[self.start:self.start + len(self)],
             str(self),
-        )[0]
-        cigar_iter = self.assemble_cigar_list(alignment[0], alignment[1])
+        )
+        cigar_iter = self.assemble_cigar_list(*alignment)
         cigar_pieces = [f'{length}{op}' for length, op in cigar_iter]
         self._cigar_str = ''.join(cigar_pieces)
         return self._cigar_str
