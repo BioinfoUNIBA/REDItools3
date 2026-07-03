@@ -23,7 +23,17 @@ class CheckExclusions:
             The command-line options containing excluded regions BED files.
         """
         self.regions = RegionCollection()
-        self.regions.add_regions(file_utils.read_bed_file(*options.exclude_regions))
+        if options.exclude_regions:
+            self.regions.add_regions(
+                file_utils.read_bed_file(*options.exclude_regions),
+            )
+        if options.splicing_file:
+            self.regions.add_regions(
+                file_utils.load_splicing_file(
+                    options.splicing_file,
+                    options.splicing_span,
+                ),
+            )
 
     @classmethod
     def is_needed(cls, options: argparse.Namespace) -> bool:
@@ -39,7 +49,8 @@ class CheckExclusions:
         bool
             True if exclude_regions option is provided, False otherwise.
         """
-        return options.exclude_regions is not None
+        return options.exclude_regions is not None or \
+            options.splicing_file is not None
 
     def run_check(self, rtresult: RTResult) -> None | tuple:
         """Run the check on a specific position.

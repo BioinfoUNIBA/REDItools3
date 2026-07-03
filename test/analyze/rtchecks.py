@@ -1,17 +1,11 @@
 import os
 import unittest
+from argparse import Namespace
 from tempfile import NamedTemporaryFile
 
 from reditools.compiled_position import CompiledPosition, RTResult
 from reditools.tools.analyze.rtchecks import RTChecks
 
-
-class Namespace:
-    def __init__(self, **kwargs):
-        self.__dict__.update(kwargs)
-
-    def __getattr__(self, attr):
-        return self.__dict__.get(attr, None)
 
 class TestRTChecks(unittest.TestCase):
     def setUp(self):
@@ -22,6 +16,9 @@ class TestRTChecks(unittest.TestCase):
             min_edits=0,
             min_edits_per_nucleotide=0,
             variants=['all'],
+            exclude_regions=None,
+            splicing_file=None,
+            bed_file=None,
         )
 
     def run_check(self, rtc):
@@ -110,6 +107,38 @@ class TestRTChecks(unittest.TestCase):
         self.assertIsNotNone(self.run_check(rtc))
 
         os.remove(bed_file)
+
+    def test_check_splicing(self):
+        with NamedTemporaryFile(
+            delete=False,
+            suffix='.txt',
+            mode='w+',
+        ) as stream:
+            stream.write('chr1 1 4 A +\n')
+            splice_file = stream.name
+
+        self.options.splicing_file = splice_file
+        self.options.splicing_span = 4
+
+        rtc = RTChecks(self.options)
+        self.assertIsNone(self.run_check(rtc))
+
+        with open(splice_file, mode='w') as stream:
+            stream.write('chr1 1 4 A -\n')
+        rtc = RTChecks(self.options)
+        self.assertIsNotNone(self.run_check(rtc))
+
+        with open(splice_file, mode='w') as stream:
+            stream.write('chr1 1 4 D +\n')
+        rtc = RTChecks(self.options)
+        self.assertIsNotNone(self.run_check(rtc))
+
+        with open(splice_file, mode='w') as stream:
+            stream.write('chr1 1 4 D -\n')
+        rtc = RTChecks(self.options)
+        self.assertIsNone(self.run_check(rtc))
+
+        os.remove(splice_file)
 
     def test_check_max_editing_nucleotides(self):
         self.options.max_editing_nucleotides = 1
