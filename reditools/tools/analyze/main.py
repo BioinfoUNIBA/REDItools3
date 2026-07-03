@@ -3,13 +3,13 @@ from __future__ import annotations
 import argparse
 import sys
 from functools import partial
-from multiprocessing import Pool
 from multiprocessing.context import TimeoutError
+from multiprocessing.pool import Pool
 
 from reditools.logger import Logger
 from reditools.tools.analyze.concat_output import concat_output
 from reditools.tools.analyze.parse_args import parse_args
-from reditools.tools.analyze.redi_thread import REDIThread
+from reditools.tools.analyze.redi_thread import REDIThreadManager
 from reditools.tools.analyze.region_args import region_args
 
 
@@ -51,10 +51,10 @@ def setup_logger(options: argparse.Namespace) -> Logger:
         return Logger(Logger.info_level)
     return Logger(Logger.silent_level)
 
-def pool_error(pool, debug, exc):
+def pool_error(pool: Pool, debug: bool, exc: Exception) -> None:
     pool.terminate()
     if debug:
-        raise exc.__cause__
+        raise exc.__cause__  # type: ignore[misc]
     sys.stderr.write(f'[ERROR] ({type(exc)}) {exc}\n')
 
 def main() -> None:
@@ -84,10 +84,10 @@ def main() -> None:
         )
         options.threads = len(regions)
     try:
-        with Pool(options.threads, REDIThread.init, (options,)) as pool:
+        with Pool(options.threads, REDIThreadManager.init, (options,)) as pool:
             imap_iter = [
                 pool.apply_async(
-                    REDIThread.analyze,
+                    REDIThreadManager.analyze,
                     args=(region,),
                     error_callback=partial(pool_error, pool, options.debug),
                 ) for region in regions

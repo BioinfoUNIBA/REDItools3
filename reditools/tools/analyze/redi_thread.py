@@ -1,5 +1,7 @@
 import argparse
 
+from reditools.alignment_manager import AlignmentManager
+from reditools.reditools import REDItools
 from reditools.region import Region
 from reditools.tools.analyze.rtchecks import RTChecks
 from reditools.tools.analyze.setup_alignment_manager import \
@@ -9,8 +11,7 @@ from reditools.tools.analyze.write_results import write_results
 
 
 class REDIThread:
-    @classmethod
-    def init(cls, options: argparse.Namespace) -> None:
+    def __init__(self, options: argparse.Namespace) -> None:
         """Worker thread function for parallel REDItools analysis.
 
         Parameters
@@ -18,19 +19,18 @@ class REDIThread:
         options : argparse.Namespace
             The command-line options.
         """
-        cls.rtools = setup_rtools(options)
-        cls.sam_manager = setup_alignment_manager(
+        self.rtools = setup_rtools(options)
+        self.sam_manager = setup_alignment_manager(
             options.file,
             options.min_read_quality,
             options.min_read_length,
             options.exclude_reads,
         )
-        cls.rtqc = RTChecks(options)
-        cls.temp_dir = options.temp_dir
+        self.rtqc = RTChecks(options)
+        self.temp_dir = options.temp_dir
 
-    @classmethod
     def analyze(
-            cls,
+            self,
             region: Region,
     ) -> str:
         """Analyze a specific genomic region.
@@ -45,10 +45,25 @@ class REDIThread:
         str
             The path to the temporary file containing the results.
         """
-        rtresults = cls.rtools.analyze(cls.sam_manager, region)
+        rtresults = self.rtools.analyze(self.sam_manager, region)
         return write_results(
             rtresults,
-            cls.temp_dir,
-            cls.rtqc,
-            cls.rtools.log,
+            self.temp_dir,
+            self.rtqc,
+            self.rtools.log,
         )
+
+class REDIThreadManager:
+    thread: REDIThread | None = None
+
+    @classmethod
+    def init(cls, options: argparse.Namespace) -> None:
+        cls.thread = REDIThread(options)
+
+    @classmethod
+    def analyze(cls, region: Region) -> str:
+        if cls.thread is None:
+            raise AttributeError('REDIThreadManager not initialized.')
+        return cls.thread.analyze(region)
+
+
