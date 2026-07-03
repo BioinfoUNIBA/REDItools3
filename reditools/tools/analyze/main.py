@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import os
 import sys
 import tempfile
@@ -11,37 +10,14 @@ from multiprocessing.pool import Pool
 from typing import TYPE_CHECKING
 
 from reditools.logger import Logger
-from reditools.region import Region
-from reditools.tools.analyze.concat_output import concat_output
 from reditools.tools.analyze.parse_args import json_args, parse_args
 from reditools.tools.analyze.redi_thread import REDIThreadManager
 from reditools.tools.analyze.region_args import region_args
+from reditools.tools.analyze.temp_file_manager import TempFileManager
+from reditools import file_utils
 
 if TYPE_CHECKING:
     import argparse
-
-json_windows_file = 'tempfile_map.json'
-
-def make_temp_dir(prefix: str | None=None, dir: str | None=None) -> str:
-    """
-    Creates a folder.
-
-    Parameters
-    ----------
-    prefix : str
-        Filename prefix.
-    dir : str
-        Path to folder parent.
-
-    Returns
-    -------
-    str
-        Path to the folder.
-    """
-    with tempfile.NamedTemporaryFile(prefix=prefix, dir=dir) as stream:
-        valid_name = stream.name
-    os.mkdir(valid_name)
-    return valid_name
 
 def setup_logger(options: argparse.Namespace) -> Logger:
     """
@@ -63,45 +39,6 @@ def setup_logger(options: argparse.Namespace) -> Logger:
         return Logger(Logger.info_level)
     return Logger(Logger.silent_level)
 
-def get_temp_filenames_list(
-    options: argparse.Namespace,
-    temp_dir: str,
-) -> list[tuple[Region, str]]:
-    """
-    Creates a list of genomic ranges and filenames to store analysis results.
-
-    Parameters
-    ----------
-    options : argparse.Namespace
-        CLI options.
-    temp_dir : str
-        Folder to store analysis result files.
-
-    Returns
-    -------
-    list[tuple[Region, str]]
-        Each list element will contain a tuple of the genomic range of the
-        analysis segment and the file path that will eventually contain
-        the analysis results.
-    """
-    if options.resume:
-        with open(os.path.join(temp_dir, json_windows_file), 'r') as stream:
-            temp_filenames = [
-                (Region.from_string(region), filename)
-                for region, filename in json.load(stream)
-            ]
-    else:
-        temp_filenames = [
-            (
-                region,
-                tempfile.NamedTemporaryFile(dir=temp_dir, delete=False).name,
-            )
-            for region in region_args(options)
-        ]
-        with open(os.path.join(temp_dir, json_windows_file), 'w') as stream:
-            json.dump(temp_filenames, stream, default=str)
-    return temp_filenames
-
 def pool_error(pool: Pool, debug: bool, exc: Exception) -> None:
     """
     Terminates a multiprocessing Pool.
@@ -120,36 +57,9 @@ def pool_error(pool: Pool, debug: bool, exc: Exception) -> None:
         raise exc.__cause__  # type: ignore[misc]
     sys.stderr.write(f'[ERROR] ({type(exc)}) {exc}\n')
 
-def cleanup_temp_files(
-    temp_dir: str,
-    temp_filenames: list[tuple[Region, str]],
-) -> None:
-    """
-    Deletes the temporary files and directory made by the tool.
-
-    Parameters
-    ----------
-    temp_dir : str
-        Path to analyze temporary directory.
-    temp_filenames : list[tuple[Region, str]]
-        List of temporary analysis files.
-    """
-    for _, temp_file in temp_filenames:
-        os.remove(f'{temp_file}.done')
-
-    for temp_file in (json_args.json_args_filename, json_windows_file):
-        os.remove(os.path.join(temp_dir, temp_file))
-    try:
-        os.rmdir(temp_dir)
-    except OSError as exc:
-        sys.stderr.write(
-            f'[WARNING] Could not delete temporary files directory {temp_dir}. '
-            f'{exc}\n'
-        )
-
 def analyze(
     options: argparse.Namespace,
-    temp_filenames: list[tuple[Region, str]],
+    temp_filemanager: TempFileManager,
 ) -> bool:
     """
     Create a pool of threads and analyze the data.
@@ -158,8 +68,8 @@ def analyze(
     ----------
     options : argparse.Namespace
         CLI arguments.
-    temp_filenames : list[tuple[Region, str]]
-        Regions to analyze and the files to store them in.
+    temp_filemanager : TempFileManager
+        Regions to analyze and files to save to.
 
     Returns
     -------
@@ -177,7 +87,7 @@ def analyze(
                     REDIThreadManager.analyze,
                     args=(region, filename),
                     error_callback=partial(pool_error, pool, options.debug),
-                ) for region, filename in temp_filenames
+                ) for region, filename in temp_filemanager
             ]
             pool.close()
             pool.join()
@@ -211,7 +121,7 @@ def main() -> None:
         temp_dir = options.temp_dir
     else:
         logger.log(logger.info_level, 'Starting REDItools')
-        temp_dir = make_temp_dir(
+        temp_dir = file_utils.make_temp_dir(
             prefix='reditools_',
             dir=options.temp_dir,
         )
@@ -229,28 +139,26 @@ def main() -> None:
         temp_dir,
     )
 
-    options.encoding = 'utf-8'
+    if options.resume:
+        temp_file_manager = TempFileManager(temp_dir)
+    else:
+        temp_file_manager = TempFileManager(temp_dir, region_args(options))
 
-    temp_filenames = get_temp_filenames_list(options, temp_dir)
-
-    if options.threads > len(temp_filenames):
+    if options.threads > len(temp_file_manager):
         sys.stderr.write(
             f"[WARNING] You have assigned {options.threads} threads, "
-            f"But there are only {len(temp_filenames)} genomic range(s). "
+            f"But there are only {len(temp_file_manager)} genomic range(s). "
             "Consider change the value of --window\n"
         )
-        options.threads = len(temp_filenames)
+        options.threads = len(temp_file_manager)
 
-    if not analyze(options, temp_filenames):
+    if not analyze(options, temp_file_manager):
         sys.exit(1)
 
-    concat_output(
-        [_[1] for _ in temp_filenames],
+    temp_file_manager.concat(
         options.output_file,
         'a' if options.append_file else 'w',
-        options.encoding,
     )
-
-    cleanup_temp_files(temp_dir, temp_filenames)
+    temp_file_manager.cleanup()
 
     logger.log(Logger.info_level, 'Analyze Complete!')
