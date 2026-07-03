@@ -52,6 +52,18 @@ def setup_logger(options: argparse.Namespace) -> Logger:
     return Logger(Logger.silent_level)
 
 def pool_error(pool: Pool, debug: bool, exc: Exception) -> None:
+    """
+    Terminates a multiprocessing Pool.
+
+    Parameters
+    ----------
+    pool : Pool
+        mutliprocessing Pool to terminate.
+    debug : bool
+        If True, raises the exception passed in the third argument.
+    exc : Exception
+        Exception responsible for the pool to terminate.
+    """
     pool.terminate()
     if debug:
         raise exc.__cause__  # type: ignore[misc]
@@ -84,7 +96,11 @@ def main() -> None:
         )
         options.threads = len(regions)
     try:
-        with Pool(options.threads, REDIThreadManager.init, (options,)) as pool:
+        with Pool(
+            options.threads,
+            REDIThreadManager.init_thread,
+            (options,),
+        ) as pool:
             imap_iter = [
                 pool.apply_async(
                     REDIThreadManager.analyze,

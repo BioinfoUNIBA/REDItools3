@@ -1,7 +1,5 @@
 import argparse
 
-from reditools.alignment_manager import AlignmentManager
-from reditools.reditools import REDItools
 from reditools.region import Region
 from reditools.tools.analyze.rtchecks import RTChecks
 from reditools.tools.analyze.setup_alignment_manager import \
@@ -54,16 +52,37 @@ class REDIThread:
         )
 
 class REDIThreadManager:
-    thread: REDIThread | None = None
+    """Manages a worker thread function for parallel REDItools analysis."""
+
+    thread: None | REDIThread = None
 
     @classmethod
-    def init(cls, options: argparse.Namespace) -> None:
+    def init_thread(cls, options: argparse.Namespace) -> None:
+        """Initialize a REDIThread.
+
+        Parameters
+        ----------
+        options : argparse.Namespace
+            The command-line options.
+        """
+
         cls.thread = REDIThread(options)
 
     @classmethod
     def analyze(cls, region: Region) -> str:
+        """Instruct thread to analyze a specific genomic region.
+
+        Parameters
+        ----------
+        region : Region
+            The genomic region to analyze.
+
+        Returns
+        -------
+        str
+            The path to the temporary file containing the results.
+        """
+
         if cls.thread is None:
             raise AttributeError('REDIThreadManager not initialized.')
         return cls.thread.analyze(region)
-
-
