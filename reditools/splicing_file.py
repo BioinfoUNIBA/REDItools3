@@ -2,10 +2,9 @@
 import csv
 from typing import IO, Iterator
 
-from reditools.region import Region
 from reditools.file_utils import open_stream
-from contextlib import contextmanager
-       
+from reditools.region import Region
+
 
 def _read_splice_sites(  # noqa: WPS231
         stream: IO,
@@ -44,7 +43,6 @@ def _splice_site_to_region(
         return Region(contig=contig, start=start, stop=stop)
     return None
 
-@contextmanager
 def load_splicing_file(
         splicing_file: str,
         splicing_span: int,

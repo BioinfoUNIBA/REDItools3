@@ -1,6 +1,7 @@
 
 import csv
 import os
+import tempfile
 from gzip import open as gzip_open
 from typing import IO, Iterator
 
