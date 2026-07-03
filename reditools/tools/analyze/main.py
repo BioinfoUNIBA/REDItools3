@@ -1,11 +1,10 @@
 from __future__ import annotations
-from multiprocessing.context import TimeoutError
 
-from functools import partial
 import argparse
 import sys
-import traceback
+from functools import partial
 from multiprocessing import Pool
+from multiprocessing.context import TimeoutError
 
 from reditools.logger import Logger
 from reditools.tools.analyze.concat_output import concat_output
@@ -86,12 +85,17 @@ def main() -> None:
         options.threads = len(regions)
     try:
         with Pool(options.threads, REDIThread.init, (options,)) as pool:
-            kill_pool = partial(pool_error, pool, options.debug)
-            imap_iter = [pool.apply_async(REDIThread.analyze, args=(region,), error_callback=kill_pool) for region in regions]
+            imap_iter = [
+                pool.apply_async(
+                    REDIThread.analyze,
+                    args=(region,),
+                    error_callback=partial(pool_error, pool, options.debug),
+                ) for region in regions
+            ]
             pool.close()
             pool.join()
             temp_files = [_.get(1) for _ in imap_iter]
-    except TimeoutError:
+    except (TimeoutError, IndexError):
         sys.exit(1)
 
     concat_output(
