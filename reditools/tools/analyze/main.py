@@ -54,7 +54,7 @@ def main() -> None:
         temp_dir = options.temp_dir
     else:
         logger.log(logger.info_level, 'Starting REDItools')
-        temp_dir = file_utils.make_temp_dir(
+        temp_dir = file_utils.make_dir(
             prefix='reditools_',
             dir=options.temp_dir,
         )
@@ -72,26 +72,24 @@ def main() -> None:
         temp_dir,
     )
 
-    if options.resume:
-        temp_file_manager = TempFileManager(temp_dir)
-    else:
-        temp_file_manager = TempFileManager(temp_dir, region_args(options))
+    with TempFileManager(
+        temp_dir,
+        None if options.resume else region_args(options),
+    ) as temp_file_manager:
+        if options.threads > len(temp_file_manager):
+            sys.stderr.write(
+                f"[WARNING] You have assigned {options.threads} threads, "
+                f"But there are only {len(temp_file_manager)} genomic "
+                "range(s). Consider change the value of --window\n"
+            )
+            options.threads = len(temp_file_manager)
 
-    if options.threads > len(temp_file_manager):
-        sys.stderr.write(
-            f"[WARNING] You have assigned {options.threads} threads, "
-            f"But there are only {len(temp_file_manager)} genomic range(s). "
-            "Consider change the value of --window\n"
+        if not run_pool(options, temp_file_manager):
+            sys.exit(1)
+
+        temp_file_manager.concat(
+            options.output_file,
+            'a' if options.append_file else 'w',
         )
-        options.threads = len(temp_file_manager)
 
-    if not run_pool(options, temp_file_manager):
-        sys.exit(1)
-
-    temp_file_manager.concat(
-        options.output_file,
-        'a' if options.append_file else 'w',
-    )
-    temp_file_manager.cleanup()
-
-    logger.log(Logger.info_level, 'Analyze Complete!')
+        logger.log(Logger.info_level, 'Analyze Complete!')

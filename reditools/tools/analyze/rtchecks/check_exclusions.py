@@ -1,6 +1,7 @@
 import argparse
 
 from reditools import file_utils
+from reditools.splicing_file import load_splicing_file
 from reditools.compiled_position import RTResult
 from reditools.region_collection import RegionCollection
 
@@ -29,7 +30,7 @@ class CheckExclusions:
             )
         if options.splicing_file:
             self.regions.add_regions(
-                file_utils.load_splicing_file(
+                load_splicing_file(
                     options.splicing_file,
                     options.splicing_span,
                 ),

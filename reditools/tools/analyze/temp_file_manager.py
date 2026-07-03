@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import csv
 import os
-import pathlib
 import sys
 import tempfile
+from types import TracebackType
 from typing import Iterator
 
 from reditools.region import Region
@@ -34,12 +34,15 @@ class TempFileManager:
             with open(os.path.join(self.dirpath, save_file), 'r') as stream:
                 reader = csv.DictReader(stream)
                 self.region_file_list = [
-                    [
+                    (
                         Region.from_string(row['Region']),
                         os.path.join(self.dirpath, row['Filename']),
-                    ]
+                    )
                     for row in reader
                 ]
+
+    def __enter__(self) -> TempFileManager:
+        return self
 
     def __iter__(self) -> Iterator:
         yield from self.region_file_list
@@ -54,7 +57,15 @@ class TempFileManager:
             mode,
         )
 
-    def cleanup(self) -> None:
+    def __exit__(
+        self,
+        exc_type: type,
+        exc_value: Exception,
+        traceback: TracebackType,
+    ) -> None:
+        if exc_type is not None:
+            return
+
         for _, filename in self.region_file_list:
             os.remove(f'{filename}.done')
 

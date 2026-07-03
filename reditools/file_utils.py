@@ -110,7 +110,7 @@ def load_text_file(file_name: str) -> list[str]:
     with open_stream(file_name, 'r') as stream:
         return [line.strip() for line in stream]
 
-def make_temp_dir(prefix: str | None=None, dir: str | None=None) -> str:
+def make_dir(prefix: str | None=None, dir: str | None=None) -> str:
     """
     Creates a folder.
 
