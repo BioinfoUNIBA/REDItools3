@@ -1,5 +1,7 @@
 from __future__ import annotations
+from multiprocessing.context import TimeoutError
 
+from functools import partial
 import argparse
 import sys
 import traceback
@@ -50,6 +52,12 @@ def setup_logger(options: argparse.Namespace) -> Logger:
         return Logger(Logger.info_level)
     return Logger(Logger.silent_level)
 
+def pool_error(pool, debug, exc):
+    pool.terminate()
+    if debug:
+        raise exc.__cause__
+    sys.stderr.write(f'[ERROR] ({type(exc)}) {exc}\n')
+
 def main() -> None:
     """
     The main entry point for the REDItools analyze command.
@@ -68,15 +76,22 @@ def main() -> None:
     options.encoding = 'utf-8'
 
     regions = region_args(options)
-    # Re-implement thread count warning here
+
+    if options.threads > len(regions):
+        sys.stderr.write(
+            f"[WARNING] You have assigned {options.threads} threads, "
+            f"But there are only {len(regions)} genomic range(s). "
+            "Consider change the value of --window\n"
+        )
+        options.threads = len(regions)
     try:
         with Pool(options.threads, REDIThread.init, (options,)) as pool:
-            imap_iter = pool.imap(REDIThread.analyze, regions, 1)
-            temp_files = [imap_iter.next() for _ in range(len(regions))]
-    except Exception as exc:
-        if options.debug:
-            traceback.print_exception(*sys.exc_info())
-        sys.stderr.write(f'[ERROR] ({type(exc)}) {exc}\n')
+            kill_pool = partial(pool_error, pool, options.debug)
+            imap_iter = [pool.apply_async(REDIThread.analyze, args=(region,), error_callback=kill_pool) for region in regions]
+            pool.close()
+            pool.join()
+            temp_files = [_.get(1) for _ in imap_iter]
+    except TimeoutError:
         sys.exit(1)
 
     concat_output(
