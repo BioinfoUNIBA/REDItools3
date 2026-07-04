@@ -1,9 +1,8 @@
 import argparse
+import multiprocessing
 import sys
 import traceback
 from functools import partial
-from multiprocessing.context import TimeoutError
-from multiprocessing.pool import Pool
 from pathlib import Path
 
 from reditools.region import Region
@@ -92,7 +91,11 @@ class REDIThreadManager:
             cls.thread.analyze(region, filename)
             Path(done_file).touch()
 
-def terminate_pool(pool: Pool, debug: bool, exc: Exception) -> None:
+def terminate_pool(
+    pool: multiprocessing.pool.Pool,
+    debug: bool,
+    exc: Exception,
+) -> None:
     """
     Terminates a multiprocessing Pool.
 
@@ -130,7 +133,7 @@ def run_pool(
         True if the analysis completes successfully, False otherwise.
     """
     try:
-        with Pool(
+        with multiprocessing.pool.Pool(
             options.threads,
             REDIThreadManager.init_thread,
             (options,),
@@ -145,7 +148,7 @@ def run_pool(
             pool.close()
             pool.join()
             [_.get(1) for _ in imap_iter]
-    except TimeoutError:
+    except multiprocessing.context.TimeoutError:
         return False
     except Exception:
         if options.debug:

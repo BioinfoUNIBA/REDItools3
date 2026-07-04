@@ -72,6 +72,15 @@ def main() -> None:
         temp_dir,
     )
 
+    if analyze(options, temp_dir):
+        logger.log(Logger.info_level, 'Analyze Complete!')
+    else:
+        sys.exit(1)
+
+def analyze(
+    options: argparse.Namespace,
+    temp_dir: str,
+) -> bool:
     with TempFileManager(
         temp_dir,
         None if options.resume else region_args(options),
@@ -82,14 +91,13 @@ def main() -> None:
                 f"But there are only {len(temp_file_manager)} genomic "
                 "range(s). Consider change the value of --window\n"
             )
-            options.threads = len(temp_file_manager)
+        options.threads = len(temp_file_manager)
 
         if not run_pool(options, temp_file_manager):
-            sys.exit(1)
+            return False
 
         temp_file_manager.concat(
             options.output_file,
             'a' if options.append_file else 'w',
         )
-
-        logger.log(Logger.info_level, 'Analyze Complete!')
+    return True
