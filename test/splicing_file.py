@@ -1,9 +1,7 @@
-import gzip
 import os
 import unittest
 from tempfile import NamedTemporaryFile
 
-from reditools import file_utils
 from reditools.region import Region
 from reditools.splicing_file import load_splicing_file
 
