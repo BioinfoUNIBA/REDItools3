@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 from reditools import file_utils
 from reditools.logger import Logger
 from reditools.tools.analyze.parse_args import json_args, parse_args
-from reditools.tools.analyze.redi_thread import run_pool
+from reditools.tools.analyze.redi_pool import run_pool
 from reditools.tools.analyze.region_args import region_args
 from reditools.tools.analyze.temp_file_manager import TempFileManager
 
