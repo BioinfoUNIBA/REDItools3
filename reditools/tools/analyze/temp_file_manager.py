@@ -14,7 +14,18 @@ from reditools.tools.analyze.parse_args import json_args
 save_file = 'region_file_list.csv'
 
 class TempFileManager:
+    """Manages the temporary output files for REDItools."""
+
     def __init__(self, dirpath: str, regions: list[Region] | None=None) -> None:
+        """Create a new TempFileManager
+
+        Parameters
+        ----------
+        dirpath : str
+            Where to save files.
+        regions : list[Region]
+            Analysis windows/chromosomes that need temporary files.
+        """
         self.dirpath = dirpath
         if regions:
             temp_files = [
@@ -51,21 +62,29 @@ class TempFileManager:
         return len(self.region_file_list)
 
     def concat(self, filepath: str, mode: str='w') -> None:
+        """Concat all temporary files, then delete them.
+
+        Parameters
+        ----------
+        filepath : str
+            File to save concatenation to.
+        mode : str
+            Write (w) or append (a)
+        """
         concat_output(
             [_[1] for _ in self.region_file_list],
             filepath,
             mode,
         )
 
-    def __exit__(
-        self,
-        exc_type: type,
-        exc_value: Exception,
-        traceback: TracebackType,
-    ) -> None:
-        if exc_type is not None:
-            return
+    def cleanup(self) -> None:
+        """Delete the *.done files, cli JSON, and region CSV files.
 
+        Raises
+        ------
+        OSError
+            If the temporary directory cannot be emptied.
+        """
         for _, filename in self.region_file_list:
             os.remove(f'{filename}.done')
 
@@ -78,3 +97,12 @@ class TempFileManager:
                 '[WARNING] Could not delete temporary files directory '
                 f'{self.dirpath}. {exc}\n'
             )
+
+    def __exit__(
+        self,
+        exc_type: type,
+        exc_value: Exception,
+        traceback: TracebackType,
+    ) -> None:
+        if exc_type is None:
+            self.cleanup()
