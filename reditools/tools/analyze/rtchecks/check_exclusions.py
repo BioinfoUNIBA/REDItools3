@@ -1,9 +1,9 @@
 import argparse
 
 from reditools import file_utils
-from reditools.splicing_file import load_splicing_file
 from reditools.compiled_position import RTResult
 from reditools.region_collection import RegionCollection
+from reditools.splicing_file import load_splicing_file
 
 
 class CheckExclusions:

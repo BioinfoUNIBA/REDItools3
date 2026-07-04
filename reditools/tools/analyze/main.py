@@ -13,26 +13,6 @@ from reditools.tools.analyze.temp_file_manager import TempFileManager
 if TYPE_CHECKING:
     import argparse
 
-def setup_logger(options: argparse.Namespace) -> Logger:
-    """
-    Configure a logger based on the command line options.
-
-    Parameters
-    ----------
-    options : argparse.Namespace
-        The parsed command line options.
-
-    Returns
-    -------
-    Logger
-        The configured Logger object.
-    """
-    if options.debug:
-        return Logger(Logger.debug_level)
-    if options.verbose:
-        return Logger(Logger.info_level)
-    return Logger(Logger.silent_level)
-
 def main() -> None:
     """
     The main entry point for the REDItools analyze command.
@@ -77,10 +57,43 @@ def main() -> None:
     else:
         sys.exit(1)
 
+def setup_logger(options: argparse.Namespace) -> Logger:
+    """Configure a logger based on the command line options.
+
+    Parameters
+    ----------
+    options : argparse.Namespace
+        The parsed command line options.
+
+    Returns
+    -------
+    Logger
+        The configured Logger object.
+    """
+    if options.debug:
+        return Logger(Logger.debug_level)
+    if options.verbose:
+        return Logger(Logger.info_level)
+    return Logger(Logger.silent_level)
+
 def analyze(
     options: argparse.Namespace,
     temp_dir: str,
 ) -> bool:
+    """Perform the REDItools analysis.
+
+    Parameters
+    ----------
+    options : argparse.Namespace
+        CLI arguments.
+    temp_dir : str
+        Where to save temporary files.
+
+    Returns
+    -------
+    bool
+        True if the analysis completed successfully, False otherwise.
+    """
     with TempFileManager(
         temp_dir,
         None if options.resume else region_args(options),
