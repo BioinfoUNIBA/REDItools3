@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import argparse
 import tempfile
-from typing import Callable, Any
+from typing import Any, Callable
 
 from reditools import reditools
 from reditools.tools.analyze.parse_args.json_args import args_from_json
+
 
 class ValueBelowMinimumError(argparse.ArgumentTypeError):
     def __init__(self, min_value: int | float) -> None:

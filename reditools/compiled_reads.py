@@ -1,11 +1,14 @@
 from __future__ import annotations
 
-from typing import Iterator, Optional
-
-from pysam import AlignedSegment
+from typing import TYPE_CHECKING
 
 from reditools.compiled_position import CompiledPosition
 from reditools.fasta_file import RTFastaFile
+
+if TYPE_CHECKING:
+    from typing import Iterator
+
+    from pysam import AlignedSegment
 
 
 class RefFetch:
@@ -16,7 +19,7 @@ class RefFetch:
     the AlignedSegment if MD tags are available.
     """
 
-    def __init__(self, fasta_file_path: Optional[str] = None) -> None:
+    def __init__(self, fasta_file_path: str | None = None) -> None:
         """Initialize RefFetch.
 
         Parameters
@@ -103,7 +106,7 @@ class CompiledReads:
         min_base_position: int = 0,
         max_base_position: int = 0,
         min_base_quality: int = 0,
-        fasta_file: Optional[str] = None,
+        fasta_file: str | None = None,
     ) -> None:
         """Initialize CompiledReads.
 

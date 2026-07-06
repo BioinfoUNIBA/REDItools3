@@ -1,15 +1,18 @@
 from __future__ import annotations
 
 import csv
-from pathlib import Path
 import sys
 import tempfile
-from types import TracebackType
-from typing import Iterator
+from pathlib import Path
+from typing import TYPE_CHECKING
 
 from reditools.region import Region
 from reditools.tools.analyze.concat_output import concat_output
 from reditools.tools.analyze.parse_args import json_args
+
+if TYPE_CHECKING:
+    from types import TracebackType
+    from typing import Iterator
 
 save_file = "region_file_list.csv"
 

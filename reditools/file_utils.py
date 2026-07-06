@@ -1,8 +1,9 @@
 from __future__ import annotations
-from pathlib import Path
+
 import csv
 import tempfile
 from gzip import open as gzip_open
+from pathlib import Path
 from typing import IO, Iterator
 
 from reditools.region import Region

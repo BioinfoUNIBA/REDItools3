@@ -2,14 +2,13 @@ from __future__ import annotations
 
 import argparse
 import tempfile
-from typing import Callable, Any
+from typing import Any, Callable
 
 from reditools import reditools
+from reditools.tools.analyze.parse_args.bounded_types import (bounded_float,
+                                                              bounded_int)
 from reditools.tools.analyze.parse_args.json_args import args_from_json
-from reditools.tools.analyze.parse_args.bounded_types import (
-    bounded_int,
-    bounded_float,
-)
+
 
 class DNAStrandError(argparse.ArgumentTypeError):
     def __init__(self) -> None:

@@ -5,6 +5,7 @@ from typing import IO, Iterator
 
 from reditools import file_utils
 
+
 class AnalyzeMismatchError(ValueError):
     def __init__(self) -> None:
         self.message = "Files do not appear to use the same reference."

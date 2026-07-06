@@ -6,6 +6,7 @@ from typing import IO, Iterator
 from reditools.file_utils import open_stream
 from reditools.region import Region
 
+
 class SpliceFileFormatError(ValueError):
     def __init__(self, file_name: str, line_number: int) -> None:
         self.message = (

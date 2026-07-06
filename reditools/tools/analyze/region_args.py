@@ -1,10 +1,13 @@
 from __future__ import annotations
 
-import argparse
+from typing import TYPE_CHECKING
 
 from pysam import AlignmentFile
 
 from reditools.region import Region
+
+if TYPE_CHECKING:
+    import argparse
 
 
 def region_args(options: argparse.Namespace) -> list[Region]:

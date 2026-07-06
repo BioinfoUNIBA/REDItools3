@@ -1,6 +1,7 @@
 import csv
-from typing import Callable, Iterator
 from pathlib import Path
+from typing import Callable, Iterator
+
 from reditools.compiled_position import RTResult
 from reditools.logger import Logger
 from reditools.tools.analyze.rtchecks import RTChecks

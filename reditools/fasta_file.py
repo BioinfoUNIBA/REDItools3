@@ -1,9 +1,12 @@
 from __future__ import annotations
 
-from types import TracebackType
-from typing import Iterator
+from typing import TYPE_CHECKING
 
 from pysam.libcfaidx import FastaFile as PysamFastaFile
+
+if TYPE_CHECKING:
+    from types import TracebackType
+    from typing import Iterator
 
 
 class MissingContigError(KeyError):
