@@ -92,14 +92,14 @@ class Region:
         """
         if self.stop is None or self.start is None:
             raise RegionSplitError()
-        sub_regions = []
-        for new_start in range(self.start, self.stop, window):
-            sub_regions.append(Region(
+        return [
+            Region(
                 contig=self.contig,
                 start=new_start,
                 stop=min(new_start + window, self.stop),
-            ))
-        return sub_regions
+            )
+            for new_start in range(self.start, self.stop, window)
+        ]
 
     @classmethod
     def from_string(

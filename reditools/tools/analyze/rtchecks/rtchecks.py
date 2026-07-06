@@ -9,6 +9,16 @@ if TYPE_CHECKING:
 
     from reditools.compiled_position import RTResult
 
+all_checks = (
+    rtchecks.CheckColumnEditFrequency,
+    rtchecks.CheckColumnMinEdits,
+    rtchecks.CheckMinReadDepth,
+    rtchecks.CheckExclusions,
+    rtchecks.CheckMaxEditingNucleotides,
+    rtchecks.CheckTargetPositions,
+    rtchecks.CheckVariants,
+)
+
 class RTChecks:
     """Manage and execute a suite of checks on RNA editing results.
 
@@ -26,19 +36,9 @@ class RTChecks:
         options : argparse.Namespace
             Command-line options used to filter and configure checks.
         """
-        self.check_list = []
-
-        for check in (
-                rtchecks.CheckColumnEditFrequency,
-                rtchecks.CheckColumnMinEdits,
-                rtchecks.CheckMinReadDepth,
-                rtchecks.CheckExclusions,
-                rtchecks.CheckMaxEditingNucleotides,
-                rtchecks.CheckTargetPositions,
-                rtchecks.CheckVariants,
-        ):
-            if check.is_needed(options):
-                self.check_list.append(check(options))
+        self.check_list = [
+            check(options) for check in all_checks if check.is_needed(options)
+        ]
 
     def check(self, rtresult: RTResult) -> None | tuple:
         """Run all enabled checks against a set of base results.
