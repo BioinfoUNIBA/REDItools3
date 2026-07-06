@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import argparse
 import tempfile
-from typing import Any, Callable
 
 from reditools import reditools
 from reditools.tools.analyze.parse_args.bounded_types import (bounded_float,

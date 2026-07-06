@@ -1,6 +1,5 @@
 import argparse
 import json
-import os
 from pathlib import Path
 
 json_args_filename = "cli_args.json"
