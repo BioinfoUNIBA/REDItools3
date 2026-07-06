@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
     from reditools.compiled_position import RTResult
 
-class RTChecks(object):
+class RTChecks:
     """Manage and execute a suite of checks on RNA editing results.
 
     Parameters

@@ -8,7 +8,7 @@ from reditools.file_utils import open_stream, read_bed_file
 from reditools.region_collection import RegionCollection
 
 
-class RTIndexer(object):
+class RTIndexer:
     _ref = "Reference"
     _position = "Position"
     _contig = "Region"
