@@ -4,8 +4,10 @@ import argparse
 import tempfile
 
 from reditools import reditools
-from reditools.tools.analyze.parse_args.bounded_types import (bounded_float,
-                                                              bounded_int)
+from reditools.tools.analyze.parse_args.bounded_types import (
+    bounded_float,
+    bounded_int,
+)
 from reditools.tools.analyze.parse_args.json_args import args_from_json
 
 
@@ -394,12 +396,11 @@ def fix_legacy_options(args: argparse.Namespace) -> None:
     delattr(args, "dna")  # noqa: WPS421
 
     if args.exclude_multis:
-        setattr(args, "max_editing_nucleotides", 1)
+        args.max_editing_nucleotides = 1
     delattr(args, "exclude_multis")  # noqa: WPS421
 
-    if args.strict:
-        if args.min_edits != 1:
-            raise StrictConflictError
+    if args.strict and args.min_edits != 1:
+        raise StrictConflictError
     delattr(args, "strict")  # noqa: WPS421
 
     if args.load_omopolymeric_file:

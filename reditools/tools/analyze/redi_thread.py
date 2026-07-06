@@ -4,8 +4,9 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from reditools.tools.analyze.rtchecks import RTChecks
-from reditools.tools.analyze.setup_alignment_manager import \
-    setup_alignment_manager
+from reditools.tools.analyze.setup_alignment_manager import (
+    setup_alignment_manager,
+)
 from reditools.tools.analyze.setup_rtools import setup_rtools
 from reditools.tools.analyze.write_results import write_results
 

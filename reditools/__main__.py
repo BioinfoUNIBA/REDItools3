@@ -20,7 +20,7 @@ Run Modes:
 
   annotate           Annotate REDItools RNA output with DNA output
 """
-    print(usage_str)  # noqa: WPS421
+    print(usage_str)  # noqa: WPS421 T201
 
 
 if __name__ == "__main__":

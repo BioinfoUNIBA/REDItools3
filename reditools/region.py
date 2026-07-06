@@ -72,7 +72,7 @@ class Region:
             return self.contig
         return f"{self.contig}:{one_idx_start}-{self.stop}"
 
-    def split(self, window: int) -> list["Region"]:
+    def split(self, window: int) -> list[Region]:
         """Split the region into smaller sub-regions of a specified window size.
 
         Parameters
@@ -106,7 +106,7 @@ class Region:
         cls,
         region_str: str,
         alignment_file: str | None=None,
-    ) -> "Region":
+    ) -> Region:
         """Create a Region object from a string and an alignment file.
 
         Parameters
@@ -177,10 +177,7 @@ class Region:
             raise RegionFormatError(region_str)
         contig, start, stop = match.group("contig", "start", "stop")
 
-        if start is None:
-            start = 0
-        else:
-            start = Region._to_int(start) - 1
+        start = 0 if start is None else Region._to_int(start) - 1
 
         if stop is not None:
             stop = Region._to_int(stop)

@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 class MissingContigError(KeyError):
     def __init__(self, contig_name: str) -> None:
-        self.message = f'Reference name {contig_name} not found in FASTA file.'
+        self.message = f"Reference name {contig_name} not found in FASTA file."
         super().__init__(self.message)
 
 class PastContigEndError(IndexError):

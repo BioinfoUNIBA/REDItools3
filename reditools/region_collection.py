@@ -4,7 +4,7 @@ from collections import defaultdict
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from typing import DefaultDict, Iterable
+    from typing import Iterable
 
     from reditools.region import Region
 
@@ -15,7 +15,7 @@ class RegionCollection:
     def __init__(self) -> None:
         """Initialize an empty RegionCollection."""
 
-        self._regions: DefaultDict[str, list[Region]] = defaultdict(list)
+        self._regions: defaultdict[str, list[Region]] = defaultdict(list)
         self._index = 0
         self._last_contig: str | None = None
         self._sorted = False
@@ -107,7 +107,7 @@ class RegionCollection:
 
     def reset(self) -> None:
         """Restart the search parameters.
-        
+
         RegionCollection requires checks be done in order. This function moves
         the checks back to the beginning of the collections.
         """

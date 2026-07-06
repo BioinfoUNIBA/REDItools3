@@ -40,7 +40,7 @@ class CheckMaxEditingNucleotides:
         bool
             True if max_editing_nucleotides < 3, False otherwise.
         """
-        return options.max_editing_nucleotides < 3
+        return options.max_editing_nucleotides < 3  # noqa: PLR2004
 
     def run_check(self, rtresult: RTResult) -> None | tuple:
         """Run the check on a specific position.

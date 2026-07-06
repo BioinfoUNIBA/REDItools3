@@ -56,7 +56,7 @@ class ReadQC:
             self.excluded_read_names = set(excluded_read_names)
             self.check_list.append(self.check_excluded_read_names)
         else:
-            self.excluded_read_names = set([])
+            self.excluded_read_names = set()
 
     def check_baseline(self, read: AlignedSegment) -> bool:
         """Check if the read passes baseline flag and tag requirements.
@@ -72,7 +72,7 @@ class ReadQC:
             True if the read passes, False otherwise.
         """
         return read.flag in self._flags_to_keep and not read.has_tag("SA")
-    
+
     def check_quality(self, read: AlignedSegment) -> bool:
         """Check if the read passes the minimum mapping quality threshold.
 
