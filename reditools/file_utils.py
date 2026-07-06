@@ -32,7 +32,7 @@ def open_stream(  # type: ignore[no-untyped-def] # noqa: ANN201
     """
     if path.endswith("gz"):
         return gzip_open(path, mode, encoding=encoding)
-    return Path(path).open(mode, encoding=encoding)  # noqa: WPS515
+    return Path(path).open(mode, encoding=encoding)  # noqa: WPS515 SIM115
 
 def read_bed_file(*path: str) -> Iterator[Region]:
     """Read genomic regions from one or more BED files.

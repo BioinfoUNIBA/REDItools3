@@ -102,7 +102,7 @@ def main() -> None:
         else:
             order_fname = options.rna_file
             contig_order = contig_order_from_out(options.rna_file)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         if options.debug:
             traceback.print_exception(*sys.exc_info())
         sys.stderr.write(
@@ -114,7 +114,7 @@ def main() -> None:
     rta = RTAnnotater(contig_order, options.strand_correction)
     try:
         rta.annotate(options.rna_file, options.dna_file, sys.stdout)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         if options.debug:
             traceback.print_exception(*sys.exc_info())
         sys.stderr.write(f"[ERROR] ({type(exc)}) {exc}\n")

@@ -45,7 +45,7 @@ def run_pool(
             [_.get(1) for _ in imap_iter]
     except TimeoutError:
         return False
-    except Exception:
+    except Exception:  # noqa: BLE001
         if options.debug:
             traceback.print_exception(*sys.exc_info())
         return False
