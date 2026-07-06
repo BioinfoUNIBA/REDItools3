@@ -21,7 +21,7 @@ class RTFastaFile:
         """
         self.pysam_fasta_file = PysamFastaFile(filename)
 
-    def __enter__(self) -> RTFastaFile:  # type: ignore
+    def __enter__(self) -> RTFastaFile:
         return self
 
     def __exit__(

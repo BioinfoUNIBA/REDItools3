@@ -9,7 +9,7 @@ from typing import IO, Iterator
 from reditools.region import Region
 
 
-def open_stream(  # type: ignore
+def open_stream(  # type: ignore[no-untyped-def]
         path: str,
         mode: str="rt",
         encoding: str="utf-8",

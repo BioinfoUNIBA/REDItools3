@@ -82,7 +82,7 @@ class RefFetch:
         pairs = read.get_aligned_pairs(matches_only=True)
         indices = [ref for _, ref in pairs]
         return self.fasta_file.get_base(
-            read.reference_name,  # type: ignore
+            read.reference_name,  # type: ignore[arg-type]
             *indices,
         )
 
@@ -153,7 +153,7 @@ class CompiledReads:
                     self._nucleotides[pos] = CompiledPosition(
                         ref=ref,
                         position=pos,
-                        contig=read.reference_name,  # type: ignore
+                        contig=read.reference_name,  # type: ignore[arg-type]
                     )
                 self._nucleotides[pos].add_base(quality, strand, base)
 
@@ -193,10 +193,10 @@ class CompiledReads:
             # Left end trim
             if read_pos < self._qc["min_base_position"]:
                 continue
-            read_base = read.query_sequence[read_pos]  # type: ignore
+            read_base = read.query_sequence[read_pos]  # type: ignore[index]
             if ref_base == "N" or read_base == "N":
                 continue
-            phred = read.query_qualities[read_pos]  # type: ignore
+            phred = read.query_qualities[read_pos]  # type: ignore[index]
             if phred < self._qc["min_base_quality"]:
                 continue
             yield (ref_pos, read_base, phred, ref_base)

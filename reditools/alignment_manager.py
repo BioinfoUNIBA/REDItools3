@@ -69,7 +69,10 @@ class FetchGroupIter:
         A list of iterators, each yielding reads from an alignment file.
     """
 
-    def __init__(self, fetch_iters: list[Iterator[list[AlignedSegment]]]) -> None:
+    def __init__(  # noqa: WPS23
+        self,
+        fetch_iters: list[Iterator[list[AlignedSegment]]],
+    ) -> None:
         """Initialize the FetchGroupIter.
 
         Parameters
@@ -122,7 +125,7 @@ class FetchGroupIter:
             reads.append(rgi.reads)
             if next(rgi) is None:
                 self.read_groups.pop(idx)
-        return list(chain(*reads))  # type: ignore
+        return list(chain(*reads))  # type: ignore[arg-type]
 
 class AlignmentManager:
     """Manage multiple alignment files and provide unified access to reads by

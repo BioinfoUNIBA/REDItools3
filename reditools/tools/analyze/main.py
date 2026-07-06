@@ -27,7 +27,7 @@ def main() -> None:
             (
                 "Resuming REDItools from directory '{}'. Using parameters "
                 "from previous run. All other command line options will be "
-                "ignored.",
+                "ignored."
             ),
             options.temp_dir,
         )

@@ -104,5 +104,5 @@ class TempFileManager:
         exc: BaseException | None,
         tb: TracebackType | None,
     ) -> None:
-        if exc_type is None:
+        if typ is None:
             self.cleanup()

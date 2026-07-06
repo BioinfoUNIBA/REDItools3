@@ -46,16 +46,17 @@ class ReadQC:
         """
         self.min_quality = min_quality
         self.min_length = min_length
-        self.excluded_read_names = excluded_read_names
 
         self.check_list = [self.check_baseline]
         if self.min_quality > 0:
             self.check_list.append(self.check_quality)
         if self.min_length > 0:
             self.check_list.append(self.check_length)
-        if self.excluded_read_names:
-            self.excluded_read_names = set(self.excluded_read_names)
+        if excluded_read_names:
+            self.excluded_read_names = set(excluded_read_names)
             self.check_list.append(self.check_excluded_read_names)
+        else:
+            self.excluded_read_names = set([])
 
     def check_baseline(self, read: AlignedSegment) -> bool:
         """Check if the read passes baseline flag and tag requirements.
@@ -115,7 +116,7 @@ class ReadQC:
         bool
             True if the read name is not excluded, False otherwise.
         """
-        return read.query_name not in self.excluded_read_names  # type: ignore
+        return read.query_name not in self.excluded_read_names
 
     def run_check(self, read: AlignedSegment) -> bool:
         """Run all configured quality control checks on the read.
@@ -176,7 +177,11 @@ class RTAlignmentFile:
         kwargs["ignore_truncation"] = True
         self.alignment_file = PysamAlignmentFile(filename, **kwargs)
         self.alignment_file.check_index()
-        self.readqc = ReadQC(min_quality, min_length, excluded_read_names)
+        if excluded_read_names is None:
+            excluded_names: Collection[str] = []
+        else:
+            excluded_names = excluded_read_names
+        self.readqc = ReadQC(min_quality, min_length, excluded_names)
 
     def __enter__(self) -> RTAlignmentFile:
         """Enter the runtime context related to this object.
