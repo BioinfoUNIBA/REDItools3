@@ -35,7 +35,7 @@ def parse_args() -> argparse.Namespace:
             "Report the DNA base complement if the RNA data comes from the "
             "minus strand."
         ),
-        action="store_true"
+        action="store_true",
     )
     order_group = parser.add_argument_group(
         title="Contig order options",

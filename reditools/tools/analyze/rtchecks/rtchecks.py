@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from reditools.tools.analyze import rtchecks
-
 from typing import TYPE_CHECKING
+
+from reditools.tools.analyze import rtchecks
 
 if TYPE_CHECKING:
     import argparse
+
     from reditools.compiled_position import RTResult
 
 class RTChecks(object):

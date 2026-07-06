@@ -7,10 +7,11 @@ from reditools.compiled_reads import CompiledReads
 from reditools.logger import Logger
 
 if TYPE_CHECKING:
-    from reditools.alignment_manager import AlignmentManager
     from typing import Iterator
-    from reditools.region import Region
+
+    from reditools.alignment_manager import AlignmentManager
     from reditools.compiled_position import CompiledPosition
+    from reditools.region import Region
 
 """
 Set the strand property to UNSTRANDED_MODE for unstranded analysis.

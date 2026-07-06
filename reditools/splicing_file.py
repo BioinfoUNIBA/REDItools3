@@ -22,7 +22,7 @@ def _read_splice_sites(  # noqa: WPS231
             yield (row[0], position, row[3], row[4])
         except (AssertionError, ValueError) as exc:
             raise ValueError(
-                f"Cannot parse splice file entry ({stream.name}:{idx})"
+                f"Cannot parse splice file entry ({stream.name}:{idx})",
             ) from exc
 
 def _splice_site_to_region(

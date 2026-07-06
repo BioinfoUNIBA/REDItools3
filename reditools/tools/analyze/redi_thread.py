@@ -1,6 +1,7 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
+
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from reditools.tools.analyze.rtchecks import RTChecks
 from reditools.tools.analyze.setup_alignment_manager import \
@@ -9,8 +10,9 @@ from reditools.tools.analyze.setup_rtools import setup_rtools
 from reditools.tools.analyze.write_results import write_results
 
 if TYPE_CHECKING:
-    from reditools.region import Region
     import argparse
+
+    from reditools.region import Region
 
 class REDIThread:
     def __init__(self, options: argparse.Namespace) -> None:

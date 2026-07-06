@@ -95,7 +95,7 @@ class TempFileManager:
         except OSError as exc:
             sys.stderr.write(
                 "[WARNING] Could not delete temporary files directory "
-                f"{self.dirpath}. {exc}\n"
+                f"{self.dirpath}. {exc}\n",
             )
 
     def __exit__(

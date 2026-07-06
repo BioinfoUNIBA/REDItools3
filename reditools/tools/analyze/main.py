@@ -27,7 +27,7 @@ def main() -> None:
             (
                 "Resuming REDItools from directory '{}'. Using parameters "
                 "from previous run. All other command line options will be "
-                "ignored."
+                "ignored.",
             ),
             options.temp_dir,
         )
@@ -102,7 +102,7 @@ def analyze(
             sys.stderr.write(
                 f"[WARNING] You have assigned {options.threads} threads, "
                 f"But there are only {len(temp_file_manager)} genomic "
-                "range(s). Consider change the value of --window\n"
+                "range(s). Consider change the value of --window\n",
             )
         options.threads = len(temp_file_manager)
 

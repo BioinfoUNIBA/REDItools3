@@ -1,16 +1,16 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from itertools import chain
 from math import inf
-
+from typing import TYPE_CHECKING
 
 from reditools.alignment_file import RTAlignmentFile
 
 if TYPE_CHECKING:
     from typing import Collection, Iterable, Iterator
+
     from pysam import AlignedSegment
+
     from reditools.region import Region
 
 class ReadGroupIter:

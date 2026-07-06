@@ -103,7 +103,7 @@ class RTAnnotater:
         # earlier than the current RNA contig to induce fast-forwarding.
         dna_contig_idx = self.contig_order.get(
             dna_entry["Region"],
-            0
+            0,
         )
         if rna_contig_idx == dna_contig_idx:
             return int(rna_entry["Position"]) - int(dna_entry["Position"])

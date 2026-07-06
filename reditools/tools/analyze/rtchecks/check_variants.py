@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import re
-
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import argparse
+
     from reditools.compiled_position import RTResult
 
 class CheckVariants:
@@ -37,7 +37,7 @@ class CheckVariants:
         )
         if bad_alt is not None:
             raise ValueError(
-                f"Bad variant ({bad_alt}). Must be two bases (e.g. AG)."
+                f"Bad variant ({bad_alt}). Must be two bases (e.g. AG).",
             )
         self.variants = {_.upper() for _ in options.variants}
 

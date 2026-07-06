@@ -64,7 +64,8 @@ class Region:
             sub_regions.append(Region(
                 contig=self.contig,
                 start=new_start,
-                stop=min(new_start + window, self.stop)))
+                stop=min(new_start + window, self.stop),
+            ))
         return sub_regions
 
     @classmethod
@@ -106,7 +107,7 @@ class Region:
             if alignment_file is None:
                 raise ValueError(
                     "An alignment file must be provided if no stop position "
-                    "is present in the region string."
+                    "is present in the region string.",
                 )
             with AlignmentFile(alignment_file, ignore_truncation=True) as bam:
                 stop = bam.get_reference_length(contig)

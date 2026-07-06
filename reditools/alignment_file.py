@@ -1,14 +1,16 @@
 from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
 from pysam.libcalignmentfile import AlignmentFile as PysamAlignmentFile
 
-
 if TYPE_CHECKING:
-    from reditools.region import Region
     from types import TracebackType
-    from typing import Any, Collection, Iterator, 
+    from typing import Any, Collection, Iterator
+
     from pysam import AlignedSegment
+
+    from reditools.region import Region
 
 
 class ReadQC:

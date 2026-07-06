@@ -85,7 +85,7 @@ def bounded_float(
             float_value = float(cli_value)
         except ValueError:
             raise argparse.ArgumentTypeError(
-                f"invalid float value: {cli_value}"
+                f"invalid float value: {cli_value}",
             )
         check_number_bounds(float_value, min_value, max_value)
         return float_value
@@ -473,7 +473,7 @@ def fix_legacy_options(args: argparse.Namespace) -> None:
     if args.strict:
         if args.min_edits != 1:
             raise Exception(
-                "-S/--strict can only be used with -me/--min-edits 1."
+                "-S/--strict can only be used with -me/--min-edits 1.",
             )
     delattr(args, "strict")  # noqa: WPS421
 
@@ -522,7 +522,7 @@ def parse_args(sys_args: list[str] | None = None) -> argparse.Namespace:
 
     if args.strand == 0 and args.strand_correction:
         parser.error(
-            "-s/--strand 0 and -C/--strand-correction are mutually exclusive."
+            "-s/--strand 0 and -C/--strand-correction are mutually exclusive.",
         )
 
     return args
