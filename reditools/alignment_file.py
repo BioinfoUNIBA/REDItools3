@@ -28,7 +28,7 @@ class ReadQC:
             min_quality: int,
             min_length: int,
             excluded_read_names: Collection[str] | None,
-    ):
+    ) -> None:
         """Initialize the ReadQC with quality and length thresholds.
 
         Parameters
@@ -174,7 +174,7 @@ class RTAlignmentFile:
         self.alignment_file.check_index()
         self.readqc = ReadQC(min_quality, min_length, excluded_read_names)
 
-    def __enter__(self):  # type: ignore
+    def __enter__(self) -> RTAlignmentFile:
         """Enter the runtime context related to this object.
 
         Returns

@@ -28,7 +28,7 @@ class RTIndexer(object):
     def __init__(
             self,
             region: tuple[str, int, int | None] | None=None,
-    ):
+    ) -> None:
         """Initialize the RTIndexer.
 
         Parameters

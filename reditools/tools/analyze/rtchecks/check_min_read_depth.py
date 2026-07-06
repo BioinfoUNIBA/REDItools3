@@ -14,7 +14,7 @@ class CheckMinReadDepth:
         The minimum required read depth.
     """
 
-    def __init__(self, options: argparse.Namespace):
+    def __init__(self, options: argparse.Namespace) -> None:
         """Initialize CheckMinReadDepth.
 
         Parameters

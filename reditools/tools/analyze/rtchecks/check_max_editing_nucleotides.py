@@ -14,7 +14,7 @@ class CheckMaxEditingNucleotides:
         The maximum allowed number of editing nucleotides.
     """
 
-    def __init__(self, options: argparse.Namespace):
+    def __init__(self, options: argparse.Namespace) -> None:
         """Initialize CheckMaxEditingNucleotides.
 
         Parameters

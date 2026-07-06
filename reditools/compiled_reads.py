@@ -16,7 +16,7 @@ class RefFetch:
     the AlignedSegment if MD tags are available.
     """
 
-    def __init__(self, fasta_file_path: Optional[str] = None):
+    def __init__(self, fasta_file_path: Optional[str] = None) -> None:
         """Initialize RefFetch.
 
         Parameters
@@ -103,7 +103,7 @@ class CompiledReads:
         max_base_position: int = 0,
         min_base_quality: int = 0,
         fasta_file: Optional[str] = None,
-    ):
+    ) -> None:
         """Initialize CompiledReads.
 
         Parameters

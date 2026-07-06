@@ -15,7 +15,7 @@ class RTChecks(object):
         Command-line options that determine which checks are enabled.
     """
 
-    def __init__(self, options: argparse.Namespace):
+    def __init__(self, options: argparse.Namespace) -> None:
         """Initialize RTChecks with enabled check instances.
 
         Parameters

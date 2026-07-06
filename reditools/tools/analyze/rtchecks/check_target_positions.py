@@ -16,7 +16,7 @@ class CheckTargetPositions:
         The collection of target regions.
     """
 
-    def __init__(self, options: argparse.Namespace):
+    def __init__(self, options: argparse.Namespace) -> None:
         """Initialize CheckTargetPositions.
 
         Parameters

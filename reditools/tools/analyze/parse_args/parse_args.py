@@ -265,7 +265,7 @@ def build_argument_parser() -> argparse.ArgumentParser:  # noqa: WPS213, WPS210
         default=["all"],
         help=(
             "Which editing events to report. Each edit should be two "
-            "characters and separated by spaces (e.g. AG CT). Use "all" to "
+            "characters and separated by spaces (e.g. AG CT). Use 'all' to "
             "report all variants. (Corresponds to the AllSubs column)"
         ),
     )

@@ -17,7 +17,7 @@ class CheckExclusions:
         The collection of excluded regions.
     """
 
-    def __init__(self, options: argparse.Namespace):
+    def __init__(self, options: argparse.Namespace) -> None:
         """Initialize CheckExclusions.
 
         Parameters

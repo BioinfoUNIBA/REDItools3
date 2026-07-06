@@ -25,7 +25,7 @@ def main() -> None:
         logger.log(
             logger.info_level,
             (
-                "Resuming REDItools from directory "{}". Using parameters "
+                "Resuming REDItools from directory '{}'. Using parameters "
                 "from previous run. All other command line options will be "
                 "ignored."
             ),

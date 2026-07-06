@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from itertools import chain
+from math import inf
 from typing import Collection, Iterable, Iterator
 
 from pysam import AlignedSegment
@@ -19,7 +20,7 @@ class ReadGroupIter:
     """
     __slots__ = ("iterator", "reads", "reference_start")
 
-    def __init__(self, iterator: Iterator):
+    def __init__(self, iterator: Iterator[list[AlignedSegment]]) -> None:
         """Initialize the ReadGroupIter.
 
         Parameters
@@ -50,9 +51,9 @@ class ReadGroupIter:
         """
         self.reads = next(self.iterator, None)
         if self.reads:
-            self.reference_start = self.reads[0].reference_start
+            self.reference_start: int | float = self.reads[0].reference_start
         else:
-            self.reference_start = None
+            self.reference_start = inf
         return self.reads
 
 class FetchGroupIter:
@@ -65,7 +66,7 @@ class FetchGroupIter:
         A list of iterators, each yielding reads from an alignment file.
     """
 
-    def __init__(self, fetch_iters: list[Iterator]):
+    def __init__(self, fetch_iters: list[Iterator[list[AlignedSegment]]]) -> None:
         """Initialize the FetchGroupIter.
 
         Parameters
@@ -138,7 +139,7 @@ class AlignmentManager:
             excluded_read_names: Collection[str] | None=None,
             min_quality: int=0,
             min_length: int=0,
-    ):  # noqa: WPS475
+    ) -> None:  # noqa: WPS475
         """Initialize the AlignmentManager.
 
         Parameters

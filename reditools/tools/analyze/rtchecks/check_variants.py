@@ -15,7 +15,7 @@ class CheckVariants:
         Command-line options containing allowed variants.
     """
 
-    def __init__(self, options: argparse.Namespace):
+    def __init__(self, options: argparse.Namespace) -> None:
         """Initialize CheckVariants with allowed variants.
 
         Parameters

@@ -14,7 +14,7 @@ class CheckColumnEditFrequency:
         The minimum required total edits.
     """
 
-    def __init__(self, options: argparse.Namespace):
+    def __init__(self, options: argparse.Namespace) -> None:
         """Initialize CheckColumnEditFrequency.
 
         Parameters

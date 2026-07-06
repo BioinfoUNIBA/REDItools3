@@ -29,7 +29,11 @@ class RTAnnotater:
     sub_key = "AllSubs"
     bases_key = "BaseCount[A,C,G,T]"
 
-    def __init__(self, contig_order: dict[str, int], do_complement: bool=False):
+    def __init__(
+        self,
+        contig_order: dict[str, int],
+        do_complement: bool=False,
+    ) -> None:
         """Initialize RTAnnotater.
 
         Parameters

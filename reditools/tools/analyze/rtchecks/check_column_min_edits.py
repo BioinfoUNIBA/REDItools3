@@ -18,7 +18,7 @@ class CheckColumnMinEdits:
 
     _bases = ("A", "T", "C", "G")
 
-    def __init__(self, options: argparse.Namespace):
+    def __init__(self, options: argparse.Namespace) -> None:
         """Initialize CheckColumnMinEdits.
 
         Parameters

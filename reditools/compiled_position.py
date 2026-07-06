@@ -135,7 +135,11 @@ class RTResult:
 
     _base_order = "ACGT"
 
-    def __init__(self, compiled_position: CompiledPosition, strand: str):
+    def __init__(
+        self,
+        compiled_position: CompiledPosition,
+        strand: str,
+    ) -> None:
         """Initialize RTResult.
 
         Parameters

@@ -22,7 +22,7 @@ class Logger:
     info_level = "INFO"
     debug_level = "DEBUG"
 
-    def __init__(self, level: str):
+    def __init__(self, level: str) -> None:
         """Initialize the Logger with a specified logging level.
 
         Parameters
