@@ -1,8 +1,12 @@
 from __future__ import annotations
 
-import argparse
 
-from reditools.compiled_position import RTResult
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import argparse
+    from reditools.compiled_position import RTResult
 
 
 class CheckColumnEditFrequency:

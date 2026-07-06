@@ -1,11 +1,14 @@
 from __future__ import annotations
 
-import argparse
 
 from reditools import file_utils
-from reditools.compiled_position import RTResult
 from reditools.region_collection import RegionCollection
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import argparse
+    from reditools.compiled_position import RTResult
 
 class CheckTargetPositions:
     """Check if a position is within target regions.

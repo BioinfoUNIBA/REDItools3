@@ -1,10 +1,12 @@
 from __future__ import annotations
 
-import argparse
-
-from reditools.compiled_position import RTResult
 from reditools.tools.analyze import rtchecks
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import argparse
+    from reditools.compiled_position import RTResult
 
 class RTChecks(object):
     """Manage and execute a suite of checks on RNA editing results.

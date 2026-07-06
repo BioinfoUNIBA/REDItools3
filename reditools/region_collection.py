@@ -1,9 +1,13 @@
 from __future__ import annotations
 
-from collections import defaultdict
-from typing import DefaultDict, Iterable
+from typing import TYPE_CHECKING
 
-from reditools.region import Region
+from collections import defaultdict
+
+
+if TYPE_CHECKING:
+    from reditools.region import Region
+    from typing import DefaultDict, Iterable
 
 
 class RegionCollection:

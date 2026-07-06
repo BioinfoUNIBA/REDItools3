@@ -1,12 +1,16 @@
 from __future__ import annotations
 
-from typing import Iterator
+from typing import TYPE_CHECKING
 
-from reditools.alignment_manager import AlignmentManager
-from reditools.compiled_position import CompiledPosition, RTResult
+from reditools.compiled_position import RTResult
 from reditools.compiled_reads import CompiledReads
 from reditools.logger import Logger
-from reditools.region import Region
+
+if TYPE_CHECKING:
+    from reditools.alignment_manager import AlignmentManager
+    from typing import Iterator
+    from reditools.region import Region
+    from reditools.compiled_position import CompiledPosition
 
 """
 Set the strand property to UNSTRANDED_MODE for unstranded analysis.
