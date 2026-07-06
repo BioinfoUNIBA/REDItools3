@@ -60,8 +60,7 @@ class ReadGroupIter:
         return self.reads
 
 class FetchGroupIter:
-    """Iterator that merges multiple ReadGroupIter objects, yielding reads grouped
-    by position.
+    """Iterator that merges multiple ReadGroupIter objects.
 
     Parameters
     ----------
@@ -108,8 +107,7 @@ class FetchGroupIter:
         return bool(self.read_groups)
 
     def __next__(self) -> list[AlignedSegment]:
-        """Get the next group of reads from all alignment files for the same
-        position.
+        """Get the next group of reads from all alignment files.
 
         Returns
         -------
@@ -128,8 +126,7 @@ class FetchGroupIter:
         return list(chain(*reads))  # type: ignore[arg-type]
 
 class AlignmentManager:
-    """Manage multiple alignment files and provide unified access to reads by
-    position.
+    """Manage multiple alignment files.
 
     Parameters
     ----------

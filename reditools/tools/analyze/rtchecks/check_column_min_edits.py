@@ -10,6 +10,7 @@ if TYPE_CHECKING:
 
 class CheckColumnMinEdits:
     """Check if a position has a minimum number of edits per nucleotide.
+
     Specifically, checks that all non-zero, non-reference bases pass a
     given threshold.
 

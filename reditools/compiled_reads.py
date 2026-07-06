@@ -31,9 +31,10 @@ class RefFetch:
             self._refseq_fn = self.get_ref_from_read
 
     def get_refseq(self, read: AlignedSegment) -> Iterator[str]:
-        """Fetch reference sequence. If a FASTA file was provided in the
-        constructor, this function calla get_ref_from_fasta. Otherwise it
-        calls get_ref_from_read.
+        """Fetch reference sequence.
+
+        If a FASTA file was provided in the constructor, this function calls
+        get_ref_from_fasta. Otherwise it calls get_ref_from_read.
 
         Parameters
         ----------

@@ -37,8 +37,7 @@ class RegionCollection:
         self._sorted = True
 
     def contains(self, contig: str, position: int) -> bool:
-        """Check if a given position is contained within any region of the
-        collection.
+        """Check if a given position is contained within the collection.
 
         This method only works if each subsequent call is done in sorted order.
         Otherwise the output will be inconsistent.
@@ -107,8 +106,9 @@ class RegionCollection:
         return self._regions[contig]
 
     def reset(self) -> None:
-        """Restart the search parameters. RegionCollection requires checks be
-        done in order. This moves the checks back to the beginning of the
-        collections.
+        """Restart the search parameters.
+        
+        RegionCollection requires checks be done in order. This function moves
+        the checks back to the beginning of the collections.
         """
         self._last_contig = None

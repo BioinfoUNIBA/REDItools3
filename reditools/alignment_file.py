@@ -216,8 +216,7 @@ class RTAlignmentFile:
         self,
         region: Region | str,
     ) -> Iterator[list[AlignedSegment]]:
-        """Fetch reads from the alignment file grouped by their reference start
-        position.
+        """Fetch reads from the alignment file grouped by reference start.
 
         Parameters
         ----------
