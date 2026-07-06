@@ -100,9 +100,9 @@ class TempFileManager:
 
     def __exit__(
         self,
-        exc_type: type,
-        exc_value: Exception,
-        traceback: TracebackType,
+        typ: type[BaseException] | None,
+        exc: BaseException | None,
+        tb: TracebackType | None,
     ) -> None:
         if exc_type is None:
             self.cleanup()

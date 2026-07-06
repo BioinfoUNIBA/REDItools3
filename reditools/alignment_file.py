@@ -190,19 +190,19 @@ class RTAlignmentFile:
 
     def __exit__(
         self,
-        exc_type: type,
-        exc_value: Exception,
-        traceback: TracebackType,
+        typ: type[BaseException] | None,
+        exc:  BaseException | None,
+        tb: TracebackType | None,
     ) -> None:
         """Exit the runtime context related to this object.
 
         Parameters
         ----------
-        exc_type : type | None
+        typ : type[BaseException] | None
             The exception type.
-        exc_value : Exception | None
+        exc : BaseException | None
             The exception value.
-        traceback : TracebackType | None
+        tb : TracebackType | None
             The traceback.
         """
         self.alignment_file.close()
