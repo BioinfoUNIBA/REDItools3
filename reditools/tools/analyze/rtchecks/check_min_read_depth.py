@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import argparse
 
 from reditools.compiled_position import RTResult

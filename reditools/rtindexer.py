@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import csv
 from itertools import permutations
 from typing import Iterator
