@@ -2,97 +2,24 @@ from __future__ import annotations
 
 import argparse
 import tempfile
-from typing import Callable
+from typing import Callable, Any
 
 from reditools import reditools
 from reditools.tools.analyze.parse_args.json_args import args_from_json
+from reditools.tools.analyze.parse_args.bounded_types import (
+    bounded_int,
+    bounded_float,
+)
 
+class DNAStrandError(argparse.ArgumentTypeError):
+    def __init__(self) -> None:
+        self.message = "-N/--dna can only be used with -s/--strand 0."
+        super().__init__(self.message)
 
-def check_number_bounds(
-        number: float,
-        min_value: float | None = None,
-        max_value: float | None = None,
-) -> None:
-    """Check if a number is within specified bounds.
-
-    Parameters
-    ----------
-    number : float
-        The number to check.
-    min_value : float | None, optional
-        The minimum allowed value, by default None.
-    max_value : float | None, optional
-        The maximum allowed value, by default None.
-
-    Raises
-    ------
-    argparse.ArgumentTypeError
-        If the number is outside the specified bounds.
-    """
-    if min_value is not None and number < min_value:
-        raise argparse.ArgumentTypeError(f"Value must be at least {min_value}.")
-    if max_value is not None and number > max_value:
-        raise argparse.ArgumentTypeError(
-            f"Value cannot be larger than {max_value}.",
-        )
-
-def bounded_int(
-        min_value: int | None = None,
-        max_value: int | None = None,
-) -> Callable:
-    """Create a function that parses a string to a bounded integer.
-
-    Parameters
-    ----------
-    min_value : int | None, optional
-        The minimum allowed value, by default None.
-    max_value : int | None, optional
-        The maximum allowed value, by default None.
-
-    Returns
-    -------
-    Callable
-        A function that takes a string and returns a bounded integer.
-    """
-    def subfn(cli_value: str) -> int:  # noqa: WPS430
-        try:
-            int_value = int(cli_value)
-        except ValueError:
-            raise argparse.ArgumentTypeError(f"invalid int value: {cli_value}")
-        check_number_bounds(int_value, min_value, max_value)
-        return int_value
-    return subfn
-
-
-def bounded_float(
-        min_value: float | None = None,
-        max_value: float | None = None,
-) -> Callable:
-    """Create a function that parses a string to a bounded float.
-
-    Parameters
-    ----------
-    min_value : float | None, optional
-        The minimum allowed value, by default None.
-    max_value : float | None, optional
-        The maximum allowed value, by default None.
-
-    Returns
-    -------
-    Callable
-        A function that takes a string and returns a bounded float.
-    """
-    def subfn(cli_value: str) -> float:  # noqa: WPS430
-        try:
-            float_value = float(cli_value)
-        except ValueError:
-            raise argparse.ArgumentTypeError(
-                f"invalid float value: {cli_value}",
-            )
-        check_number_bounds(float_value, min_value, max_value)
-        return float_value
-    return subfn
-
+class StrictConflictError(argparse.ArgumentTypeError):
+    def __init__(self) -> None:
+        self.message = "-S/--strict can only be used with -me/--min-edits 1."
+        super().__init__(self.message)
 
 def build_argument_parser() -> argparse.ArgumentParser:  # noqa: WPS213, WPS210
     """Build the argument parser for reditools analyze.
@@ -461,11 +388,11 @@ def fix_legacy_options(args: argparse.Namespace) -> None:
 
     Raises
     ------
-    Exception
+    DNAStrandError, StrictConflictError
         If mutually exclusive options are provided.
     """
     if args.strand != 0 and args.dna:
-        raise Exception("-N/--dna can only be used with -s/--strand 0.")
+        raise DNAStrandError()
     delattr(args, "dna")  # noqa: WPS421
 
     if args.exclude_multis:
@@ -474,9 +401,7 @@ def fix_legacy_options(args: argparse.Namespace) -> None:
 
     if args.strict:
         if args.min_edits != 1:
-            raise Exception(
-                "-S/--strict can only be used with -me/--min-edits 1.",
-            )
+            raise StrictConflictError()
     delattr(args, "strict")  # noqa: WPS421
 
     if args.load_omopolymeric_file:

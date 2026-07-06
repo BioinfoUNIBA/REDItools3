@@ -6,6 +6,12 @@ from typing import IO, Iterator
 from reditools.file_utils import open_stream
 from reditools.region import Region
 
+class SpliceFileFormatError(ValueError):
+    def __init__(self, file_name: str, line_number: int) -> None:
+        self.message = (
+            f"Cannot parse splice file entry ({file_name}:{line_number})"
+        )
+        super().__init__(self.message)
 
 def _read_splice_sites(  # noqa: WPS231
         stream: IO,
@@ -14,16 +20,15 @@ def _read_splice_sites(  # noqa: WPS231
     for idx, row in enumerate(reader, start=1):
         if row[0].startswith("#"):
             continue
-        try:  # noqa: WPS229
-            assert len(row) == 5
-            assert row[3] in ("A", "D")
-            assert row[4] in ("+", "-")
+        if len(row) != 5 or \
+                row[3] not in ("A", "D") or \
+                row[4] not in ("+", "-"):
+            raise SpliceFileFormatError(stream.name, idx)
+        try:
             position = int(row[1])
-            yield (row[0], position, row[3], row[4])
-        except (AssertionError, ValueError) as exc:
-            raise ValueError(
-                f"Cannot parse splice file entry ({stream.name}:{idx})",
-            ) from exc
+        except ValueError as exc:
+            raise SpliceFileFormatError(stream.name, idx) from exc
+        yield (row[0], position, row[3], row[4])
 
 def _splice_site_to_region(
         contig: str,

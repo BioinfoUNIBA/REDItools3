@@ -14,6 +14,11 @@ if TYPE_CHECKING:
 
     from reditools.region import Region
 
+class UninitializedError(AttributeError):
+    def __init__(self) -> None:
+        self.message = "REDIThreadManager not initialized."
+        super().__init__(self.message)
+
 class REDIThread:
     def __init__(self, options: argparse.Namespace) -> None:
         """Worker thread function for parallel REDItools analysis.
@@ -85,7 +90,7 @@ class REDIThreadManager:
         """
 
         if cls.thread is None:
-            raise AttributeError("REDIThreadManager not initialized.")
+            raise UninitializedError()
         done_file = f"{filename}.done"
         if not Path(done_file).exists():
             cls.thread.analyze(region, filename)

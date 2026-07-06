@@ -12,6 +12,11 @@ from reditools.tools.annotate.parse_args import parse_args
 
 _contig = "Region"
 
+class UnsortedInputError(ValueError):
+    def __init__(self, file_name: str) -> None:
+        self.message = f"File {file_name} does not appear to be in sorted order"
+        super().__init__(self.message)
+
 def contig_order_from_bam(bam_fname: str) -> dict[str, int]:
     """Get contig order from a BAM file.
 
@@ -66,7 +71,7 @@ def contig_order_from_out(out_fname: str) -> dict[str, int]:
 
     Raises
     ------
-    ValueError
+    UnsortedInputError
         If the file does not appear to be in sorted order.
     """
     contigs: dict[str, int] = {}
@@ -76,10 +81,7 @@ def contig_order_from_out(out_fname: str) -> dict[str, int]:
         for row in reader:
             if row[_contig] != last_contig:
                 if row[_contig] in contigs:
-                    raise ValueError(
-                        f"File {out_fname} does not appear to be in sorted "
-                        "order.",
-                    )
+                    raise UnsortedInputError(out_fname)
                 contigs[row[_contig]] = len(contigs) + 1
                 last_contig = row[_contig]
     return contigs

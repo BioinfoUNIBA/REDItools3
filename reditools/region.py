@@ -6,6 +6,39 @@ from dataclasses import dataclass
 from pysam import AlignmentFile
 
 
+class RegionSplitError(IndexError):
+    def __init__(self) -> None:
+        self.message = "Can only split a region with a start and stop."
+        super().__init__(self.message)
+
+class RegionBadStartError(ValueError):
+    def __init__(self, bad_start: int) -> None:
+        self.message = (
+            f"Start position ({bad_start}) must be greater than or equal to one"
+        )
+        super().__init__(self.message)
+
+class RegionNeedsAlignmentError(ValueError):
+    def __init__(self) -> None:
+        self.message = (
+            "An alignment file must be provided if no stop position "
+            "is present in the region string."
+        )
+        super().__init__(self.message)
+
+class RegionStartPastStopError(ValueError):
+    def __init__(self, start: int, stop: int) -> None:
+        self.message = (
+            f"Stop position ({stop}) must be greater than or "
+            f"equal to start ({start}).",
+        )
+        super().__init__(self.message)
+
+class RegionFormatError(ValueError):
+    def __init__(self, region_str: str) -> None:
+        self.message = f"Unrecognized format: {region_str}."
+        super().__init__(self.message)
+
 @dataclass(slots=True, order=True, frozen=True)
 class Region:
     """Represent a genomic region.
@@ -54,11 +87,11 @@ class Region:
 
         Raises
         ------
-        IndexError
+        RegionSplitError
             If either start or stop is None.
         """
         if self.stop is None or self.start is None:
-            raise IndexError("Can only split a region with a start and stop.")
+            raise RegionSplitError()
         sub_regions = []
         for new_start in range(self.start, self.stop, window):
             sub_regions.append(Region(
@@ -92,30 +125,25 @@ class Region:
 
         Raises
         ------
-        ValueError
-            If start is less than 0 or if stop is less than or equal to start.
+        RegionBadStartError
+            If region start is less than 0.
+        RegionNeedsAlignmentError
+            If region stop is None and alignment_file is None.
+        RegionStartPastStopError
+            if the region start is equal to or greater than region stop.
         """
         contig, start, stop = Region.parse_string(region_str)
         if start is None:
             start = 0
         elif start < 0:
-            raise ValueError(
-                f"Start position ({start}) must be greater than or "
-                "equal to one.",
-            )
+            raise RegionBadStartError(start)
         if stop is None:
             if alignment_file is None:
-                raise ValueError(
-                    "An alignment file must be provided if no stop position "
-                    "is present in the region string.",
-                )
+                raise RegionNeedsAlignmentError()
             with AlignmentFile(alignment_file, ignore_truncation=True) as bam:
                 stop = bam.get_reference_length(contig)
         if stop <= start:
-            raise ValueError(
-                f"Stop position ({stop}) must be greater than or "
-                f"equal to start ({start}).",
-            )
+            raise RegionStartPastStopError(start, stop)
         return Region(contig, start, stop)
 
     @classmethod
@@ -136,7 +164,7 @@ class Region:
 
         Raises
         ------
-        ValueError
+        RegionFormatError
             If the region string format is unrecognized.
         """
         if region_str is None:
@@ -146,7 +174,7 @@ class Region:
         )
         match = pa.fullmatch(region_str)
         if match is None:
-            raise ValueError(f"Unrecognized format: {region_str}.")
+            raise RegionFormatError(region_str)
         contig, start, stop = match.group("contig", "start", "stop")
 
         if start is None:

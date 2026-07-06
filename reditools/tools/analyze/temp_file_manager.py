@@ -78,13 +78,7 @@ class TempFileManager:
         )
 
     def cleanup(self) -> None:
-        """Delete the *.done files, cli JSON, and region CSV files.
-
-        Raises
-        ------
-        OSError
-            If the temporary directory cannot be emptied.
-        """
+        """Delete the *.done files, cli JSON, and region CSV files."""
         for _, filename in self.region_file_list:
             os.remove(f"{filename}.done")
 

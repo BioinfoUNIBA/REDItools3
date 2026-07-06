@@ -5,6 +5,10 @@ from typing import IO, Iterator
 
 from reditools import file_utils
 
+class AnalyzeMismatchError(ValueError):
+    def __init__(self) -> None:
+        self.message = "Files do not appear to use the same reference."
+        super().__init__(self.message)
 
 class RTAnnotater:
     """Class to annotate RNA editing sites with DNA data.
@@ -132,7 +136,7 @@ class RTAnnotater:
             if self.do_complement:
                 self.complement(dna_row)
         elif rna_row[self.ref_key] !=  dna_row[self.ref_key]:
-            raise ValueError("Files do not appear to use the same reference.")
+            raise AnalyzeMismatchError()
         rna_row["gCoverage"] = dna_row["Coverage"]
         rna_row["gMeanQ"] = dna_row["MeanQ"]
         rna_row["gBaseCount[A,C,G,T]"] = dna_row[self.bases_key]

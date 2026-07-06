@@ -8,6 +8,12 @@ if TYPE_CHECKING:
 
     from reditools.compiled_position import RTResult
 
+
+class BadVariantError(ValueError):
+    def __init__(self, bad_alt: str) -> None:
+        self.message = f"Bad variant ({bad_alt}). Must be two bases (e.g. AG)."
+        super().__init__(self.message)
+
 class CheckVariants:
     """Check if detected variants match specified allowed variants.
 
@@ -27,7 +33,7 @@ class CheckVariants:
 
         Raises
         ------
-        ValueError
+        BadVariantError
             If a variant is not exactly two bases (e.g., 'AG').
         """
         pa = re.compile("[ATCG]{2}", re.IGNORECASE)
@@ -36,9 +42,7 @@ class CheckVariants:
             None,
         )
         if bad_alt is not None:
-            raise ValueError(
-                f"Bad variant ({bad_alt}). Must be two bases (e.g. AG).",
-            )
+            raise BadVariantError(bad_alt)
         self.variants = {_.upper() for _ in options.variants}
 
     @classmethod

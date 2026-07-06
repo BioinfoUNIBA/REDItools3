@@ -6,6 +6,19 @@ from typing import Iterator
 from pysam.libcfaidx import FastaFile as PysamFastaFile
 
 
+class MissingContigError(KeyError):
+    def __init__(self, contig_name: str) -> None:
+        self.message = f'Reference name {contig_name} not found in FASTA file.'
+        super().__init__(self.message)
+
+class PastContigEndError(IndexError):
+    def __init__(self, contig_name: str, position: int) -> None:
+        self.message = (
+            f"Base position {position} is outside the bounds of "
+            "{contig}. Are you using the correct reference?"
+        )
+        super().__init__(self.message)
+
 class RTFastaFile:
     """A wrapper around pysam.FastaFile for genomic sequence access."""
 
@@ -60,9 +73,9 @@ class RTFastaFile:
 
         Raises
         ------
-        KeyError
+        MissingContigError
             If the contig is not found in the FASTA file.
-        IndexError
+        PastContigEndError
             If a position is outside the bounds of the contig.
         """
 
@@ -72,9 +85,7 @@ class RTFastaFile:
             else:
                 new_contig = f"chr{contig}"
             if new_contig not in self.pysam_fasta_file:
-                raise KeyError(
-                    f"Reference name {contig} not found in FASTA file.",
-                )
+                raise MissingContigError(contig)
             contig = new_contig
         sorted_pos = sorted(position)
         seq = self.pysam_fasta_file.fetch(
@@ -85,7 +96,4 @@ class RTFastaFile:
         try:
             return (seq[_ - sorted_pos[0]].upper() for _ in position)
         except IndexError as exc:
-            raise IndexError(
-                f"Base position {position} is outside the bounds of " +
-                "{contig}. Are you using the correct reference?",
-            ) from exc
+            raise PastContigEndError(contig, max(position)) from exc
