@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import argparse
-from typing import Any, Callable
+from typing import Callable
 
 
 class ValueBelowMinimumError(argparse.ArgumentTypeError):
@@ -15,7 +15,7 @@ class ValueAboveMaximumError(argparse.ArgumentTypeError):
         super().__init__(self.message)
 
 class CastValueError(argparse.ArgumentTypeError):
-    def __init__(self, typ: str, cli_val: Any) -> None:
+    def __init__(self, typ: str, cli_val: str) -> None:  # noqa: ANN401
         self.message = f"Invalid {typ} value: {cli_val}"
         super().__init__(self.message)
 

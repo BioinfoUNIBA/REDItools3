@@ -157,7 +157,7 @@ class RTAlignmentFile:
             min_quality: int=0,
             min_length: int=0,
             excluded_read_names: Collection[str] | None=None,
-            **kwargs: Any,
+            **kwargs: Any,  # noqa: ANN401
     ) -> None:
         """Initialize the RTAlignmentFile.
 
