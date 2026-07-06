@@ -6,8 +6,7 @@ from typing import Any
 
 
 class Logger:
-    """
-    Handle logging operations with different severity levels.
+    """Handle logging operations with different severity levels.
 
     Attriutes
     ----------
@@ -24,8 +23,7 @@ class Logger:
     debug_level = "DEBUG"
 
     def __init__(self, level: str):
-        """
-        Initialize the Logger with a specified logging level.
+        """Initialize the Logger with a specified logging level.
 
         Parameters
         ----------
@@ -61,8 +59,7 @@ class Logger:
 
     @property
     def level(self) -> str:
-        """
-        Get the current logging level.
+        """Get the current logging level.
 
         Returns
         -------

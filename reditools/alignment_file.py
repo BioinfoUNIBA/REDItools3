@@ -10,8 +10,7 @@ from reditools.region import Region
 
 
 class ReadQC:
-    """
-    Perform quality control checks on aligned reads.
+    """Perform quality control checks on aligned reads.
 
     Parameters
     ----------
@@ -30,8 +29,7 @@ class ReadQC:
             min_length: int,
             excluded_read_names: Collection[str] | None,
     ):
-        """
-        Initialize the ReadQC with quality and length thresholds.
+        """Initialize the ReadQC with quality and length thresholds.
 
         Parameters
         ----------
@@ -56,8 +54,7 @@ class ReadQC:
             self.check_list.append(self.check_excluded_read_names)
 
     def check_baseline(self, read: AlignedSegment) -> bool:
-        """
-        Check if the read passes baseline flag and tag requirements.
+        """Check if the read passes baseline flag and tag requirements.
 
         Parameters
         ----------
@@ -72,8 +69,7 @@ class ReadQC:
         return read.flag in self._flags_to_keep and not read.has_tag("SA")
     
     def check_quality(self, read: AlignedSegment) -> bool:
-        """
-        Check if the read passes the minimum mapping quality threshold.
+        """Check if the read passes the minimum mapping quality threshold.
 
         Parameters
         ----------
@@ -88,8 +84,7 @@ class ReadQC:
         return read.mapping_quality >= self.min_quality
 
     def check_length(self, read: AlignedSegment) -> bool:
-        """
-        Check if the read passes the minimum length threshold.
+        """Check if the read passes the minimum length threshold.
 
         Parameters
         ----------
@@ -104,8 +99,7 @@ class ReadQC:
         return read.query_length >= self.min_length
 
     def check_excluded_read_names(self, read: AlignedSegment) -> bool:
-        """
-        Check if the read name is not in the excluded list.
+        """Check if the read name is not in the excluded list.
 
         Parameters
         ----------
@@ -120,8 +114,7 @@ class ReadQC:
         return read.query_name not in self.excluded_read_names  # type: ignore
 
     def run_check(self, read: AlignedSegment) -> bool:
-        """
-        Run all configured quality control checks on the read.
+        """Run all configured quality control checks on the read.
 
         Parameters
         ----------
@@ -137,8 +130,7 @@ class ReadQC:
 
 
 class RTAlignmentFile:
-    """
-    A wrapper around pysam.AlignmentFile with integrated quality control.
+    """A wrapper around pysam.AlignmentFile with integrated quality control.
 
     Parameters
     ----------
@@ -162,8 +154,7 @@ class RTAlignmentFile:
             excluded_read_names: Collection[str] | None=None,
             **kwargs: Any,
     ) -> None:
-        """
-        Initialize the RTAlignmentFile.
+        """Initialize the RTAlignmentFile.
 
         Parameters
         ----------
@@ -184,8 +175,7 @@ class RTAlignmentFile:
         self.readqc = ReadQC(min_quality, min_length, excluded_read_names)
 
     def __enter__(self):  # type: ignore
-        """
-        Enter the runtime context related to this object.
+        """Enter the runtime context related to this object.
 
         Returns
         -------
@@ -200,8 +190,7 @@ class RTAlignmentFile:
         exc_value: Exception,
         traceback: TracebackType,
     ) -> None:
-        """
-        Exit the runtime context related to this object.
+        """Exit the runtime context related to this object.
 
         Parameters
         ----------
@@ -218,8 +207,7 @@ class RTAlignmentFile:
         self,
         region: Region | str,
     ) -> Iterator[list[AlignedSegment]]:
-        """
-        Fetch reads from the alignment file grouped by their reference start
+        """Fetch reads from the alignment file grouped by their reference start
         position.
 
         Parameters

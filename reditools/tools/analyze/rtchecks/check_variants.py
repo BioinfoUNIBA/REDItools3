@@ -7,8 +7,7 @@ from reditools.compiled_position import RTResult
 
 
 class CheckVariants:
-    """
-    Check if detected variants match specified allowed variants.
+    """Check if detected variants match specified allowed variants.
 
     Parameters
     ----------
@@ -17,8 +16,7 @@ class CheckVariants:
     """
 
     def __init__(self, options: argparse.Namespace):
-        """
-        Initialize CheckVariants with allowed variants.
+        """Initialize CheckVariants with allowed variants.
 
         Parameters
         ----------
@@ -43,8 +41,7 @@ class CheckVariants:
 
     @classmethod
     def is_needed(cls, options: argparse.Namespace) -> bool:
-        """
-        Determine if the variant check is required.
+        """Determine if the variant check is required.
 
         Parameters
         ----------
@@ -60,8 +57,7 @@ class CheckVariants:
         return "ALL" not in [_.upper() for _ in options.variants]
 
     def run_check(self, rtresult: RTResult) -> None | tuple:
-        """
-        Verify that detected variants are among the allowed ones.
+        """Verify that detected variants are among the allowed ones.
 
         Parameters
         ----------

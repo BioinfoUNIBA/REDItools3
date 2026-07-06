@@ -9,8 +9,7 @@ def args_to_json(
     dirname: str,
     filename: str=json_args_filename,
 ) -> None:
-    """
-    Save commandline arguments to a JSON file.
+    """Save commandline arguments to a JSON file.
 
     Parameters:
         options : argparse.Namespace
@@ -27,8 +26,7 @@ def args_from_json(
     dirname: str,
     filename: str=json_args_filename,
 ) -> argparse.Namespace:
-    """
-    Load commandline arguments from a JSON file.
+    """Load commandline arguments from a JSON file.
 
     Parameters
     ----------

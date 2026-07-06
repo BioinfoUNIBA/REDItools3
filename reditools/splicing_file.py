@@ -48,8 +48,7 @@ def load_splicing_file(
         splicing_file: str,
         splicing_span: int,
 ) -> Iterator[Region]:
-    """
-    Load genomic regions around splice sites from a file.
+    """Load genomic regions around splice sites from a file.
 
     Splice site files are space delimited and have five columns:
     1. Chromosome/contig

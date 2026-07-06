@@ -14,8 +14,7 @@ def open_stream(  # type: ignore
         mode: str="rt",
         encoding: str="utf-8",
 ):
-    """
-    Open a file stream, handling both plain and gzipped files.
+    """Open a file stream, handling both plain and gzipped files.
 
     Parameters
     ----------
@@ -37,8 +36,7 @@ def open_stream(  # type: ignore
 
 
 def read_bed_file(*path: str) -> Iterator[Region]:
-    """
-    Read genomic regions from one or more BED files.
+    """Read genomic regions from one or more BED files.
 
     Parameters
     ----------
@@ -71,8 +69,7 @@ def concat(
         clean_up: bool=True,
         encoding: str="utf-8",
 ) -> None:
-    """
-    Concatenate multiple files into a single output stream.
+    """Concatenate multiple files into a single output stream.
 
     Parameters
     ----------
@@ -95,8 +92,7 @@ def concat(
 
 
 def load_text_file(file_name: str) -> list[str]:
-    """
-    Load lines from a text file into a list, stripping whitespace.
+    """Load lines from a text file into a list, stripping whitespace.
 
     Parameters
     ----------
@@ -112,8 +108,7 @@ def load_text_file(file_name: str) -> list[str]:
         return [line.strip() for line in stream]
 
 def make_dir(prefix: str | None=None, dir: str | None=None) -> str:
-    """
-    Creates a folder.
+    """Creates a folder.
 
     Parameters
     ----------

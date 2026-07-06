@@ -10,8 +10,7 @@ from reditools.region import Region
 
 
 class ReadGroupIter:
-    """
-    Iterator over groups of reads sharing the same reference start position.
+    """Iterator over groups of reads sharing the same reference start position.
 
     Parameters
     ----------
@@ -21,8 +20,7 @@ class ReadGroupIter:
     __slots__ = ("iterator", "reads", "reference_start")
 
     def __init__(self, iterator: Iterator):
-        """
-        Initialize the ReadGroupIter.
+        """Initialize the ReadGroupIter.
 
         Parameters
         ----------
@@ -33,8 +31,7 @@ class ReadGroupIter:
         next(self)
 
     def __bool__(self) -> bool:
-        """
-        Check if there are more reads.
+        """Check if there are more reads.
 
         Returns
         -------
@@ -44,8 +41,7 @@ class ReadGroupIter:
         return bool(self.reads)
 
     def __next__(self) -> list[AlignedSegment] | None:
-        """
-        Get the next group of reads.
+        """Get the next group of reads.
 
         Returns
         -------
@@ -60,8 +56,7 @@ class ReadGroupIter:
         return self.reads
 
 class FetchGroupIter:
-    """
-    Iterator that merges multiple ReadGroupIter objects, yielding reads grouped
+    """Iterator that merges multiple ReadGroupIter objects, yielding reads grouped
     by position.
 
     Parameters
@@ -71,8 +66,7 @@ class FetchGroupIter:
     """
 
     def __init__(self, fetch_iters: list[Iterator]):
-        """
-        Initialize the FetchGroupIter.
+        """Initialize the FetchGroupIter.
 
         Parameters
         ----------
@@ -86,8 +80,7 @@ class FetchGroupIter:
                 self.read_groups.append(rgi)
 
     def __iter__(self) -> Iterator[list[AlignedSegment]]:
-        """
-        Return the iterator object itself.
+        """Return the iterator object itself.
 
         Returns
         -------
@@ -98,8 +91,7 @@ class FetchGroupIter:
             yield next(self)
 
     def __bool__(self) -> bool:
-        """
-        Check if there are more read groups.
+        """Check if there are more read groups.
 
         Returns
         -------
@@ -109,8 +101,7 @@ class FetchGroupIter:
         return bool(self.read_groups)
 
     def __next__(self) -> list[AlignedSegment]:
-        """
-        Get the next group of reads from all alignment files for the same
+        """Get the next group of reads from all alignment files for the same
         position.
 
         Returns
@@ -130,8 +121,7 @@ class FetchGroupIter:
         return list(chain(*reads))  # type: ignore
 
 class AlignmentManager:
-    """
-    Manage multiple alignment files and provide unified access to reads by
+    """Manage multiple alignment files and provide unified access to reads by
     position.
 
     Parameters
@@ -149,8 +139,7 @@ class AlignmentManager:
             min_quality: int=0,
             min_length: int=0,
     ):  # noqa: WPS475
-        """
-        Initialize the AlignmentManager.
+        """Initialize the AlignmentManager.
 
         Parameters
         ----------
@@ -169,8 +158,7 @@ class AlignmentManager:
         self.min_length = min_length
 
     def add_file(self, fname: str) -> None:
-        """
-        Add an alignment file to the manager.
+        """Add an alignment file to the manager.
 
         Parameters
         ----------
@@ -190,8 +178,7 @@ class AlignmentManager:
         self,
         region: Region | str,
     ) -> Iterable[list[AlignedSegment]]:
-        """
-        Fetch reads from all managed files, grouped by position.
+        """Fetch reads from all managed files, grouped by position.
 
         Parameters
         ----------

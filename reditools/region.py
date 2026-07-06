@@ -8,8 +8,7 @@ from pysam import AlignmentFile
 
 @dataclass(slots=True, order=True, frozen=True)
 class Region:
-    """
-    Represent a genomic region.
+    """Represent a genomic region.
 
     Parameters
     ----------
@@ -26,8 +25,7 @@ class Region:
     stop: int
 
     def __str__(self) -> str:
-        """
-        Return a string representation of the region.
+        """Return a string representation of the region.
 
         Returns
         -------
@@ -42,8 +40,7 @@ class Region:
         return f"{self.contig}:{one_idx_start}-{self.stop}"
 
     def split(self, window: int) -> list["Region"]:
-        """
-        Split the region into smaller sub-regions of a specified window size.
+        """Split the region into smaller sub-regions of a specified window size.
 
         Parameters
         ----------
@@ -76,8 +73,7 @@ class Region:
         region_str: str,
         alignment_file: str | None=None,
     ) -> "Region":
-        """
-        Create a Region object from a string and an alignment file.
+        """Create a Region object from a string and an alignment file.
 
         Parameters
         ----------
@@ -123,8 +119,7 @@ class Region:
 
     @classmethod
     def parse_string(cls, region_str: str) -> tuple[str, int, int | None]:
-        """
-        Parse a region string into its components.
+        """Parse a region string into its components.
 
         Parameters
         ----------

@@ -7,14 +7,10 @@ from reditools.region import Region
 
 
 class RegionCollection:
-    """
-    A collection of genomic regions, providing efficient ordered lookup.
-    """
+    """A collection of genomic regions, providing efficient ordered lookup."""
 
     def __init__(self) -> None:
-        """
-        Initialize an empty RegionCollection.
-        """
+        """Initialize an empty RegionCollection."""
 
         self._regions: DefaultDict[str, list[Region]] = defaultdict(list)
         self._index = 0
@@ -22,8 +18,7 @@ class RegionCollection:
         self._sorted = False
 
     def __bool__(self) -> bool:
-        """
-        Check whether the collection is empty.
+        """Check whether the collection is empty.
 
         Returns
         -------
@@ -33,16 +28,13 @@ class RegionCollection:
         return bool(self._regions)
 
     def sort(self) -> None:
-        """
-        Sort all regions within each contig.
-        """
+        """Sort all regions within each contig."""
         for contig, regions in self._regions.items():
             self._regions[contig] = sorted(regions)
         self._sorted = True
 
     def contains(self, contig: str, position: int) -> bool:
-        """
-        Check if a given position is contained within any region of the
+        """Check if a given position is contained within any region of the
         collection.
 
         This method only works if each subsequent call is done in sorted order.
@@ -85,8 +77,7 @@ class RegionCollection:
         return False
 
     def add_regions(self, regions: Iterable[Region]) -> None:
-        """
-        Add multiple regions to the collection.
+        """Add multiple regions to the collection.
 
         Parameters
         ----------
@@ -98,8 +89,7 @@ class RegionCollection:
             self._regions[_.contig].append(_)
 
     def get_contig(self, contig: str) -> list[Region]:
-        """
-        Retrieve the regions for a specific chromosome/contig.
+        """Retrieve the regions for a specific chromosome/contig.
 
         Parameters
         ----------
@@ -114,8 +104,7 @@ class RegionCollection:
         return self._regions[contig]
 
     def reset(self) -> None:
-        """
-        Restart the search parameters. RegionCollection requires checks be
+        """Restart the search parameters. RegionCollection requires checks be
         done in order. This moves the checks back to the beginning of the
         collections.
         """

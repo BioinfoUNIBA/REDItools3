@@ -27,17 +27,14 @@ REVERSE_STRAND_MODE = 2
 
 
 class REDItools:
-    """
-    Main class for running REDItools analysis.
+    """Main class for running REDItools analysis.
 
     Provides methods to set up analysis parameters and process alignment data.
     """
 
 
     def __init__(self) -> None:
-        """
-        Initialize REDItools with default parameters.
-        """
+        """Initialize REDItools with default parameters."""
         self._min_column_length = 1
         self._min_edits = 0
         self._min_edits_per_nucleotide = 0
@@ -61,8 +58,7 @@ class REDItools:
 
     @property
     def log_level(self) -> str:
-        """
-        Get the current logging level.
+        """Get the current logging level.
 
         Returns
         -------
@@ -73,8 +69,7 @@ class REDItools:
 
     @log_level.setter
     def log_level(self, level: str) -> None:
-        """
-        Set the logging level.
+        """Set the logging level.
 
         Parameters
         ----------
@@ -89,8 +84,7 @@ class REDItools:
             alignment_manager: AlignmentManager,
             region: Region,
     ) -> Iterator[RTResult]:
-        """
-        Analyze a genomic region using alignment data.
+        """Analyze a genomic region using alignment data.
 
         Parameters
         ----------
@@ -155,8 +149,7 @@ class REDItools:
         )
 
     def use_strand_correction(self) -> None:
-        """
-        Enable strand correction during analysis.
+        """Enable strand correction during analysis.
 
         Strand correction will filter reads to only those of the consensus
         strand and also report the complement of the edits and reference base
@@ -165,8 +158,7 @@ class REDItools:
         self._use_strand_correction = True
 
     def add_reference(self, reference_fname: str) -> None:
-        """
-        Add a reference FASTA file for genomic reference sequences.
+        """Add a reference FASTA file for genomic reference sequences.
 
         Parameters
         ----------

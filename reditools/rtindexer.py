@@ -16,8 +16,7 @@ class RTIndexer(object):
     _nucs = "ACGT"
 
 
-    """
-    Calculate editing indices from REDItools output.
+    """Calculate editing indices from REDItools output.
 
     Parameters
     ----------
@@ -30,8 +29,7 @@ class RTIndexer(object):
             self,
             region: tuple[str, int, int | None] | None=None,
     ):
-        """
-        Initialize the RTIndexer.
+        """Initialize the RTIndexer.
 
         Parameters
         ----------
@@ -48,8 +46,7 @@ class RTIndexer(object):
         self.region = region
 
     def add_target_from_bed(self, fname: str) -> None:
-        """
-        Add target regions from a BED file.
+        """Add target regions from a BED file.
 
         Parameters
         ----------
@@ -59,8 +56,7 @@ class RTIndexer(object):
         self.targets.add_regions(read_bed_file(fname))
 
     def add_exclusions_from_bed(self, fname: str) -> None:
-        """
-        Exclude regions from a BED file.
+        """Exclude regions from a BED file.
 
         Parameters
         ----------
@@ -70,8 +66,7 @@ class RTIndexer(object):
         self.exclusions.add_regions(read_bed_file(fname))
 
     def do_ignore(self, row: dict) -> bool:
-        """
-        Check if a row from REDItools output should be ignored.
+        """Check if a row from REDItools output should be ignored.
 
         Parameters
         ----------
@@ -103,8 +98,7 @@ class RTIndexer(object):
 
 
     def add_rt_output(self, fname: str) -> None:
-        """
-        Add base counts from a REDItools output file.
+        """Add base counts from a REDItools output file.
 
         Parameters
         ----------
@@ -126,8 +120,7 @@ class RTIndexer(object):
                     self.counts[key] = self.counts.get(key, 0) + count
 
     def calc_index(self) -> dict[str, float]:
-        """
-        Calculate editing indices for all base transitions.
+        """Calculate editing indices for all base transitions.
 
         Returns
         -------

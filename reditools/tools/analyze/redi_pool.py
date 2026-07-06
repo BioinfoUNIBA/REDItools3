@@ -13,8 +13,7 @@ def run_pool(
     options: argparse.Namespace,
     temp_filemanager: TempFileManager,
 ) -> bool:
-    """
-    Create a pool of threads and analyze the data.
+    """Create a pool of threads and analyze the data.
 
     Parameters
     ----------
@@ -57,8 +56,7 @@ def terminate_pool(
     debug: bool,
     exc: Exception,
 ) -> None:
-    """
-    Terminates a multiprocessing Pool.
+    """Terminates a multiprocessing Pool.
 
     Parameters
     ----------

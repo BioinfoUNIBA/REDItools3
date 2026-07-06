@@ -7,8 +7,7 @@ from reditools.tools.analyze import rtchecks
 
 
 class RTChecks(object):
-    """
-    Manage and execute a suite of checks on RNA editing results.
+    """Manage and execute a suite of checks on RNA editing results.
 
     Parameters
     ----------
@@ -17,8 +16,7 @@ class RTChecks(object):
     """
 
     def __init__(self, options: argparse.Namespace):
-        """
-        Initialize RTChecks with enabled check instances.
+        """Initialize RTChecks with enabled check instances.
 
         Parameters
         ----------
@@ -40,8 +38,7 @@ class RTChecks(object):
                 self.check_list.append(check(options))
 
     def check(self, rtresult: RTResult) -> None | tuple:
-        """
-        Run all enabled checks against a set of base results.
+        """Run all enabled checks against a set of base results.
 
         Parameters
         ----------

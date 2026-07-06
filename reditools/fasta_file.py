@@ -5,13 +5,10 @@ from pysam.libcfaidx import FastaFile as PysamFastaFile
 
 
 class RTFastaFile:
-    """
-    A wrapper around pysam.FastaFile for genomic sequence access.
-    """
+    """A wrapper around pysam.FastaFile for genomic sequence access."""
 
     def __init__(self, filename: str) -> None:
-        """
-        Initialize the RTFastaFile.
+        """Initialize the RTFastaFile.
 
         Parameters
         ----------
@@ -31,8 +28,7 @@ class RTFastaFile:
         exc_value: Exception,
         traceback: TracebackType,
     ) -> None:
-        """
-        Exit the runtime context related to this object.
+        """Exit the runtime context related to this object.
 
         Parameters
         ----------
@@ -46,8 +42,7 @@ class RTFastaFile:
         self.pysam_fasta_file.close()
 
     def get_base(self, contig: str, *position: int) -> Iterator[str]:
-        """
-        Retrieve bases at specified positions from a contig.
+        """Retrieve bases at specified positions from a contig.
 
         Parameters
         ----------
