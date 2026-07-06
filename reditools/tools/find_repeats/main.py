@@ -70,8 +70,10 @@ def parse_options() -> argparse.Namespace:
         "-o",
         "--output",
         default="/dev/stdout",
-        help="Destination to write results. Default is to use STDOUT. " +
-        "If the filename ends in .gz, the contents will be gzipped.",
+        help=(
+            "Destination to write results. Default is to use STDOUT. "
+            "If the filename ends in .gz, the contents will be gzipped."
+        ),
     )
 
     return parser.parse_args()

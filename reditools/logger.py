@@ -72,7 +72,7 @@ class Logger:
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         message = message.format(*args)
         sys.stderr.write(
-            f"{timestamp} [{self.hostname_string}] " +
+            f"{timestamp} [{self.hostname_string}] "
             f"[{level}] {message}\n",
         )
 
