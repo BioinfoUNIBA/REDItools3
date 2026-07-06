@@ -79,7 +79,7 @@ class Logger:
         message: str,
         *args: Any,  # noqa: ANN401
     ) -> None:
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # noqa: DTZ005
         message = message.format(*args)
         sys.stderr.write(
             f"{timestamp} [{self.hostname_string}] "

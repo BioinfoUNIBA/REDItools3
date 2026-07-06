@@ -9,16 +9,16 @@ if TYPE_CHECKING:
     from typing import Iterator
 
 
-class MissingContigError(KeyError):
+class MissingContigError(LookupError):
     def __init__(self, contig_name: str) -> None:
         self.message = f"Reference name {contig_name} not found in FASTA file."
         super().__init__(self.message)
 
-class PastContigEndError(IndexError):
+class PastContigEndError(LookupError):
     def __init__(self, contig_name: str, position: int) -> None:
         self.message = (
             f"Base position {position} is outside the bounds of "
-            "{contig}. Are you using the correct reference?"
+            f"{contig_name}. Are you using the correct reference?"
         )
         super().__init__(self.message)
 

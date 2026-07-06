@@ -5,18 +5,23 @@ from typing import Callable
 
 
 class ValueBelowMinimumError(argparse.ArgumentTypeError):
-    def __init__(self, min_value: int | float) -> None:
+    def __init__(self, min_value: float) -> None:
         self.message = f"Value must be at least {min_value}."
         super().__init__(self.message)
 
 class ValueAboveMaximumError(argparse.ArgumentTypeError):
-    def __init__(self, max_value: int | float) -> None:
+    def __init__(self, max_value: float) -> None:
         self.message = f"Value cannot be larger than {max_value}."
         super().__init__(self.message)
 
-class CastValueError(argparse.ArgumentTypeError):
-    def __init__(self, typ: str, cli_val: str) -> None:  # noqa: ANN401
-        self.message = f"Invalid {typ} value: {cli_val}"
+class CastIntError(argparse.ArgumentTypeError):
+    def __init__(self, cli_val: str) -> None:
+        self.message = f"Invalid int value: {cli_val}"
+        super().__init__(self.message)
+
+class CastFloatError(argparse.ArgumentTypeError):
+    def __init__(self, cli_val: str) -> None:
+        self.message = f"Invalid float value: {cli_val}"
         super().__init__(self.message)
 
 def check_number_bounds(
@@ -67,7 +72,7 @@ def bounded_int(
         try:
             int_value = int(cli_value)
         except ValueError as exc:
-            raise CastValueError("int", cli_value) from exc
+            raise CastIntError(cli_value) from exc
         check_number_bounds(int_value, min_value, max_value)
         return int_value
     return subfn
@@ -95,7 +100,7 @@ def bounded_float(
         try:
             float_value = float(cli_value)
         except ValueError as exc:
-            raise CastValueError("float", cli_value) from exc
+            raise CastFloatError(cli_value) from exc
         check_number_bounds(float_value, min_value, max_value)
         return float_value
     return subfn

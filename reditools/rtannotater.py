@@ -4,6 +4,7 @@ import csv
 from typing import IO, Iterator
 
 from reditools import file_utils
+from reditools.comp_map import comp_map
 
 
 class AnalyzeMismatchError(ValueError):
@@ -28,7 +29,6 @@ class RTAnnotater:
         ("gCoverage-q30", "gCoverage"),
     )
 
-    comp_map = {"A": "T", "T": "A", "C": "G", "G": "C", "-": "-"}
 
     ref_key = "Reference"
     sub_key = "AllSubs"
@@ -133,7 +133,7 @@ class RTAnnotater:
         dict[str, str]
             The annotated RNA row.
         """
-        if rna_row[self.ref_key] == self.comp_map[dna_row[self.ref_key]]:
+        if rna_row[self.ref_key] == comp_map[dna_row[self.ref_key]]:
             if self.do_complement:
                 self.complement(dna_row)
         elif rna_row[self.ref_key] !=  dna_row[self.ref_key]:
@@ -146,7 +146,7 @@ class RTAnnotater:
         return rna_row
 
     @classmethod
-    def legacy_translate(cls, row: dict[str, str]) -> dict[str, str]:
+    def legacy_translate(cls, row: dict[str, str]) -> None:
         """Translate legacy field names to current ones.
 
         Parameters
@@ -162,7 +162,6 @@ class RTAnnotater:
         for old_key, new_key in cls.legacy_map:
             if old_key in row:
                 row[new_key] = row.pop(old_key)
-        return row
 
     def merge_files(
             self,
@@ -195,17 +194,17 @@ class RTAnnotater:
 
                 while self.cmp_position(rna_entry, dna_entry) > 0:
                     dna_entry = next(dna_reader, None)
-                if self.cmp_position(rna_entry, dna_entry) == 0:
-                    assert dna_entry is not None
+                if dna_entry is not None and \
+                        self.cmp_position(rna_entry, dna_entry) == 0:
                     self.legacy_translate(dna_entry)
                     yield self.annotate_row(rna_entry, dna_entry)
                 else:
                     yield rna_entry
 
     def complement(self, row: dict[str, str]) -> dict[str, str]:
-        row[self.ref_key] = self.comp_map[row[self.ref_key]]
+        row[self.ref_key] = comp_map[row[self.ref_key]]
         row[self.sub_key] = " ".join(sorted([
-            "".join([self.comp_map[_] for _ in sub])
+            "".join([comp_map[_] for _ in sub])
             for sub in row[self.sub_key].split(" ")
         ]))
         base_counts = row[self.bases_key][1:-1].split(", ")

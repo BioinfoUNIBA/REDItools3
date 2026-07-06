@@ -23,7 +23,7 @@ def _read_splice_sites(  # noqa: WPS231
             continue
         if len(row) != 5 or \
                 row[3] not in ("A", "D") or \
-                row[4] not in ("+", "-"):
+                row[4] not in ("+", "-"):  # noqa: PLR2004
             raise SpliceFileFormatError(stream.name, idx)
         try:
             position = int(row[1])

@@ -205,7 +205,7 @@ class CompiledReads:
                 continue
             yield (ref_pos, read_base, phred, ref_base)
 
-    def _unstranded_strand(self, read: AlignedSegment) -> int:
+    def _unstranded_strand(self, read: AlignedSegment) -> int:  # noqa: ARG002
         return 2
 
     def _stranded_strand(self, read: AlignedSegment) -> int:

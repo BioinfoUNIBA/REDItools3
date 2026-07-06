@@ -25,7 +25,7 @@ class ReadQC:
     excluded_read_names : Collection[str] | None
         A collection of read names to be excluded.
     """
-    _flags_to_keep = {0, 16, 83, 99, 147, 163}
+    _flags_to_keep = frozenset([0, 16, 83, 99, 147, 163])
 
     def __init__(
             self,

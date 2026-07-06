@@ -36,7 +36,7 @@ def main() -> None:
         logger.log(logger.info_level, "Starting REDItools")
         temp_dir = file_utils.make_dir(
             prefix="reditools_",
-            dir=options.temp_dir,
+            dirname=options.temp_dir,
         )
         json_args.args_to_json(options, temp_dir)
 

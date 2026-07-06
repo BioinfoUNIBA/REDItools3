@@ -3,6 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Iterator
 
+from reditools.comp_map import comp_map
+
 
 @dataclass
 class CompiledPosition:
@@ -30,8 +32,6 @@ class CompiledPosition:
     qualities: list[int] = field(default_factory=list)
     strands: list[str] = field(default_factory=list)
     bases: list[str] = field(default_factory=list)
-
-    _comp = {"A": "T", "T": "A", "C": "G", "G": "C"}
 
     def __len__(self) -> int:
         """Return the number of bases at this position.
@@ -108,8 +108,8 @@ class CompiledPosition:
 
     def complement(self) -> None:
         """Replace all bases and the reference with their complements."""
-        self.bases = [self._comp[base] for base in self.bases]
-        self.ref = self._comp[self.ref]
+        self.bases = [comp_map[base] for base in self.bases]
+        self.ref = comp_map[self.ref]
 
 
 class RTResult:

@@ -106,14 +106,14 @@ def load_text_file(file_name: str) -> list[str]:
     with open_stream(file_name, "r") as stream:
         return [line.strip() for line in stream]
 
-def make_dir(prefix: str | None=None, dir: str | None=None) -> str:
+def make_dir(prefix: str | None=None, dirname: str | None=None) -> str:
     """Creates a folder.
 
     Parameters
     ----------
     prefix : str
         Filename prefix.
-    dir : str
+    dirname : str
         Path to folder parent.
 
     Returns
@@ -121,7 +121,7 @@ def make_dir(prefix: str | None=None, dir: str | None=None) -> str:
     str
         Path to the folder.
     """
-    with tempfile.NamedTemporaryFile(prefix=prefix, dir=dir) as stream:
+    with tempfile.NamedTemporaryFile(prefix=prefix, dir=dirname) as stream:
         valid_name = stream.name
     Path(valid_name).mkdir()
     return valid_name

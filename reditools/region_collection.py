@@ -57,17 +57,17 @@ class RegionCollection:
         if not self._sorted:
             self.sort()
             self._last_contig = contig
-            idx = 0
+            start = 0
         elif contig != self._last_contig:
             self._last_contig = contig
-            idx = 0
+            start = 0
         else:
-            idx = self._index
+            start = self._index
 
 
         for idx, region in enumerate(
-               self._regions[contig][idx:],
-               start=idx,
+               self._regions[contig][start:],
+               start=start,
         ):
             if position < region.start:
                 self._index = idx
