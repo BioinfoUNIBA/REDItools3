@@ -391,7 +391,7 @@ def fix_legacy_options(args: argparse.Namespace) -> None:
         If mutually exclusive options are provided.
     """
     if args.strand != 0 and args.dna:
-        raise DNAStrandError()
+        raise DNAStrandError
     delattr(args, "dna")  # noqa: WPS421
 
     if args.exclude_multis:
@@ -400,7 +400,7 @@ def fix_legacy_options(args: argparse.Namespace) -> None:
 
     if args.strict:
         if args.min_edits != 1:
-            raise StrictConflictError()
+            raise StrictConflictError
     delattr(args, "strict")  # noqa: WPS421
 
     if args.load_omopolymeric_file:

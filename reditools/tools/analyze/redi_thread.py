@@ -90,7 +90,7 @@ class REDIThreadManager:
         """
 
         if cls.thread is None:
-            raise UninitializedError()
+            raise UninitializedError
         done_file = f"{filename}.done"
         if not Path(done_file).exists():
             cls.thread.analyze(region, filename)

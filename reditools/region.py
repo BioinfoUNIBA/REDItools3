@@ -91,7 +91,7 @@ class Region:
             If either start or stop is None.
         """
         if self.stop is None or self.start is None:
-            raise RegionSplitError()
+            raise RegionSplitError
         return [
             Region(
                 contig=self.contig,
@@ -139,7 +139,7 @@ class Region:
             raise RegionBadStartError(start)
         if stop is None:
             if alignment_file is None:
-                raise RegionNeedsAlignmentError()
+                raise RegionNeedsAlignmentError
             with AlignmentFile(alignment_file, ignore_truncation=True) as bam:
                 stop = bam.get_reference_length(contig)
         if stop <= start:
