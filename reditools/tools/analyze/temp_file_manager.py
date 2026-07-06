@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import csv
-import os
+from pathlib import Path
 import sys
 import tempfile
 from types import TracebackType
@@ -33,21 +33,21 @@ class TempFileManager:
                 for _ in regions
             ]
             self.region_file_list = list(zip(regions, temp_files))
-            with open(os.path.join(
-                self.dirpath,
-                save_file,
-            ), "w") as stream:
+            with Path(self.dirpath, save_file).open("w") as stream:
                 writer = csv.writer(stream)
                 writer.writerow(["Region", "Filename"])
                 for region, filename in self.region_file_list:
-                    writer.writerow([region, os.path.basename(filename)])
+                    writer.writerow([
+                        region,
+                        Path(filename).name,
+                    ])
         else:
-            with open(os.path.join(self.dirpath, save_file), "r") as stream:
+            with Path(self.dirpath, save_file).open("r") as stream:
                 reader = csv.DictReader(stream)
                 self.region_file_list = [
                     (
                         Region.from_string(row["Region"]),
-                        os.path.join(self.dirpath, row["Filename"]),
+                        str(Path(self.dirpath, row["Filename"])),
                     )
                     for row in reader
                 ]
@@ -80,12 +80,12 @@ class TempFileManager:
     def cleanup(self) -> None:
         """Delete the *.done files, cli JSON, and region CSV files."""
         for _, filename in self.region_file_list:
-            os.remove(f"{filename}.done")
+            Path(f"{filename}.done").unlink()
 
         for temp_file in (json_args.json_args_filename, save_file):
-            os.remove(os.path.join(self.dirpath, temp_file))
+            Path(self.dirpath, temp_file).unlink()
         try:
-            os.rmdir(self.dirpath)
+            Path(self.dirpath).rmdir()
         except OSError as exc:
             sys.stderr.write(
                 "[WARNING] Could not delete temporary files directory "

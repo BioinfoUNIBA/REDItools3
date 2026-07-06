@@ -1,7 +1,6 @@
 from __future__ import annotations
-
+from pathlib import Path
 import csv
-import os
 import tempfile
 from gzip import open as gzip_open
 from typing import IO, Iterator
@@ -32,8 +31,7 @@ def open_stream(  # type: ignore[no-untyped-def]
     """
     if path.endswith("gz"):
         return gzip_open(path, mode, encoding=encoding)
-    return open(path, mode, encoding=encoding)  # noqa: WPS515
-
+    return Path(path).open(mode, encoding=encoding)  # noqa: WPS515
 
 def read_bed_file(*path: str) -> Iterator[Region]:
     """Read genomic regions from one or more BED files.
@@ -84,11 +82,11 @@ def concat(
         The encoding to use when reading files (default is 'utf-8').
     """
     for fname in fnames:
-        with open(fname, "r", encoding=encoding) as stream:
+        with Path(fname).open("r", encoding=encoding) as stream:
             for line in stream:
                 output.write(line)
         if clean_up:
-            os.remove(fname)
+            Path(fname).unlink()
 
 
 def load_text_file(file_name: str) -> list[str]:
@@ -124,6 +122,6 @@ def make_dir(prefix: str | None=None, dir: str | None=None) -> str:
     """
     with tempfile.NamedTemporaryFile(prefix=prefix, dir=dir) as stream:
         valid_name = stream.name
-    os.mkdir(valid_name)
+    Path(valid_name).mkdir()
     return valid_name
 

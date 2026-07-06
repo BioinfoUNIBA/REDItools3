@@ -1,6 +1,6 @@
 import csv
 from typing import Callable, Iterator
-
+from pathlib import Path
 from reditools.compiled_position import RTResult
 from reditools.logger import Logger
 from reditools.tools.analyze.rtchecks import RTChecks
@@ -26,7 +26,7 @@ def write_results(
     logger : Callable
         The logger function for debug messages.
     """
-    with open(filename, "w") as stream:
+    with Path(filename).open("w") as stream:
         writer = csv.writer(stream, delimiter="\t", lineterminator="\n")
         for rt_result in rtresults:
             msg = filters.check(rt_result)

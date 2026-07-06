@@ -1,6 +1,7 @@
 import argparse
 import json
 import os
+from pathlib import Path
 
 json_args_filename = "cli_args.json"
 
@@ -19,7 +20,8 @@ def args_to_json(
         filename : str
             Name of the file (defaults to json_args_filename)
     """
-    with open(os.path.join(dirname, filename), "w") as stream:
+    json_path = Path(dirname) / filename
+    with json_path.open("w") as stream:
         json.dump(vars(options), stream)  # noqa: WPS421
 
 def args_from_json(
@@ -40,6 +42,7 @@ def args_from_json(
     argparse.Namespace
         Commandline arguments for reditools analyze
     """
-    with open(os.path.join(dirname, filename), "r") as stream:
+    json_path = Path(dirname) / filename
+    with json_path.open("r") as stream:
         json_args = json.load(stream)
     return argparse.Namespace(**json_args)
