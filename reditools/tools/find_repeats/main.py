@@ -23,7 +23,7 @@ def find_homo_seqs(seq: str, length: int = 5) -> Iterator[tuple[int, int, str]]:
     Iterator[tuple[int, int, str]]
         A tuple containing (start, end, base) for each homopolymeric sequence.
     """
-    h_base = ''
+    h_base = ""
     start = 0
     count = 0
 
@@ -50,26 +50,26 @@ def parse_options() -> argparse.Namespace:
     """
     parser = argparse.ArgumentParser(
         prog="reditools find-repeats",
-        description='REDItools3',
+        description="REDItools3",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
-        'file',
-        help='The fasta file to be analyzed',
+        "file",
+        help="The fasta file to be analyzed",
     )
     parser.add_argument(
-        '-l',
-        '--min-length',
+        "-l",
+        "--min-length",
         type=int,
         default=5,
-        help='Minimum length of repeat region',
+        help="Minimum length of repeat region",
     )
     parser.add_argument(
-        '-o',
-        '--output',
-        default='/dev/stdout',
-        help='Destination to write results. Default is to use STDOUT. ' +
-        'If the filename ends in .gz, the contents will be gzipped.',
+        "-o",
+        "--output",
+        default="/dev/stdout",
+        help="Destination to write results. Default is to use STDOUT. " +
+        "If the filename ends in .gz, the contents will be gzipped.",
     )
 
     return parser.parse_args()
@@ -113,11 +113,11 @@ def main() -> None:
     if options.output:
         stream = file_utils.open_stream(
             options.output,
-            'wt',
-            encoding='utf-8',
+            "wt",
+            encoding="utf-8",
         )
     else:
         stream = sys.stdout
 
-    writer = csv.writer(stream, delimiter='\t')
+    writer = csv.writer(stream, delimiter="\t")
     writer.writerows(iter_homo_output(fasta, options.min_length))

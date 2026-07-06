@@ -28,7 +28,7 @@ def main() -> None:
             indexer.add_target_from_bed(_)
 
     if options.output_file:
-        stream = open_stream(options.output_file, 'w')
+        stream = open_stream(options.output_file, "w")
     else:
         stream = sys.stdout
 
@@ -36,8 +36,8 @@ def main() -> None:
         indexer.add_rt_output(_)
 
     for nuc, idx in sorted(indexer.calc_index().items()):
-        stream.write(f'{nuc}\t{idx}\n')
+        stream.write(f"{nuc}\t{idx}\n")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -36,11 +36,11 @@ class Region:
         one_idx_start = self.start + 1
         if self.stop is None:
             if self.start > 0:
-                return f'{self.contig}:{one_idx_start}'
+                return f"{self.contig}:{one_idx_start}"
             return self.contig
-        return f'{self.contig}:{one_idx_start}-{self.stop}'
+        return f"{self.contig}:{one_idx_start}-{self.stop}"
 
-    def split(self, window: int) -> list['Region']:
+    def split(self, window: int) -> list["Region"]:
         """
         Split the region into smaller sub-regions of a specified window size.
 
@@ -60,7 +60,7 @@ class Region:
             If either start or stop is None.
         """
         if self.stop is None or self.start is None:
-            raise IndexError('Can only split a region with a start and stop.')
+            raise IndexError("Can only split a region with a start and stop.")
         sub_regions = []
         for new_start in range(self.start, self.stop, window):
             sub_regions.append(Region(
@@ -74,7 +74,7 @@ class Region:
         cls,
         region_str: str,
         alignment_file: str | None=None,
-    ) -> 'Region':
+    ) -> "Region":
         """
         Create a Region object from a string and an alignment file.
 
@@ -102,21 +102,21 @@ class Region:
             start = 0
         elif start < 0:
             raise ValueError(
-                f'Start position ({start}) must be greater than or '
-                'equal to one.',
+                f"Start position ({start}) must be greater than or "
+                "equal to one.",
             )
         if stop is None:
             if alignment_file is None:
                 raise ValueError(
-                    'An alignment file must be provided if no stop position '
-                    'is present in the region string.'
+                    "An alignment file must be provided if no stop position "
+                    "is present in the region string."
                 )
             with AlignmentFile(alignment_file, ignore_truncation=True) as bam:
                 stop = bam.get_reference_length(contig)
         if stop <= start:
             raise ValueError(
-                f'Stop position ({stop}) must be greater than or '
-                f'equal to start ({start}).',
+                f"Stop position ({stop}) must be greater than or "
+                f"equal to start ({start}).",
             )
         return Region(contig, start, stop)
 
@@ -145,12 +145,12 @@ class Region:
         if region_str is None:
             return None
         pa = re.compile(
-            '(?P<contig>[^:]+)(:(?P<start>[0-9,]+)(-(?P<stop>[0-9,]+))?)?',
+            "(?P<contig>[^:]+)(:(?P<start>[0-9,]+)(-(?P<stop>[0-9,]+))?)?",
         )
         match = pa.fullmatch(region_str)
         if match is None:
-            raise ValueError(f'Unrecognized format: {region_str}.')
-        contig, start, stop = match.group('contig', 'start', 'stop')
+            raise ValueError(f"Unrecognized format: {region_str}.")
+        contig, start, stop = match.group("contig", "start", "stop")
 
         if start is None:
             start = 0
@@ -163,4 +163,4 @@ class Region:
 
     @classmethod
     def _to_int(cls, number: str) -> int:
-        return int(re.sub(r'[\s,]', '', number))
+        return int(re.sub(r"[\s,]", "", number))

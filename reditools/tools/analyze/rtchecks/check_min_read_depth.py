@@ -54,7 +54,7 @@ class CheckMinReadDepth:
         """
         if len(rtresult) < self.min_read_depth:
             return (
-                'DISCARDING COLUMN {} [MIN_READ_DEPTH={}]',
+                "DISCARDING COLUMN {} [MIN_READ_DEPTH={}]",
                 len(rtresult),
                 self.min_read_depth,
             )

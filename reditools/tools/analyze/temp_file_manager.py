@@ -11,7 +11,7 @@ from reditools.region import Region
 from reditools.tools.analyze.concat_output import concat_output
 from reditools.tools.analyze.parse_args import json_args
 
-save_file = 'region_file_list.csv'
+save_file = "region_file_list.csv"
 
 class TempFileManager:
     """Manages the temporary output files for REDItools."""
@@ -36,18 +36,18 @@ class TempFileManager:
             with open(os.path.join(
                 self.dirpath,
                 save_file,
-            ), 'w') as stream:
+            ), "w") as stream:
                 writer = csv.writer(stream)
-                writer.writerow(['Region', 'Filename'])
+                writer.writerow(["Region", "Filename"])
                 for region, filename in self.region_file_list:
                     writer.writerow([region, os.path.basename(filename)])
         else:
-            with open(os.path.join(self.dirpath, save_file), 'r') as stream:
+            with open(os.path.join(self.dirpath, save_file), "r") as stream:
                 reader = csv.DictReader(stream)
                 self.region_file_list = [
                     (
-                        Region.from_string(row['Region']),
-                        os.path.join(self.dirpath, row['Filename']),
+                        Region.from_string(row["Region"]),
+                        os.path.join(self.dirpath, row["Filename"]),
                     )
                     for row in reader
                 ]
@@ -61,7 +61,7 @@ class TempFileManager:
     def __len__(self) -> int:
         return len(self.region_file_list)
 
-    def concat(self, filepath: str, mode: str='w') -> None:
+    def concat(self, filepath: str, mode: str="w") -> None:
         """Concat all temporary files, then delete them.
 
         Parameters
@@ -86,7 +86,7 @@ class TempFileManager:
             If the temporary directory cannot be emptied.
         """
         for _, filename in self.region_file_list:
-            os.remove(f'{filename}.done')
+            os.remove(f"{filename}.done")
 
         for temp_file in (json_args.json_args_filename, save_file):
             os.remove(os.path.join(self.dirpath, temp_file))
@@ -94,8 +94,8 @@ class TempFileManager:
             os.rmdir(self.dirpath)
         except OSError as exc:
             sys.stderr.write(
-                '[WARNING] Could not delete temporary files directory '
-                f'{self.dirpath}. {exc}\n'
+                "[WARNING] Could not delete temporary files directory "
+                f"{self.dirpath}. {exc}\n"
             )
 
     def __exit__(

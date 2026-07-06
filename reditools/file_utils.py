@@ -10,8 +10,8 @@ from reditools.region import Region
 
 def open_stream(  # type: ignore
         path: str,
-        mode: str='rt',
-        encoding: str='utf-8',
+        mode: str="rt",
+        encoding: str="utf-8",
 ):
     """
     Open a file stream, handling both plain and gzipped files.
@@ -30,7 +30,7 @@ def open_stream(  # type: ignore
     file-like object
         The opened file stream.
     """
-    if path.endswith('gz'):
+    if path.endswith("gz"):
         return gzip_open(path, mode, encoding=encoding)
     return open(path, mode, encoding=encoding)  # noqa: WPS515
 
@@ -53,8 +53,8 @@ def read_bed_file(*path: str) -> Iterator[Region]:
         yield from read_bed_file(*path[1:])
     with open_stream(path[0]) as stream:
         reader = csv.reader(
-            filter(lambda row: row[0] != '#', stream),
-            delimiter='\t',
+            filter(lambda row: row[0] != "#", stream),
+            delimiter="\t",
         )
         for row in reader:
             yield Region(
@@ -68,7 +68,7 @@ def concat(
         output: IO,
         *fnames: str,
         clean_up: bool=True,
-        encoding: str='utf-8',
+        encoding: str="utf-8",
 ) -> None:
     """
     Concatenate multiple files into a single output stream.
@@ -86,7 +86,7 @@ def concat(
         The encoding to use when reading files (default is 'utf-8').
     """
     for fname in fnames:
-        with open(fname, 'r', encoding=encoding) as stream:
+        with open(fname, "r", encoding=encoding) as stream:
             for line in stream:
                 output.write(line)
         if clean_up:
@@ -107,7 +107,7 @@ def load_text_file(file_name: str) -> list[str]:
     list[str]
         A list of stripped lines from the file.
     """
-    with open_stream(file_name, 'r') as stream:
+    with open_stream(file_name, "r") as stream:
         return [line.strip() for line in stream]
 
 def make_dir(prefix: str | None=None, dir: str | None=None) -> str:

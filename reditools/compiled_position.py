@@ -29,7 +29,7 @@ class CompiledPosition:
     strands: list[str] = field(default_factory=list)
     bases: list[str] = field(default_factory=list)
 
-    _comp = {'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C'}
+    _comp = {"A": "T", "T": "A", "C": "G", "G": "C"}
 
     def __len__(self) -> int:
         """Return the number of bases at this position.
@@ -74,17 +74,17 @@ class CompiledPosition:
         pos_count = 0
         neg_count = 0
         for strand in self.strands:
-            if strand == '+':
+            if strand == "+":
                 pos_count += 1
-            elif strand == '-':
+            elif strand == "-":
                 neg_count += 1
         if pos_count == neg_count:
-            return '*'
+            return "*"
         if pos_count / (pos_count + neg_count) >= threshold:
-            return '+'
+            return "+"
         if neg_count / (pos_count + neg_count) >= threshold:
-            return '-'
-        return '*'
+            return "-"
+        return "*"
 
     def filter_by_strand(self, strand: str) -> None:
         """Filter observations to keep only those from a specific strand.
@@ -94,7 +94,7 @@ class CompiledPosition:
         strand : str
             The strand to keep ('+', '-', or '*'). If '*', no filtering is done.
         """
-        if strand == '*':
+        if strand == "*":
             return
         keep = [
             idx for idx in range(len(self.bases))
@@ -131,7 +131,7 @@ class RTResult:
         A list of observed variants (e.g., ['AG']).
     """
 
-    _base_order = 'ACGT'
+    _base_order = "ACGT"
 
     def __init__(self, compiled_position: CompiledPosition, strand: str):
         """Initialize RTResult.
@@ -155,7 +155,7 @@ class RTResult:
             self.counter[base] += 1
 
         self.variants = [
-            f'{self.reference}{_}' for _ in self._base_order
+            f"{self.reference}{_}" for _ in self._base_order
             if self[_] and _ != self.reference
         ]
 
@@ -172,7 +172,7 @@ class RTResult:
         int
             The count of the requested base.
         """
-        if base.upper() == 'REF':
+        if base.upper() == "REF":
             return self.counter[self.reference]
         return self.counter[base]
 
@@ -182,7 +182,7 @@ class RTResult:
         Yields
         ------
         int
-            The count of each base in order: 'A, 'C', 'G', 'T'.
+            The count of each base in order: "A, "C", "G", "T".
         """
         return (self[base] for base in self._base_order)
 
@@ -213,7 +213,7 @@ class RTResult:
             if base != self.reference and count > max_edits:
                 max_edits = count
         try:
-            return max_edits / (self['REF'] + max_edits)
+            return max_edits / (self["REF"] + max_edits)
         except ZeroDivisionError:
             return 0
 

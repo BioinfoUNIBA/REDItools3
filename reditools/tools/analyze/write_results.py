@@ -5,7 +5,7 @@ from reditools.compiled_position import RTResult
 from reditools.logger import Logger
 from reditools.tools.analyze.rtchecks import RTChecks
 
-_empty = '-'
+_empty = "-"
 
 def write_results(
         rtresults: Iterator[RTResult],
@@ -26,8 +26,8 @@ def write_results(
     logger : Callable
         The logger function for debug messages.
     """
-    with open(filename, 'w') as stream:
-        writer = csv.writer(stream, delimiter='\t', lineterminator='\n')
+    with open(filename, "w") as stream:
+        writer = csv.writer(stream, delimiter="\t", lineterminator="\n")
         for rt_result in rtresults:
             msg = filters.check(rt_result)
             if msg:
@@ -40,9 +40,9 @@ def write_results(
                 rt_result.reference,
                 rt_result.strand,
                 len(rt_result),
-                f'{rt_result.mean_quality:.2f}',
+                f"{rt_result.mean_quality:.2f}",
                 list(rt_result),
-                ' '.join(sorted(variants)) if variants else _empty,
-                f'{rt_result.edit_ratio:.2f}',
+                " ".join(sorted(variants)) if variants else _empty,
+                f"{rt_result.edit_ratio:.2f}",
                 _empty, _empty, _empty, _empty, _empty,
             ])

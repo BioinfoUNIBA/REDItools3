@@ -68,5 +68,5 @@ class CheckExclusions:
             error message otherwise.
         """
         if self.regions.contains(rtresult.contig, rtresult.position):
-            return ('DISCARD COLUMN in excluded region',)
+            return ("DISCARD COLUMN in excluded region",)
         return None

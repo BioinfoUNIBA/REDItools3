@@ -80,8 +80,8 @@ class REDIThreadManager:
         """
 
         if cls.thread is None:
-            raise AttributeError('REDIThreadManager not initialized.')
-        done_file = f'{filename}.done'
+            raise AttributeError("REDIThreadManager not initialized.")
+        done_file = f"{filename}.done"
         if not Path(done_file).exists():
             cls.thread.analyze(region, filename)
             Path(done_file).touch()

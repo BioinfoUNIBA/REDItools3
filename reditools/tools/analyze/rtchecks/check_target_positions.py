@@ -56,5 +56,5 @@ class CheckTargetPositions:
             error message otherwise.
         """
         if not self.regions.contains(rtresult.contig, rtresult.position):
-            return ('DISCARD COLUMN not in target regions',)
+            return ("DISCARD COLUMN not in target regions",)
         return None

@@ -72,6 +72,6 @@ def terminate_pool(
     pool.terminate()
     if debug:
         raise exc.__cause__  # type: ignore[misc]
-    sys.stderr.write(f'[ERROR] ({type(exc)}) {exc}\n')
+    sys.stderr.write(f"[ERROR] ({type(exc)}) {exc}\n")
 
 

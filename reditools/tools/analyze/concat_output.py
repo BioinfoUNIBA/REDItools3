@@ -5,28 +5,28 @@ import sys
 from reditools import file_utils
 
 fieldnames = [
-    'Region',
-    'Position',
-    'Reference',
-    'Strand',
-    'Coverage',
-    'MeanQ',
-    'BaseCount[A,C,G,T]',
-    'AllSubs',
-    'Frequency',
-    'gCoverage',
-    'gMeanQ',
-    'gBaseCount[A,C,G,T]',
-    'gAllSubs',
-    'gFrequency',
+    "Region",
+    "Position",
+    "Reference",
+    "Strand",
+    "Coverage",
+    "MeanQ",
+    "BaseCount[A,C,G,T]",
+    "AllSubs",
+    "Frequency",
+    "gCoverage",
+    "gMeanQ",
+    "gBaseCount[A,C,G,T]",
+    "gAllSubs",
+    "gFrequency",
 ]
 
 
 def concat_output(
     tfs: list[str],
     output_file: str | None = None,
-    mode: str = 'w',
-    encoding: str = 'utf-8',
+    mode: str = "w",
+    encoding: str = "utf-8",
 ) -> None:
     """Concatenate temporary results files into the final output.
 
@@ -52,7 +52,7 @@ def concat_output(
         )
 
     with stream:
-        writer = csv.writer(stream, delimiter='\t', lineterminator='\n')
-        if 'a' not in mode:
+        writer = csv.writer(stream, delimiter="\t", lineterminator="\n")
+        if "a" not in mode:
             writer.writerow(fieldnames)
         file_utils.concat(stream, *tfs, encoding=encoding)

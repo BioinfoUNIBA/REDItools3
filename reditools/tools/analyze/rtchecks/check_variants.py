@@ -28,14 +28,14 @@ class CheckVariants:
         ValueError
             If a variant is not exactly two bases (e.g., 'AG').
         """
-        pa = re.compile('[ATCG]{2}', re.IGNORECASE)
+        pa = re.compile("[ATCG]{2}", re.IGNORECASE)
         bad_alt = next(
             (_ for _ in options.variants if not pa.fullmatch(_)),
             None,
         )
         if bad_alt is not None:
             raise ValueError(
-                f'Bad variant ({bad_alt}). Must be two bases (e.g. AG).'
+                f"Bad variant ({bad_alt}). Must be two bases (e.g. AG)."
             )
         self.variants = {_.upper() for _ in options.variants}
 
@@ -55,7 +55,7 @@ class CheckVariants:
             True if specific variants are required, False if 'ALL' is in the
             variant list.
         """
-        return 'ALL' not in [_.upper() for _ in options.variants]
+        return "ALL" not in [_.upper() for _ in options.variants]
 
     def run_check(self, rtresult: RTResult) -> None | tuple:
         """
@@ -75,7 +75,7 @@ class CheckVariants:
         if any(_ in self.variants for _ in rtresult.variants):
             return None
         return (
-            'DISCARD COLUMN Edits {} not in requested alts {}',
+            "DISCARD COLUMN Edits {} not in requested alts {}",
             rtresult.variants,
             self.variants,
         )

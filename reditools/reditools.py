@@ -114,7 +114,7 @@ class REDItools:
 
         self.log(
             Logger.info_level,
-            'Fetching reads [FILELIST={}] [REGION={}]',
+            "Fetching reads [FILELIST={}] [REGION={}]",
             alignment_manager.file_list,
             region,
         )
@@ -122,7 +122,7 @@ class REDItools:
         for reads in alignment_manager.fetch_by_position(region=region):
             self.log(
                 Logger.debug_level,
-                'Adding {} reads starting from {}:{}',
+                "Adding {} reads starting from {}:{}",
                 len(reads),
                 region.contig,
                 reads[0].reference_start,
@@ -142,13 +142,13 @@ class REDItools:
                 if bases.position >= region.start:
                     self.log(
                         Logger.debug_level,
-                        'Yielding output for {} reads',
+                        "Yielding output for {} reads",
                         len(rtresult),
                     )
                     yield rtresult
         self.log(
             Logger.info_level,
-            '[REGION={}] {} total reads',
+            "[REGION={}] {} total reads",
             region,
             total,
         )
@@ -177,17 +177,17 @@ class REDItools:
     def _process_bases(self, bases: CompiledPosition) -> RTResult:
         self.log(
             Logger.debug_level,
-            'Analyzing position {} {}',
+            "Analyzing position {} {}",
             bases.position,
             bases.contig,
         )
         if self.strand == UNSTRANDED_MODE:
-            strand = '*'
+            strand = "*"
         else:
             strand = bases.calculate_strand(
                 threshold=self.strand_confidence_threshold,
             )
             bases.filter_by_strand(strand)
-            if self._use_strand_correction and strand == '-':
+            if self._use_strand_correction and strand == "-":
                 bases.complement()
         return RTResult(bases, strand)

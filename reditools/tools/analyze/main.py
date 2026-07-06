@@ -25,17 +25,17 @@ def main() -> None:
         logger.log(
             logger.info_level,
             (
-                'Resuming REDItools from directory "{}". Using parameters '
-                'from previous run. All other command line options will be '
-                'ignored.'
+                "Resuming REDItools from directory "{}". Using parameters "
+                "from previous run. All other command line options will be "
+                "ignored."
             ),
             options.temp_dir,
         )
         temp_dir = options.temp_dir
     else:
-        logger.log(logger.info_level, 'Starting REDItools')
+        logger.log(logger.info_level, "Starting REDItools")
         temp_dir = file_utils.make_dir(
-            prefix='reditools_',
+            prefix="reditools_",
             dir=options.temp_dir,
         )
         json_args.args_to_json(options, temp_dir)
@@ -53,7 +53,7 @@ def main() -> None:
     )
 
     if analyze(options, temp_dir):
-        logger.log(Logger.info_level, 'Analyze Complete!')
+        logger.log(Logger.info_level, "Analyze Complete!")
     else:
         sys.exit(1)
 
@@ -111,6 +111,6 @@ def analyze(
 
         temp_file_manager.concat(
             options.output_file,
-            'a' if options.append_file else 'w',
+            "a" if options.append_file else "w",
         )
     return True

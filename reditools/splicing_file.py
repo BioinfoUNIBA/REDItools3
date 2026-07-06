@@ -9,19 +9,19 @@ from reditools.region import Region
 def _read_splice_sites(  # noqa: WPS231
         stream: IO,
 ) -> Iterator[tuple[str, int, str, str]]:
-    reader = csv.reader(stream, delimiter=' ')
+    reader = csv.reader(stream, delimiter=" ")
     for idx, row in enumerate(reader, start=1):
-        if row[0].startswith('#'):
+        if row[0].startswith("#"):
             continue
         try:  # noqa: WPS229
             assert len(row) == 5
-            assert row[3] in ('A', 'D')
-            assert row[4] in ('+', '-')
+            assert row[3] in ("A", "D")
+            assert row[4] in ("+", "-")
             position = int(row[1])
             yield (row[0], position, row[3], row[4])
         except (AssertionError, ValueError) as exc:
             raise ValueError(
-                f'Cannot parse splice file entry ({stream.name}:{idx})'
+                f"Cannot parse splice file entry ({stream.name}:{idx})"
             ) from exc
 
 def _splice_site_to_region(
@@ -31,7 +31,7 @@ def _splice_site_to_region(
         strand: str,
         splicing_span: int,
 ) -> Region | None:
-    strand_map = {'-': 'D', '+': 'A'}
+    strand_map = {"-": "D", "+": "A"}
     position = position - 1
     if strand_map[strand] == splice:
         start = max(position - splicing_span, 0)

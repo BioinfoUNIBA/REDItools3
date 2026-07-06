@@ -25,12 +25,12 @@ Run Modes:
     print(usage_str)  # noqa: WPS421
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     toolkit = {
-        'analyze': analyze,
-        'find-repeats': find_repeats,
-        'index': index,
-        'annotate': annotate,
+        "analyze": analyze,
+        "find-repeats": find_repeats,
+        "index": index,
+        "annotate": annotate,
     }
     if len(sys.argv) > 1:
         command = sys.argv.pop(1)

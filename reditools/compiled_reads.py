@@ -92,7 +92,7 @@ class CompiledReads:
     and strand.
     """
 
-    _strands = ('-', '+', '*')
+    _strands = ("-", "+", "*")
 
     def __init__(
         self,
@@ -131,9 +131,9 @@ class CompiledReads:
         self.reference = RefFetch(fasta_file)
 
         self._qc = {
-            'min_base_quality': min_base_quality,
-            'min_base_position': min_base_position,
-            'max_base_position': max_base_position,
+            "min_base_quality": min_base_quality,
+            "min_base_position": min_base_position,
+            "max_base_position": max_base_position,
         }
 
     def add_reads(self, reads: list[AlignedSegment]) -> None:
@@ -186,16 +186,16 @@ class CompiledReads:
                 self.reference.get_refseq(read),
         ):
             # Right end trim
-            if read_pos > read.query_length - self._qc['max_base_position']:
+            if read_pos > read.query_length - self._qc["max_base_position"]:
                 break
             # Left end trim
-            if read_pos < self._qc['min_base_position']:
+            if read_pos < self._qc["min_base_position"]:
                 continue
             read_base = read.query_sequence[read_pos]  # type: ignore
-            if ref_base == 'N' or read_base == 'N':
+            if ref_base == "N" or read_base == "N":
                 continue
             phred = read.query_qualities[read_pos]  # type: ignore
-            if phred < self._qc['min_base_quality']:
+            if phred < self._qc["min_base_quality"]:
                 continue
             yield (ref_pos, read_base, phred, ref_base)
 

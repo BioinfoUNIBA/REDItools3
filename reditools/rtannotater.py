@@ -17,15 +17,15 @@ class RTAnnotater:
     """
 
     legacy_map = (
-        ('Coverage-q30', 'Coverage'),
-        ('gCoverage-q30', 'gCoverage'),
+        ("Coverage-q30", "Coverage"),
+        ("gCoverage-q30", "gCoverage"),
     )
 
-    comp_map = {'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C', '-': '-'}
+    comp_map = {"A": "T", "T": "A", "C": "G", "G": "C", "-": "-"}
 
-    ref_key = 'Reference'
-    sub_key = 'AllSubs'
-    bases_key = 'BaseCount[A,C,G,T]'
+    ref_key = "Reference"
+    sub_key = "AllSubs"
+    bases_key = "BaseCount[A,C,G,T]"
 
     def __init__(self, contig_order: dict[str, int], do_complement: bool=False):
         """Initialize RTAnnotater.
@@ -53,21 +53,21 @@ class RTAnnotater:
         stream : IO
             The output stream to write the annotated table.
         """
-        writer = csv.DictWriter(stream, delimiter='\t', fieldnames=[
-            'Region',
-            'Position',
+        writer = csv.DictWriter(stream, delimiter="\t", fieldnames=[
+            "Region",
+            "Position",
             self.ref_key,
-            'Strand',
-            'Coverage',
-            'MeanQ',
+            "Strand",
+            "Coverage",
+            "MeanQ",
             self.bases_key,
             self.sub_key,
-            'Frequency',
-            'gCoverage',
-            'gMeanQ',
-            'gBaseCount[A,C,G,T]',
-            'gAllSubs',
-            'gFrequency'])
+            "Frequency",
+            "gCoverage",
+            "gMeanQ",
+            "gBaseCount[A,C,G,T]",
+            "gAllSubs",
+            "gFrequency"])
         writer.writeheader()
         writer.writerows(self.merge_files(rna_file, dna_file))
 
@@ -92,15 +92,15 @@ class RTAnnotater:
         """
         if dna_entry is None:
             return -1
-        rna_contig_idx = self.contig_order[rna_entry['Region']]
+        rna_contig_idx = self.contig_order[rna_entry["Region"]]
         # If the DNA contig is not in the RNA file, assume its position is
         # earlier than the current RNA contig to induce fast-forwarding.
         dna_contig_idx = self.contig_order.get(
-            dna_entry['Region'],
+            dna_entry["Region"],
             0
         )
         if rna_contig_idx == dna_contig_idx:
-            return int(rna_entry['Position']) - int(dna_entry['Position'])
+            return int(rna_entry["Position"]) - int(dna_entry["Position"])
         return rna_contig_idx - dna_contig_idx
 
     def annotate_row(
@@ -126,12 +126,12 @@ class RTAnnotater:
             if self.do_complement:
                 self.complement(dna_row)
         elif rna_row[self.ref_key] !=  dna_row[self.ref_key]:
-            raise ValueError('Files do not appear to use the same reference.')
-        rna_row['gCoverage'] = dna_row['Coverage']
-        rna_row['gMeanQ'] = dna_row['MeanQ']
-        rna_row['gBaseCount[A,C,G,T]'] = dna_row[self.bases_key]
-        rna_row['gAllSubs'] = dna_row[self.sub_key]
-        rna_row['gFrequency'] = dna_row['Frequency']
+            raise ValueError("Files do not appear to use the same reference.")
+        rna_row["gCoverage"] = dna_row["Coverage"]
+        rna_row["gMeanQ"] = dna_row["MeanQ"]
+        rna_row["gBaseCount[A,C,G,T]"] = dna_row[self.bases_key]
+        rna_row["gAllSubs"] = dna_row[self.sub_key]
+        rna_row["gFrequency"] = dna_row["Frequency"]
         return rna_row
 
     @classmethod
@@ -172,10 +172,10 @@ class RTAnnotater:
         dict[str, str]
             Annotated (or original if no match) RNA row.
         """
-        with file_utils.open_stream(rna_file, 'r') as rna_stream, \
-                file_utils.open_stream(dna_file, 'r') as dna_stream:
-            rna_reader = csv.DictReader(rna_stream, delimiter='\t')
-            dna_reader = csv.DictReader(dna_stream, delimiter='\t')
+        with file_utils.open_stream(rna_file, "r") as rna_stream, \
+                file_utils.open_stream(dna_file, "r") as dna_stream:
+            rna_reader = csv.DictReader(rna_stream, delimiter="\t")
+            dna_reader = csv.DictReader(dna_stream, delimiter="\t")
 
             dna_entry = next(dna_reader, None)
 
@@ -193,11 +193,11 @@ class RTAnnotater:
 
     def complement(self, row: dict[str, str]) -> dict[str, str]:
         row[self.ref_key] = self.comp_map[row[self.ref_key]]
-        row[self.sub_key] = ' '.join(sorted([
-            ''.join([self.comp_map[_] for _ in sub])
-            for sub in row[self.sub_key].split(' ')
+        row[self.sub_key] = " ".join(sorted([
+            "".join([self.comp_map[_] for _ in sub])
+            for sub in row[self.sub_key].split(" ")
         ]))
-        base_counts = row[self.bases_key][1:-1].split(', ')
+        base_counts = row[self.bases_key][1:-1].split(", ")
         row[self.bases_key] = str(list(reversed([
             int(_) for _ in base_counts
         ])))

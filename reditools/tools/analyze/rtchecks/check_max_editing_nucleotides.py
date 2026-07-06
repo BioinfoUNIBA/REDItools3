@@ -55,7 +55,7 @@ class CheckMaxEditingNucleotides:
         variants = rtresult.variants
         if len(variants) > self.max_editing_nucleotides:
             return (
-                'DISCARD COLUMN variants={} > {}',
+                "DISCARD COLUMN variants={} > {}",
                 len(variants),
                 self.max_editing_nucleotides,
             )

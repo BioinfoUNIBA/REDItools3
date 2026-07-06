@@ -70,13 +70,13 @@ class RTFastaFile:
         """
 
         if contig not in self.pysam_fasta_file:
-            if contig.startswith('chr'):
-                new_contig = contig.replace('chr', '')
+            if contig.startswith("chr"):
+                new_contig = contig.replace("chr", "")
             else:
-                new_contig = f'chr{contig}'
+                new_contig = f"chr{contig}"
             if new_contig not in self.pysam_fasta_file:
                 raise KeyError(
-                    f'Reference name {contig} not found in FASTA file.',
+                    f"Reference name {contig} not found in FASTA file.",
                 )
             contig = new_contig
         sorted_pos = sorted(position)
@@ -89,6 +89,6 @@ class RTFastaFile:
             return (seq[_ - sorted_pos[0]].upper() for _ in position)
         except IndexError as exc:
             raise IndexError(
-                f'Base position {position} is outside the bounds of ' +
-                '{contig}. Are you using the correct reference?',
+                f"Base position {position} is outside the bounds of " +
+                "{contig}. Are you using the correct reference?",
             ) from exc

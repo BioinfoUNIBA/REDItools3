@@ -68,7 +68,7 @@ class ReadQC:
         bool
             True if the read passes, False otherwise.
         """
-        return read.flag in self._flags_to_keep and not read.has_tag('SA')
+        return read.flag in self._flags_to_keep and not read.has_tag("SA")
     
     def check_quality(self, read: AlignedSegment) -> bool:
         """
@@ -177,7 +177,7 @@ class RTAlignmentFile:
         **kwargs
             Keyword arguments passed to pysam.AlignmentFile.
         """
-        kwargs['ignore_truncation'] = True
+        kwargs["ignore_truncation"] = True
         self.alignment_file = PysamAlignmentFile(filename, **kwargs)
         self.alignment_file.check_index()
         self.readqc = ReadQC(min_quality, min_length, excluded_read_names)

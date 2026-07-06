@@ -16,7 +16,7 @@ class ReadGroupIter:
     iterator : Iterator
         An iterator yielding lists of AlignedSegment objects.
     """
-    __slots__ = ('iterator', 'reads', 'reference_start')
+    __slots__ = ("iterator", "reads", "reference_start")
 
     def __init__(self, iterator: Iterator):
         """

@@ -14,7 +14,7 @@ class CheckColumnMinEdits:
         The minimum required edits per nucleotide.
     """
 
-    _bases = ('A', 'T', 'C', 'G')
+    _bases = ("A", "T", "C", "G")
 
     def __init__(self, options: argparse.Namespace):
         """Initialize CheckColumnMinEdits.
@@ -60,7 +60,7 @@ class CheckColumnMinEdits:
             if base != rtresult.reference and \
                     0 < rtresult[base] < self.min_edits_per_nucleotide:
                 return (
-                    'DISCARDING COLUMN edits={} < {}',
+                    "DISCARDING COLUMN edits={} < {}",
                     rtresult[base],
                     self.min_edits_per_nucleotide,
                 )

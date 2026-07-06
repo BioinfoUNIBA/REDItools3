@@ -7,11 +7,11 @@ from reditools.region_collection import RegionCollection
 
 
 class RTIndexer(object):
-    _ref = 'Reference'
-    _position = 'Position'
-    _contig = 'Region'
-    _count = 'BaseCount[A,C,G,T]'
-    _nucs = 'ACGT'
+    _ref = "Reference"
+    _position = "Position"
+    _contig = "Region"
+    _count = "BaseCount[A,C,G,T]"
+    _nucs = "ACGT"
 
 
     """
@@ -40,7 +40,7 @@ class RTIndexer(object):
         self.targets = RegionCollection()
         self.exclusions = RegionCollection()
         self.counts = {
-            '-'.join(_): 0
+            "-".join(_): 0
             for _ in permutations(self._nucs, 2)
         }
         self.region = region
@@ -112,7 +112,7 @@ class RTIndexer(object):
         self.targets.reset()
         self.exclusions.reset()
         with open_stream(fname) as stream:
-            for row in csv.DictReader(stream, delimiter='\t'):
+            for row in csv.DictReader(stream, delimiter="\t"):
                 if self.do_ignore(row):
                     continue
                 for nuc, count in zip(
@@ -120,7 +120,7 @@ class RTIndexer(object):
                         self._counts_to_list(row[self._count]),
                 ):
                     ref = row[self._ref]
-                    key = f'{ref}-{nuc}'
+                    key = f"{ref}-{nuc}"
                     self.counts[key] = self.counts.get(key, 0) + count
 
     def calc_index(self) -> dict[str, float]:
@@ -134,10 +134,10 @@ class RTIndexer(object):
             indices.
         """
         indices: dict[str, float] = {}
-        for idx in set(self.counts) - {f'{nuc}-{nuc}' for nuc in self._nucs}:
+        for idx in set(self.counts) - {f"{nuc}-{nuc}" for nuc in self._nucs}:
             ref = idx[0]
             numerator = self.counts[idx]
-            denominator = self.counts.get(f'{ref}-{ref}', 0) + numerator
+            denominator = self.counts.get(f"{ref}-{ref}", 0) + numerator
             if denominator == 0:
                 indices[idx] = 0
             else:
@@ -146,5 +146,5 @@ class RTIndexer(object):
 
     @classmethod
     def _counts_to_list(cls, counts_str: str) -> Iterator[int]:
-        pieces = counts_str[1:-1].split(', ')
+        pieces = counts_str[1:-1].split(", ")
         return (int(_) for _ in pieces)
