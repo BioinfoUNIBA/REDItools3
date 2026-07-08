@@ -1,3 +1,4 @@
+"""Save and load CLI options using JSON files."""
 import argparse
 import json
 from pathlib import Path
@@ -11,13 +12,14 @@ def args_to_json(
 ) -> None:
     """Save commandline arguments to a JSON file.
 
-    Parameters:
-        options : argparse.Namespace
-            The parsed commandline options.
-        dirname : str
-            Path to save file to.
-        filename : str
-            Name of the file (defaults to json_args_filename)
+    Parameters
+    ----------
+    options : argparse.Namespace
+        The parsed commandline options.
+    dirname : str
+        Path to save file to.
+    filename : str
+        Name of the file (defaults to json_args_filename)
     """
     json_path = Path(dirname) / filename
     with json_path.open("w") as stream:

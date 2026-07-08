@@ -1,3 +1,4 @@
+"""Check if a position is within excluded regions."""
 from __future__ import annotations
 
 from typing import TYPE_CHECKING

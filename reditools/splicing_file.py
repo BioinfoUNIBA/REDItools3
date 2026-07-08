@@ -1,3 +1,4 @@
+"""Load genomic regions around splice sites from a file."""
 from __future__ import annotations
 
 import csv
@@ -8,7 +9,18 @@ from reditools.region import Region
 
 
 class SpliceFileFormatError(ValueError):
+    """Splice file is not in expected format."""
+
     def __init__(self, file_name: str, line_number: int) -> None:
+        """Initialize self.
+
+        Parameters
+        ----------
+        file_name : str
+            The offending file.
+        line_number : int
+            The line number that does not match expected format.
+        """
         self.message = (
             f"Cannot parse splice file entry ({file_name}:{line_number})"
         )
@@ -75,7 +87,6 @@ def load_splicing_file(
     Region
         The genomic regions around the splice sites.
     """
-
     with open_stream(splicing_file) as stream:
         for splice_data in _read_splice_sites(stream):
             region = _splice_site_to_region(*splice_data, splicing_span)

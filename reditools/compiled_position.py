@@ -1,3 +1,4 @@
+"""Class to store compiled information for a specific genomic position."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field

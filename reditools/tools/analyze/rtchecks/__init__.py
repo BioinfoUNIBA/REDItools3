@@ -1,3 +1,5 @@
+"""Manage and execute a suites of checks and filters on RNA editing results."""
+
 from reditools.tools.analyze.rtchecks.check_column_edit_frequency import (
     CheckColumnEditFrequency,
 )

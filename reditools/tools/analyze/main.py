@@ -1,3 +1,4 @@
+"""REDItools analyze tool entry point form CLI."""
 from __future__ import annotations
 
 import sys
@@ -14,9 +15,7 @@ if TYPE_CHECKING:
     import argparse
 
 def main() -> None:
-    """
-    The main entry point for the REDItools analyze command.
-    """
+    """Begin REDItools analyze from CLI."""
     options = parse_args.parse_args()
 
     logger = setup_logger(options)

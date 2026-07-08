@@ -1,3 +1,5 @@
+"""Functions for parsing CLI options for the analyze tool."""
+
 import argparse
 
 

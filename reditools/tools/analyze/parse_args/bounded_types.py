@@ -1,3 +1,4 @@
+"""Validation tools for CLI options."""
 from __future__ import annotations
 
 import argparse
@@ -5,22 +6,58 @@ from typing import Callable
 
 
 class ValueBelowMinimumError(argparse.ArgumentTypeError):
+    """CLI value is below minimum threshold."""
+
     def __init__(self, min_value: float) -> None:
+        """Initialize self.
+
+        Parameters
+        ----------
+        min_value : float
+            The minimum threshold.
+        """
         self.message = f"Value must be at least {min_value}."
         super().__init__(self.message)
 
 class ValueAboveMaximumError(argparse.ArgumentTypeError):
+    """CLI value is above maxmimum threshold."""
+
     def __init__(self, max_value: float) -> None:
+        """Initialize self.
+
+        Parameters
+        ----------
+        max_value : float
+            The maxmimum threshold.
+        """
         self.message = f"Value cannot be larger than {max_value}."
         super().__init__(self.message)
 
 class CastIntError(argparse.ArgumentTypeError):
+    """CLI value is not an integer."""
+
     def __init__(self, cli_val: str) -> None:
+        """Initialize self.
+
+        Parameters
+        ----------
+        cli_val : str
+            Offending CLI value.
+        """
         self.message = f"Invalid int value: {cli_val}"
         super().__init__(self.message)
 
 class CastFloatError(argparse.ArgumentTypeError):
+    """CLI value is not a float."""
+
     def __init__(self, cli_val: str) -> None:
+        """Initialize self.
+
+        Parameters
+        ----------
+        cli_val : str
+            Offending CLI value.
+        """
         self.message = f"Invalid float value: {cli_val}"
         super().__init__(self.message)
 

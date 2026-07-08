@@ -1,3 +1,4 @@
+"""Represent a genomic region."""
 from __future__ import annotations
 
 import re
@@ -7,19 +8,34 @@ from pysam import AlignmentFile
 
 
 class RegionSplitError(IndexError):
+    """Region cannot be split."""
+
     def __init__(self) -> None:
+        """Initialize self."""
         self.message = "Can only split a region with a start and stop."
         super().__init__(self.message)
 
 class RegionBadStartError(ValueError):
+    """Region start is less than one."""
+
     def __init__(self, bad_start: int) -> None:
+        """Initialize self.
+
+        Parameters
+        ----------
+        bad_start : int
+            Offending start position.
+        """
         self.message = (
             f"Start position ({bad_start}) must be greater than or equal to one"
         )
         super().__init__(self.message)
 
 class RegionNeedsAlignmentError(ValueError):
+    """Region needs an Alignment File for initalization."""
+
     def __init__(self) -> None:
+        """Initialize self."""
         self.message = (
             "An alignment file must be provided if no stop position "
             "is present in the region string."
@@ -27,7 +43,18 @@ class RegionNeedsAlignmentError(ValueError):
         super().__init__(self.message)
 
 class RegionStartPastStopError(ValueError):
+    """Region start position is after the stop position."""
+
     def __init__(self, start: int, stop: int) -> None:
+        """Initialize self.
+
+        Parameters
+        ----------
+        start : int
+            Region start position.
+        stop : int
+            Region stop position.
+        """
         self.message = (
             f"Stop position ({stop}) must be greater than or "
             f"equal to start ({start}).",
@@ -35,7 +62,16 @@ class RegionStartPastStopError(ValueError):
         super().__init__(self.message)
 
 class RegionFormatError(ValueError):
+    """Region string is an unknown format."""
+
     def __init__(self, region_str: str) -> None:
+        """Initialize self.
+
+        Parameters
+        ----------
+        region_str : str
+            Offending region string.
+        """
         self.message = f"Unrecognized format: {region_str}."
         super().__init__(self.message)
 

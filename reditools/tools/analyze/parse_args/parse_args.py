@@ -1,3 +1,4 @@
+"""CLI argument parsing."""
 from __future__ import annotations
 
 import argparse
@@ -13,12 +14,18 @@ from reditools.tools.analyze.parse_args.json_args import args_from_json
 
 
 class DNAStrandError(argparse.ArgumentTypeError):
+    """DNA mode requires strand set to 0."""
+
     def __init__(self) -> None:
+        """Initialize self."""
         self.message = "-N/--dna can only be used with -s/--strand 0."
         super().__init__(self.message)
 
 class StrictConflictError(argparse.ArgumentTypeError):
+    """Strict mode requires min-edits set to 1."""
+
     def __init__(self) -> None:
+        """Initialize self."""
         self.message = "-S/--strict can only be used with -me/--min-edits 1."
         super().__init__(self.message)
 
@@ -455,8 +462,7 @@ def parse_args(sys_args: list[str] | None = None) -> argparse.Namespace:
     return args
 
 def args_to_string(args: argparse.Namespace) -> str:
-    """
-    Convert argparse options to a comma-separated string of key:value pairs.
+    """Convert argparse options to a comma-separated string of key:value pairs.
 
     Parameters
     ----------

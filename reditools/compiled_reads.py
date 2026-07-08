@@ -1,3 +1,4 @@
+"""Aggregate reads from alignment file(s) that have the same start position."""
 from __future__ import annotations
 
 from typing import TYPE_CHECKING

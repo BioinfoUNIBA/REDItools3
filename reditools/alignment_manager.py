@@ -1,3 +1,4 @@
+"""Fetch reads from multiple alignment files."""
 from __future__ import annotations
 
 from itertools import chain
@@ -21,6 +22,7 @@ class ReadGroupIter:
     iterator : Iterator
         An iterator yielding lists of AlignedSegment objects.
     """
+
     __slots__ = ("iterator", "reads", "reference_start")
 
     def __init__(self, iterator: Iterator[list[AlignedSegment]]) -> None:
@@ -137,6 +139,7 @@ class AlignmentManager:
     min_length : int, optional
         Minimum read length (default is 0).
     """
+
     def __init__(
             self,
             excluded_read_names: Collection[str] | None=None,

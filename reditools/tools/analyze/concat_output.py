@@ -1,3 +1,4 @@
+"""Concatenate temporary results files into the final output."""
 from __future__ import annotations
 
 import csv

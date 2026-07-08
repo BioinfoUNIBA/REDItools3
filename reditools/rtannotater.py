@@ -1,3 +1,4 @@
+"""Class to annotate RNA editing sites with DNA data."""
 from __future__ import annotations
 
 import csv
@@ -8,7 +9,10 @@ from reditools.comp_map import comp_map
 
 
 class AnalyzeMismatchError(ValueError):
+    """Reference bases from two REDItools output files do not match."""
+
     def __init__(self) -> None:
+        """Initialize self."""
         self.message = "Files do not appear to use the same reference."
         super().__init__(self.message)
 
@@ -170,8 +174,8 @@ class RTAnnotater:
     ) -> Iterator[dict[str, str]]:
         """Merge RNA and DNA files and yield annotated rows.
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         rna_file : str
             Path to the RNA editing file.
         dna_file : str
@@ -202,6 +206,21 @@ class RTAnnotater:
                     yield rna_entry
 
     def complement(self, row: dict[str, str]) -> dict[str, str]:
+        """Compute complements of REDItools result.
+
+        Speifically, complements are reported for the Reference, AllSubs, and
+        BaseCount columns.
+
+        Parameters
+        ----------
+        row : dict[str, str]
+            The data to complement.
+
+        Returns
+        -------
+        row : dict[str, str]
+            The complemented data.
+        """
         row[self.ref_key] = comp_map[row[self.ref_key]]
         row[self.sub_key] = " ".join(sorted([
             "".join([comp_map[_] for _ in sub])

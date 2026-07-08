@@ -1,3 +1,4 @@
+"""Manage and execute a suites of checks and filters on RNA editing results."""
 from __future__ import annotations
 
 from typing import TYPE_CHECKING

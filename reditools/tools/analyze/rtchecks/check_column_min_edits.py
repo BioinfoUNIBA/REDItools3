@@ -1,3 +1,4 @@
+"""Check if a position has a minimum number of edits per nucleotide."""
 from __future__ import annotations
 
 from typing import TYPE_CHECKING

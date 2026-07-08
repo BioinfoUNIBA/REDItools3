@@ -1,3 +1,4 @@
+"""Check if a position has minimum read depth."""
 from __future__ import annotations
 
 from typing import TYPE_CHECKING

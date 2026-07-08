@@ -1,3 +1,4 @@
+"""File handling utilities."""
 from __future__ import annotations
 
 import csv
@@ -107,7 +108,7 @@ def load_text_file(file_name: str) -> list[str]:
         return [line.strip() for line in stream]
 
 def make_dir(prefix: str | None=None, dirname: str | None=None) -> str:
-    """Creates a folder.
+    """Create a folder.
 
     Parameters
     ----------

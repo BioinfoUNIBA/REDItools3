@@ -1,3 +1,4 @@
+"""A wrapper around pysam.AlignmentFile with integrated quality control."""
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -25,6 +26,7 @@ class ReadQC:
     excluded_read_names : Collection[str] | None
         A collection of read names to be excluded.
     """
+
     _flags_to_keep = frozenset([0, 16, 83, 99, 147, 163])
 
     def __init__(

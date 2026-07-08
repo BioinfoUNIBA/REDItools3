@@ -1,7 +1,11 @@
+"""CLI entry point for REDItools."""
 
 import sys
 
-from reditools.tools import analyze, annotate, find_repeats, index
+from reditools.tools.analyze import main as analyze
+from reditools.tools.annotate import main as annotate
+from reditools.tools.find_repeats import main as find_repeats
+from reditools.tools.index import main as index
 
 
 def usage() -> None:

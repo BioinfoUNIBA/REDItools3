@@ -1,3 +1,5 @@
+"""Parse CLI options for the annotate tool."""
+
 import argparse
 
 

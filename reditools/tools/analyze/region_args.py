@@ -1,3 +1,4 @@
+"""Parse region-related arguments and return a list of Regions."""
 from __future__ import annotations
 
 from typing import TYPE_CHECKING

@@ -1,3 +1,4 @@
+"""Create and manage threads for REDItools analyze tool."""
 from __future__ import annotations
 
 from pathlib import Path
@@ -16,11 +17,16 @@ if TYPE_CHECKING:
     from reditools.region import Region
 
 class UninitializedError(AttributeError):
+    """REDIThread.init has not been called."""
+
     def __init__(self) -> None:
+        """Initialize self."""
         self.message = "REDIThreadManager not initialized."
         super().__init__(self.message)
 
 class REDIThread:
+    """Worker thread for parallel REDItools analysis."""
+
     def __init__(self, options: argparse.Namespace) -> None:
         """Worker thread function for parallel REDItools analysis.
 
@@ -75,7 +81,6 @@ class REDIThreadManager:
         options : argparse.Namespace
             The command-line options.
         """
-
         cls.thread = REDIThread(options)
 
     @classmethod
@@ -89,7 +94,6 @@ class REDIThreadManager:
         filename : str
             Path to save output to.
         """
-
         if cls.thread is None:
             raise UninitializedError
         done_file = f"{filename}.done"

@@ -1,3 +1,4 @@
+"""Entry point for find-repeats tools."""
 from __future__ import annotations
 
 import argparse

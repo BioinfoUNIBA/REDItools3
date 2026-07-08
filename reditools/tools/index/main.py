@@ -1,3 +1,4 @@
+"""Entry point for the index tool."""
 
 import sys
 

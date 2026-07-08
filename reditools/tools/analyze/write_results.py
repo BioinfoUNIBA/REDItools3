@@ -1,3 +1,5 @@
+"""Write analysis results."""
+
 import csv
 from pathlib import Path
 from typing import Callable, Iterator
@@ -14,7 +16,7 @@ def write_results(
         filters: RTChecks,
         logger: Callable,
 ) -> None:
-    """Write analysis results to a temporary file.
+    """Write analysis results to a file.
 
     Parameters
     ----------

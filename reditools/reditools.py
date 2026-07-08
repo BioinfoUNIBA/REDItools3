@@ -1,3 +1,4 @@
+"""Main class for running REDItools analysis."""
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -36,7 +37,6 @@ class REDItools:
 
     Provides methods to set up analysis parameters and process alignment data.
     """
-
 
     def __init__(self) -> None:
         """Initialize REDItools with default parameters."""

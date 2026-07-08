@@ -1,3 +1,4 @@
+"""Create REDItools objects for parallel processing with the analyze tool."""
 import argparse
 
 from reditools import reditools

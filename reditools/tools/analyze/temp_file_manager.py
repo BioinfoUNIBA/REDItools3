@@ -1,3 +1,4 @@
+"""Manages temporary output files for the analyze tool."""
 from __future__ import annotations
 
 import csv
@@ -20,7 +21,7 @@ class TempFileManager:
     """Manages the temporary output files for REDItools."""
 
     def __init__(self, dirpath: str, regions: list[Region] | None=None) -> None:
-        """Create a new TempFileManager
+        """Create a new TempFileManager.
 
         Parameters
         ----------
@@ -56,12 +57,21 @@ class TempFileManager:
                 ]
 
     def __enter__(self) -> TempFileManager:
+        """Open TempFileManager."""
         return self
 
-    def __iter__(self) -> Iterator:
+    def __iter__(self) -> Iterator[tuple[Region, str]]:
+        """Iterate over region-filename pairs.
+
+        Yields
+        ------
+        tuple[Region, str]
+            Genomic region and path to save results to.
+        """
         yield from self.region_file_list
 
     def __len__(self) -> int:
+        """List the number of temporary output files."""
         return len(self.region_file_list)
 
     def concat(self, filepath: str, mode: str="w") -> None:
@@ -101,5 +111,6 @@ class TempFileManager:
         exc: BaseException | None,
         tb: TracebackType | None,
     ) -> None:
+        """If no error occurred, remove all temporary files."""
         if typ is None:
             self.cleanup()

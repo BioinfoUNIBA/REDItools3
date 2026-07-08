@@ -1,3 +1,4 @@
+"""Check if detected variants match specified allowed variants."""
 from __future__ import annotations
 
 import re
@@ -10,7 +11,16 @@ if TYPE_CHECKING:
 
 
 class BadVariantError(ValueError):
+    """Variant string is improperly formatted."""
+
     def __init__(self, bad_alt: str) -> None:
+        """Initialize self.
+
+        Parameters
+        ----------
+        bad_alt : str
+            The offending variant string.
+        """
         self.message = f"Bad variant ({bad_alt}). Must be two bases (e.g. AG)."
         super().__init__(self.message)
 

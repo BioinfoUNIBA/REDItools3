@@ -1,3 +1,4 @@
+"""A wrapper around pysam.FastaFile for genomic sequence access."""
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -10,12 +11,32 @@ if TYPE_CHECKING:
 
 
 class MissingContigError(LookupError):
+    """Contig name is missing from the FASTA file."""
+
     def __init__(self, contig_name: str) -> None:
+        """Initialize self.
+
+        Parameters
+        ----------
+        contig_name : str
+            Missing contig name.
+        """
         self.message = f"Reference name {contig_name} not found in FASTA file."
         super().__init__(self.message)
 
 class PastContigEndError(LookupError):
+    """Genomic position is outside contig bounds."""
+
     def __init__(self, contig_name: str, position: int) -> None:
+        """Initialize self.
+
+        Parameters
+        ----------
+        contig_name : str
+            Name of the contig.
+        position : int
+            Offending genomic position.
+        """
         self.message = (
             f"Base position {position} is outside the bounds of "
             f"{contig_name}. Are you using the correct reference?"
@@ -30,14 +51,13 @@ class RTFastaFile:
 
         Parameters
         ----------
-        *args
-            Arguments passed to pysam.FastaFile.
-        **kwargs
-            Keyword arguments passed to pysam.FastaFile.
+        filename : str
+            FASTA file path.
         """
         self.pysam_fasta_file = PysamFastaFile(filename)
 
     def __enter__(self) -> RTFastaFile:
+        """Open RTFastaFile."""
         return self
 
     def __exit__(
@@ -81,7 +101,6 @@ class RTFastaFile:
         PastContigEndError
             If a position is outside the bounds of the contig.
         """
-
         if contig not in self.pysam_fasta_file:
             if contig.startswith("chr"):
                 new_contig = contig.replace("chr", "")

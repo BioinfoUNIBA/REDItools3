@@ -1,3 +1,4 @@
+"""Handle logging operations with different severity levels."""
 import os
 import socket
 import sys

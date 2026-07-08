@@ -1,3 +1,5 @@
+"""Entry point for annotate tool."""
+
 from __future__ import annotations
 
 import csv
@@ -13,7 +15,16 @@ from reditools.tools.annotate.parse_args import parse_args
 _contig = "Region"
 
 class UnsortedInputError(ValueError):
+    """REDItools output file is unsorted."""
+
     def __init__(self, file_name: str) -> None:
+        """Initialize self.
+
+        Parameters
+        ----------
+        file_name : str
+            The name of the unsorted file.
+        """
         self.message = f"File {file_name} does not appear to be in sorted order"
         super().__init__(self.message)
 

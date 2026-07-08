@@ -1,3 +1,4 @@
+"""Calculate editing indices from REDItools output."""
 from __future__ import annotations
 
 import csv
@@ -9,21 +10,13 @@ from reditools.region_collection import RegionCollection
 
 
 class RTIndexer:
+    """Calculate editing indices from REDItools output."""
+
     _ref = "Reference"
     _position = "Position"
     _contig = "Region"
     _count = "BaseCount[A,C,G,T]"
     _nucs = "ACGT"
-
-
-    """Calculate editing indices from REDItools output.
-
-    Parameters
-    ----------
-    region : tuple[str, int, int | None] | None, optional
-        Genomic region (contig, start, stop) to limit analysis (default is
-        None).
-    """
 
     def __init__(
             self,

@@ -1,3 +1,4 @@
+"""Manage multirprocessing Pool for REDItools analysis."""
 import argparse
 import sys
 import traceback

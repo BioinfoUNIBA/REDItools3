@@ -1,3 +1,4 @@
+"""A collection of genomic regions, providing efficient ordered lookup."""
 from __future__ import annotations
 
 from collections import defaultdict
@@ -14,7 +15,6 @@ class RegionCollection:
 
     def __init__(self) -> None:
         """Initialize an empty RegionCollection."""
-
         self._regions: defaultdict[str, list[Region]] = defaultdict(list)
         self._index = 0
         self._last_contig: str | None = None
