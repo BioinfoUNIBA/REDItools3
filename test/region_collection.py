@@ -6,7 +6,7 @@ from reditools.region_collection import RegionCollection
 
 class TestRegionCollection(unittest.TestCase):
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.rc = RegionCollection()
         self.rc.add_regions([
             Region("chr1", 0, 99),
@@ -14,7 +14,7 @@ class TestRegionCollection(unittest.TestCase):
             Region("chr2", 50, 150),
         ])
 
-    def test_add_region_and_contains(self):
+    def test_add_region_and_contains(self) -> None:
         # RegionCollection contains method requires ordered queries.
         self.assertTrue(self.rc.contains("chr1", 50))
         self.assertTrue(self.rc.contains("chr1", 150))
@@ -23,7 +23,7 @@ class TestRegionCollection(unittest.TestCase):
         self.assertFalse(self.rc.contains("chr2", 200))
         self.assertFalse(self.rc.contains("chrX", 1))
 
-    def test_add_regions(self):
+    def test_add_regions(self) -> None:
         regions = [
             Region("chr3", 0, 10),
             Region("chr3", 11, 20),

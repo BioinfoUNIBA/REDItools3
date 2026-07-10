@@ -7,7 +7,7 @@ from reditools.alignment_manager import AlignmentManager
 
 class TestAlignmentManager(unittest.TestCase):
 
-    def test_propagation(self):
+    def test_propagation(self) -> None:
         genome_fname = ntf(suffix=".fa")
         bam_fname = ntf(suffix=".bam")
 
@@ -25,7 +25,7 @@ class TestAlignmentManager(unittest.TestCase):
         Path(genome_fname).unlink()
         Path(bam_fname).unlink()
 
-    def test_fetch_by_position(self):
+    def test_fetch_by_position(self) -> None:
         genome_fname, bam_fnames = self.setup_dummy_data()
 
         rtam = AlignmentManager(min_length=10, min_quality=30)
@@ -49,7 +49,7 @@ class TestAlignmentManager(unittest.TestCase):
         for fname in bam_fnames:
             Path(fname).unlink()
 
-    def setup_dummy_data(self):
+    def setup_dummy_data(self) -> tuple[str, list[str]]:
         genome_fname = ntf(suffix=".fa")
         bam_fnames = [ntf(suffix=".bam") for _ in range(2)]
 

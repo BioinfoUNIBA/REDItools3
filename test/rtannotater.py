@@ -6,7 +6,7 @@ from reditools.rtannotater import RTAnnotater
 
 
 class TestRTAnnotater(unittest.TestCase):
-    def test_legacy_translate(self):
+    def test_legacy_translate(self) -> None:
         test_dict = {
             "Coverage-q30": "100",
             "gCoverage-q30": "200",
@@ -19,7 +19,7 @@ class TestRTAnnotater(unittest.TestCase):
             "AnotherField": "123",
         })
    
-    def test_cmp_position(self):
+    def test_cmp_position(self) -> None:
         contig_order = {
             "chrZ": 1,
             "chr1": 2,
@@ -53,7 +53,7 @@ class TestRTAnnotater(unittest.TestCase):
             ) > 0,
         )
 
-    def test_annotate_row(self):
+    def test_annotate_row(self) -> None:
         rta = RTAnnotater({})
         self.assertEqual(
             rta.annotate_row(
@@ -93,7 +93,7 @@ class TestRTAnnotater(unittest.TestCase):
             },
         )
 
-    def test_annotate_complement_row_no_dna_edit(self):
+    def test_annotate_complement_row_no_dna_edit(self) -> None:
         rta = RTAnnotater({}, True)
         self.assertEqual(
             rta.annotate_row(
@@ -134,7 +134,7 @@ class TestRTAnnotater(unittest.TestCase):
             },
         )
 
-    def test_annotate_complement_row(self):
+    def test_annotate_complement_row(self) -> None:
         rta = RTAnnotater({}, True)
         self.assertEqual(
             rta.annotate_row(
@@ -169,7 +169,7 @@ class TestRTAnnotater(unittest.TestCase):
             },
         )
 
-    def test_annotate_no_complement_row(self):
+    def test_annotate_no_complement_row(self) -> None:
         rta = RTAnnotater({})
         self.assertEqual(
             rta.annotate_row(
@@ -205,7 +205,7 @@ class TestRTAnnotater(unittest.TestCase):
         )
 
 
-    def test_mismatched_reference(self):
+    def test_mismatched_reference(self) -> None:
         rta = RTAnnotater({})
         with self.assertRaises(ValueError):
             rta.annotate_row(
@@ -213,7 +213,7 @@ class TestRTAnnotater(unittest.TestCase):
                 { "Reference": "G"},
             )
 
-    def test_merge_files(self): 
+    def test_merge_files(self): -> None 
         fieldnames = [
             "Region",
             "Position",

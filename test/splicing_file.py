@@ -4,10 +4,11 @@ from tempfile import NamedTemporaryFile
 
 from reditools.region import Region
 from reditools.splicing_file import load_splicing_file
+from typing import Iterable
 
 
 class TestSplicingFile(unittest.TestCase):
-    def write_file(self, data_list, sep=" "):
+    def write_file(self, data_list: str | list, sep: str=" ") -> str:
         with NamedTemporaryFile(
                 delete=False,
                 mode="w",
@@ -21,10 +22,10 @@ class TestSplicingFile(unittest.TestCase):
                 stream.write("\n")
             return stream.name
 
-    def check_test_data(self, test_data, real_data):
+    def check_test_data(self, test_data: Iterable, real_data: list) -> none:
         self.assertEqual([_[1] for _ in test_data], real_data)
 
-    def test_splicing_basic(self):
+    def test_splicing_basic(self) -> None:
         test_data = [
             (
                 ("chr1", "10", "25", "A", "+"),
@@ -50,7 +51,7 @@ class TestSplicingFile(unittest.TestCase):
         self.check_test_data(test_data, splice_sites)
         Path(fname).unlink()
 
-    def test_splicing_edge(self):
+    def test_splicing_edge(self) -> None:
         test_data = [
             ("chr1", "1", "25", "A", "+"),
             ("chr1", "1", "25", "D", "-"),

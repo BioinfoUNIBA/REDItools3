@@ -5,10 +5,11 @@ from tempfile import NamedTemporaryFile
 
 from reditools import file_utils
 from reditools.region import Region
+from typing import Iterable
 
 
 class TestFileUtils(unittest.TestCase):
-    def write_file(self, data_list, sep=" "):
+    def write_file(self, data_list: str | Iterable, sep: str=" ") -> str:
         with NamedTemporaryFile(
                 delete=False,
                 mode="w",
@@ -22,10 +23,14 @@ class TestFileUtils(unittest.TestCase):
                 stream.write("\n")
             return stream.name
 
-    def check_test_data(self, test_data, real_data):
+    def check_test_data(
+        self,
+        test_data: Iterable[tuple],
+        real_data: list,
+    ) -> None:
         self.assertEqual([_[1] for _ in test_data], real_data)
 
-    def test_open_stream_plain(self):
+    def test_open_stream_plain(self) -> None:
         test_str = "test123"
         with NamedTemporaryFile(
                 delete=False,
@@ -39,7 +44,7 @@ class TestFileUtils(unittest.TestCase):
         self.assertEqual(file_content, test_str)
         Path(fname).unlink()
 
-    def test_open_stream_gzip(self):
+    def test_open_stream_gzip(self) -> None:
         test_str = "test_gzip"
         with NamedTemporaryFile(
                 delete=False,
@@ -53,7 +58,7 @@ class TestFileUtils(unittest.TestCase):
         self.assertEqual(file_content, test_str)
         Path(fname).unlink()
 
-    def test_read_bed_file(self):
+    def test_read_bed_file(self) -> None:
         bed_data = (
             (
                 ("chr1", 10, 20),
@@ -69,7 +74,7 @@ class TestFileUtils(unittest.TestCase):
         self.check_test_data(bed_data, region_list)
         Path(fname).unlink()
 
-    def test_read_many_bed_files(self):
+    def test_read_many_bed_files(self) -> None:
         bed_data = (
             (
                 ("chr1", 10, 20),
@@ -88,7 +93,7 @@ class TestFileUtils(unittest.TestCase):
         for fname in fnames:
             Path(fname).unlink()
 
-    def test_concat(self):
+    def test_concat(self) -> None:
         file_contents = ("file1", "file2", "file3")
         file_names = [self.write_file([_]) for _ in file_contents]
 
@@ -109,7 +114,7 @@ class TestFileUtils(unittest.TestCase):
 
         Path(concat_filename).unlink()
 
-    def test_load_text_file(self):
+    def test_load_text_file(self) -> None:
         text_lines = ["rowA", "rowB", "rowC"]
         with NamedTemporaryFile(
                 delete=False,

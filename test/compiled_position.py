@@ -4,30 +4,30 @@ from reditools.compiled_position import CompiledPosition, RTResult
 
 
 class TestCompiledPosition(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.cp = CompiledPosition("A", "chr1", 100)
 
-    def test_add_base_and_len(self):
+    def test_add_base_and_len(self) -> None:
         self.cp.add_base(40, "+", "A")
         self.cp.add_base(35, "-", "C")
         self.cp.add_base(30, "+", "G")
         self.assertEqual(len(self.cp), 3)
 
-    def test_complement(self):
+    def test_complement(self) -> None:
         self.cp.add_base(11, "+", "A")
         self.cp.add_base(12, "-", "C")
         self.cp.complement()
         self.assertEqual(self.cp.bases, ["T", "G"])
         self.assertEqual(self.cp.ref, "T")
 
-    def test_calculate_strand(self):
+    def test_calculate_strand(self) -> None:
         self.cp.add_base(20, "+", "A")
         self.cp.add_base(21, "-", "A")
         self.cp.add_base(22, "+", "C")
         self.assertEqual(self.cp.calculate_strand(), "+")
         self.assertEqual(self.cp.calculate_strand(0.7), "*")
 
-    def test_filter_by_strand(self):
+    def test_filter_by_strand(self) -> None:
         self.cp.add_base(5, "+", "A")
         self.cp.add_base(5, "+", "A")
         self.cp.add_base(6, "-", "C")
@@ -37,7 +37,7 @@ class TestCompiledPosition(unittest.TestCase):
         self.assertEqual(rtresult["A"], 2)
         self.assertEqual(rtresult["C"], 0)
 
-    def test_filter_by_strand_star(self):
+    def test_filter_by_strand_star(self) -> None:
         self.cp.add_base(5, "*", "A")
         self.cp.add_base(5, "*", "A")
         self.cp.add_base(6, "+", "C")
@@ -52,19 +52,19 @@ class TestCompiledPosition(unittest.TestCase):
         self.assertEqual(rtresult["A"], 2)
         self.assertEqual(rtresult["C"], 1)
 
-    def test_reference(self):
+    def test_reference(self) -> None:
         self.assertEqual(self.cp.ref, "A")
         rtresult = RTResult(self.cp, "*")
         self.assertEqual(rtresult.reference, "A")
 
-    def test_len(self):
+    def test_len(self) -> None:
         self.assertEqual(len(self.cp), 0)
         self.cp.add_base(40, "+", "A")
         self.assertEqual(len(self.cp), 1)
         rtresult = RTResult(self.cp, "*")
         self.assertEqual(len(rtresult), 1)
 
-    def test_get_base_counts(self):
+    def test_get_base_counts(self) -> None:
         self.cp.add_base(40, "+", "A")
         self.cp.add_base(35, "-", "A")
         self.cp.add_base(30, "+", "C")
@@ -73,20 +73,20 @@ class TestCompiledPosition(unittest.TestCase):
         self.assertEqual(rtresult["C"], 1)
         self.assertEqual(rtresult["REF"], 2)
 
-    def test_iter(self):
+    def test_iter(self) -> None:
         self.cp.add_base(41, "+", "A")
         self.cp.add_base(42, "+", "C")
         self.cp.add_base(43, "+", "G")
         counts = list(RTResult(self.cp, "*"))
         self.assertEqual(counts, [1, 1, 1, 0])
 
-    def test_variants(self):
+    def test_variants(self) -> None:
         self.cp.add_base(10, "+", "C")
         self.cp.add_base(10, "+", "A")
         rtresult = RTResult(self.cp, "*")
         self.assertEqual(rtresult.variants, ["AC"])
 
-    def test_edit_ratio(self):
+    def test_edit_ratio(self) -> None:
         rtresult = RTResult(self.cp, "*")
         self.assertEqual(rtresult.edit_ratio, 0)
 
@@ -104,7 +104,7 @@ class TestCompiledPosition(unittest.TestCase):
         rtresult = RTResult(self.cp, "*")
         self.assertEqual(rtresult.edit_ratio, 0.75)
 
-    def test_mean_quality(self):
+    def test_mean_quality(self) -> None:
         rtresult = RTResult(self.cp, "*")
         self.assertEqual(rtresult.mean_quality, 0)
 

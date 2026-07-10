@@ -11,7 +11,7 @@ from reditools.region import Region
 class TestREDItools(unittest.TestCase):
     complement = {"A": "T", "T": "A", "C": "G", "G": "C"}
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.rtools = reditools.REDItools()
 
         self.bam_file = ntf(suffix=".bam")
@@ -35,17 +35,17 @@ class TestREDItools(unittest.TestCase):
         self.cp.add_base(30, "+", "G")
         self.cp.add_base(30, "+", "G")
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         Path(self.bam_file).unlink()
         Path(self.fa_file).unlink()
 
-    def test_process_bases(self):
+    def test_process_bases(self) -> None:
         rtresult = self.rtools._process_bases(self.cp)
         self.assertEqual(rtresult.reference, "A")
         self.assertEqual(rtresult.strand, "*")
         self.assertEqual(rtresult.variants, ["AG", "AT"])
 
-    def test_strand_filter(self):
+    def test_strand_filter(self) -> None:
         self.rtools.strand = reditools.FORWARD_STRAND_MODE
         self.rtools.strand_confidence_threshold = 0.5
         rtresult = self.rtools._process_bases(self.cp)
@@ -53,7 +53,7 @@ class TestREDItools(unittest.TestCase):
         self.assertEqual(rtresult.reference, "A")
         self.assertEqual(rtresult.variants, ["AT"])
 
-    def test_strand_correction(self):
+    def test_strand_correction(self): -> None
         self.rtools.strand = reditools.FORWARD_STRAND_MODE
         self.rtools.strand_confidence_threshold = 0.5
         self.rtools.use_strand_correction()
@@ -62,7 +62,7 @@ class TestREDItools(unittest.TestCase):
         self.assertEqual(rtresult.reference, "T")
         self.assertEqual(rtresult.variants, ["TA"])
 
-    def test_add_reference(self):
+    def test_add_reference(self) -> None:
         rtresult = next(
             self.rtools.analyze(
                 self.rtam,
@@ -88,7 +88,7 @@ class TestREDItools(unittest.TestCase):
         )
         self.assertEqual(rtresult.reference, self.sam_obj.genome["chr1"][0])
 
-    def test_region(self):
+    def test_region(self) -> None:
         rtresults = list(self.rtools.analyze(
             self.rtam,
             Region.from_string("chr1:3-7", self.bam_file),

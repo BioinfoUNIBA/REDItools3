@@ -7,19 +7,19 @@ from reditools.region import Region
 
 class TestRegion(unittest.TestCase):
 
-    def test_str(self):
+    def test_str(self) -> None:
         self.assertEqual(str(Region("chr1", 100, 200)), "chr1:101-200")
         self.assertEqual(str(Region("chr1", 0, None)), "chr1")
         self.assertEqual(str(Region("chr1", 50, None)), "chr1:51")
 
-    def test_even_split(self):
+    def test_even_split(self) -> None:
         region = Region("chr1", 0, 1000)
         windows = region.split(250)
         self.assertEqual(len(windows), 4)
         self.assertEqual(windows[0], Region("chr1", 0, 250))
         self.assertEqual(windows[-1], Region("chr1", 750, 1000))
 
-    def test_uneven_split(self):
+    def test_uneven_split(self) -> None:
         region = Region("chr1", 0, 950)
         windows = region.split(300)
         self.assertEqual(len(windows), 4)
@@ -28,13 +28,13 @@ class TestRegion(unittest.TestCase):
         self.assertEqual(windows[2], Region("chr1", 600, 900))
         self.assertEqual(windows[3], Region("chr1", 900, 950))
 
-    def test_impossible_split(self):
+    def test_impossible_split(self) -> None:
         region = Region("chr1", 0, 100)
         windows = region.split(200)
         self.assertEqual(len(windows), 1)
         self.assertEqual(windows[0], Region("chr1", 0, 100))
 
-    def test_nonzero_split(self):
+    def test_nonzero_split(self) -> None:
         region = Region("chr2", 5, 122)
         windows = region.split(50)
         self.assertEqual(len(windows), 3)
@@ -42,13 +42,13 @@ class TestRegion(unittest.TestCase):
         self.assertEqual(windows[1], Region("chr2", 55, 105))
         self.assertEqual(windows[2], Region("chr2", 105, 122))
 
-    def test_none_split(self):
+    def test_none_split(self) -> None:
         with self.assertRaises(IndexError):
             Region("chr1", None, 100).split(50)
         with self.assertRaises(IndexError):
             Region("chr1", 50, None).split(50)
 
-    def test_from_string(self):
+    def test_from_string(self) -> None:
         fasta_fname = ntf(suffix=".fa")
         bam_fname = ntf(suffix=".bam")
 
@@ -69,20 +69,20 @@ class TestRegion(unittest.TestCase):
         Path(fasta_fname).unlink()
         Path(bam_fname).unlink()
 
-    def test_parse_string(self):
+    def test_parse_string(self) -> None:
         region = Region.parse_string("chr1:101-200")
         self.assertEqual(region, ("chr1", 100, 200))
 
         with self.assertRaises(ValueError):
             Region.parse_string("chr1:-2")
 
-    def test_to_int(self):
+    def test_to_int(self) -> None:
         self.assertEqual(Region._to_int("10"), 10)
         self.assertEqual(Region._to_int("10,000"), 10000)
         with self.assertRaises(ValueError):
             Region._to_int("X")
 
-    def test_order(self):
+    def test_order(self) -> None:
         regions_list = [
             Region("chr1", 20, 30),
             Region("chr1", 10, 30),

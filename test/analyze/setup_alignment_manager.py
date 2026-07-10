@@ -8,7 +8,7 @@ from reditools.tools.analyze.setup_alignment_manager import (
 
 
 class TestSetupAlignmentManager(unittest.TestCase):
-    def test_setup(self):
+    def test_setup(self) -> None:
         fasta_fname = ntf(suffix=".fa")
         bam_fname = ntf(suffix=".bam")
 

@@ -9,32 +9,32 @@ from reditools.tools.analyze.parse_args.bounded_types import (
 
 
 class TestParseArgsUtils(unittest.TestCase):
-    def test_check_number_bounds_valid(self):
+    def test_check_number_bounds_valid(self) -> None:
         # No error for value in bounds
         check_number_bounds(5, min_value=1, max_value=10)
         check_number_bounds(1, min_value=1)
         check_number_bounds(10, max_value=10)
 
-    def test_check_number_bounds_too_low(self):
+    def test_check_number_bounds_too_low(self) -> None:
         with self.assertRaises(argparse.ArgumentTypeError):
             check_number_bounds(0, min_value=1)
 
-    def test_check_number_bounds_too_high(self):
+    def test_check_number_bounds_too_high(self) -> None:
         with self.assertRaises(argparse.ArgumentTypeError):
             check_number_bounds(11, max_value=10)
 
-    def test_bounded_int_valid(self):
+    def test_bounded_int_valid(self) -> None:
         conv = bounded_int(min_value=2, max_value=6)
         self.assertEqual(conv("4"), 4)
         self.assertEqual(conv("2"), 2)
         self.assertEqual(conv("6"), 6)
 
-    def test_bounded_int_invalid_type(self):
+    def test_bounded_int_invalid_type(self) -> None:
         conv = bounded_int()
         with self.assertRaises(argparse.ArgumentTypeError):
             conv("foo")
 
-    def test_bounded_int_out_of_bounds(self):
+    def test_bounded_int_out_of_bounds(self) -> None:
         conv = bounded_int(min_value=3)
         with self.assertRaises(argparse.ArgumentTypeError):
             conv("1")
@@ -42,18 +42,18 @@ class TestParseArgsUtils(unittest.TestCase):
         with self.assertRaises(argparse.ArgumentTypeError):
             conv("2")
 
-    def test_bounded_float_valid(self):
+    def test_bounded_float_valid(self) -> None:
         conv = bounded_float(min_value=0.5, max_value=2.6)
         self.assertEqual(conv("1.2"), 1.2)
         self.assertEqual(conv("0.5"), 0.5)
         self.assertEqual(conv("2.6"), 2.6)
 
-    def test_bounded_float_invalid_type(self):
+    def test_bounded_float_invalid_type(self) -> None:
         conv = bounded_float()
         with self.assertRaises(argparse.ArgumentTypeError):
             conv("hello")
 
-    def test_bounded_float_out_of_bounds(self):
+    def test_bounded_float_out_of_bounds(self) -> None:
         conv = bounded_float(min_value=0.1, max_value=1.2)
         with self.assertRaises(argparse.ArgumentTypeError):
             conv("0.01")

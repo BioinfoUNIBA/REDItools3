@@ -8,7 +8,7 @@ from reditools.fasta_file import MissingContigError, RTFastaFile
 
 
 class TestRTFastaFile(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.contig1 = "test1"
         self.seq1 = self.random_seq(80)
         self.contig2 = "chrtest2"
@@ -22,16 +22,16 @@ class TestRTFastaFile(unittest.TestCase):
             stream.write(f">{self.contig1}\n{self.seq1}\n")
             stream.write(f">{self.contig2}\n{self.seq2}\n")
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         Path(self.fasta_fname).unlink()
 
-    def test_get_base(self):
+    def test_get_base(self) -> None:
         with RTFastaFile(self.fasta_fname) as rff:
             positions = list(range(len(self.seq1)))
             fasta_seq = rff.get_base(self.contig1, *positions)
             self.assertEqual(self.seq1, "".join(fasta_seq))
 
-    def test_get_base_splice(self):
+    def test_get_base_splice(self) -> None:
         with RTFastaFile(self.fasta_fname) as rff:
             positions = list(chain(
                 range(20),
@@ -43,7 +43,7 @@ class TestRTFastaFile(unittest.TestCase):
                 "".join(fasta_seq),
             )
 
-    def test_get_base_prefix(self):
+    def test_get_base_prefix(self) -> None:
         with RTFastaFile(self.fasta_fname) as rff:
             positions = range(len(self.seq2))
             fasta_seq = rff.get_base("test2", *positions)
@@ -52,14 +52,14 @@ class TestRTFastaFile(unittest.TestCase):
             fasta_seq = rff.get_base("chrtest2", *positions)
             self.assertEqual(self.seq2, "".join(fasta_seq))
 
-    def test_get_base_missing_contig(self):
+    def test_get_base_missing_contig(self) -> None:
         with RTFastaFile(self.fasta_fname) as rff:
             with self.assertRaises(MissingContigError):
                 rff.get_base("test3", 0)
             with self.assertRaises(MissingContigError):
                 rff.get_base("chrtest3", 0)
 
-    def test_get_base_out_of_bounds(self):
+    def test_get_base_out_of_bounds(self) -> None:
         with RTFastaFile(self.fasta_fname) as rff:
             with self.assertRaises(IndexError):
                 start = len(self.seq1) - 20
@@ -71,7 +71,7 @@ class TestRTFastaFile(unittest.TestCase):
                 )
                 list(seq_iter)
     @classmethod
-    def random_seq(cls, length):
+    def random_seq(cls, length: int) -> str:
         sequence = []
         for _ in range(length):
             sequence.append(random.choice("ACTG"))

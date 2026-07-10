@@ -8,15 +8,15 @@ from reditools.compiled_reads import CompiledReads, RefFetch
 
 
 class TestCompiledReads(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.fasta_fname = ntf(suffix=".fa")
         self.bam_fname = ntf(suffix=".bam")
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         Path(self.fasta_fname).unlink()
         Path(self.bam_fname).unlink()
 
-    def test_ref_seq_spliced(self):
+    def test_ref_seq_spliced(self) -> None:
         sam_obj = SAM()
         sam_obj.add_contig("chr1", length=60)
         spliceseq = sam_obj.genome["chr1"]
@@ -36,7 +36,7 @@ class TestCompiledReads(unittest.TestCase):
         self.assertEqual("".join(md_ref_fetch.get_refseq(read)), spliceseq)
         self.assertEqual("".join(fa_ref_fetch.get_refseq(read)), spliceseq)
 
-    def test_ref_seq_unspliced(self):
+    def test_ref_seq_unspliced(self) -> None:
         sam_obj = SAM()
         sam_obj.add_contig("chr1", length=60)
         refseq = sam_obj.genome["chr1"]
@@ -52,7 +52,7 @@ class TestCompiledReads(unittest.TestCase):
         self.assertEqual("".join(md_ref_fetch.get_refseq(read)), refseq)
         self.assertEqual("".join(fa_ref_fetch.get_refseq(read)), refseq)
 
-    def test_ref_seq_snp(self):
+    def test_ref_seq_snp(self) -> None:
         sam_obj = SAM()
         sam_obj.add_contig("chr1", length=60)
         snpseq = list(sam_obj.genome["chr1"])
@@ -76,7 +76,7 @@ class TestCompiledReads(unittest.TestCase):
             sam_obj.genome["chr1"],
         )
 
-    def test_se_strands(self):
+    def test_se_strands(self) -> None:
         sam_obj = SAM()
         sam_obj.add_contig("chr1")
         ref_seq = sam_obj.genome["chr1"]
@@ -113,7 +113,7 @@ class TestCompiledReads(unittest.TestCase):
             [False, True],
         )
 
-    def test_pe_strands(self):
+    def test_pe_strands(self) -> None:
         sam_obj = SAM()
         sam_obj.add_contig("chr1")
         ref_seq = sam_obj.genome["chr1"]
@@ -143,7 +143,7 @@ class TestCompiledReads(unittest.TestCase):
             [False, False, True, True],
         )
 
-    def test_trim(self):
+    def test_trim(self) -> None:
         sam_obj = SAM()
         sam_obj.add_contig("chr1", length=20)
         sam_obj.add_read("chr1", Sequence(sam_obj.genome["chr1"], 0))
@@ -157,7 +157,7 @@ class TestCompiledReads(unittest.TestCase):
             self.assertEqual(min(cr._nucleotides.keys()), 5)
             self.assertEqual(max(cr._nucleotides.keys()), 15)
 
-    def test_base_quality(self):
+    def test_base_quality(self) -> None:
         sam_obj = SAM()
         sam_obj.add_contig("chr1", length=20)
         read = Sequence(sam_obj.genome["chr1"], 0, phred=range(20))
@@ -173,7 +173,7 @@ class TestCompiledReads(unittest.TestCase):
             cr.add_reads([read])
             self.assertEqual(len(cr._nucleotides), 10)
 
-    def test_pop_range(self):
+    def test_pop_range(self) -> None:
         sam_obj = SAM()
         sam_obj.add_contig("chr1", length=20)
         read = Sequence(sam_obj.genome["chr1"], 0, phred=range(20))

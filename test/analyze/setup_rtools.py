@@ -6,7 +6,7 @@ from reditools.tools.analyze.setup_rtools import setup_rtools
 
 
 class TestSetupRTools(unittest.TestCase):
-    def test_options(self):
+    def test_options(self) -> None:
         options = parse_args([
             "example.bam",
             "-r", "genome.fa",

@@ -28,7 +28,7 @@ class TestRTIndexer(unittest.TestCase):
         },
     ]
 
-    def setUp(self):
+    def setUp(self) -> None:
         with NamedTemporaryFile(
                 delete=False,
                 suffix=".out",
@@ -56,11 +56,11 @@ class TestRTIndexer(unittest.TestCase):
             self.bed_filename = stream.name
             stream.write("chr1\t0\t2\n")
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         Path(self.output_filename).unlink()
         Path(self.bed_filename).unlink()
 
-    def test_baseline(self):
+    def test_baseline(self) -> None:
         rti = RTIndexer()
         rti.add_rt_output(self.output_filename)
         self.assertEqual(rti.calc_index(), {
@@ -78,7 +78,7 @@ class TestRTIndexer(unittest.TestCase):
             "T-G": 0,
         })
 
-    def test_region(self):
+    def test_region(self) -> None:
         rti = RTIndexer(region=("chr1", 100, 200))
         self.assertFalse(rti.do_ignore({"Region": "chr1", "Position": "150"}))
         self.assertTrue(rti.do_ignore({"Region": "chr1", "Position": "50"}))
@@ -90,14 +90,14 @@ class TestRTIndexer(unittest.TestCase):
         self.assertTrue(rti.do_ignore({"Region": "chr1", "Position": "50"}))
         self.assertTrue(rti.do_ignore({"Region": "chr2", "Position": "150"}))
 
-    def test_targets(self):
+    def test_targets(self) -> None:
         rti = RTIndexer()
         rti.add_target_from_bed(self.bed_filename)
         self.assertFalse(rti.do_ignore({"Region": "chr1", "Position": "1"}))
         self.assertTrue(rti.do_ignore({"Region": "chr1", "Position": "2"}))
         self.assertTrue(rti.do_ignore({"Region": "chr2", "Position": "1"}))
 
-    def test_exclusions(self):
+    def test_exclusions(self) -> None:
         rti = RTIndexer()
         rti.add_exclusions_from_bed(self.bed_filename)
         self.assertTrue(rti.do_ignore({"Region": "chr1", "Position": "1"}))
