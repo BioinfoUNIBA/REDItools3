@@ -1,5 +1,5 @@
-import os
 import unittest
+from pathlib import Path
 from tempfile import NamedTemporaryFile
 
 from reditools.rtannotater import RTAnnotater
@@ -339,5 +339,5 @@ class TestRTAnnotater(unittest.TestCase):
             },
         )
         self.assertEqual(len(annotated_data), 0)
-        os.remove(rna_file)
-        os.remove(dna_file)
+        Path(rna_file).unlink()
+        Path(dna_file).unlink()

@@ -1,5 +1,5 @@
-import os
 import unittest
+from pathlib import Path
 from test.sam_gen import SAM, Sequence, ntf
 
 from reditools.alignment_manager import AlignmentManager
@@ -22,8 +22,8 @@ class TestAlignmentManager(unittest.TestCase):
         self.assertEqual(rtam._bams[0].readqc.min_length, 10)
         self.assertEqual(rtam._bams[0].readqc.min_quality, 30)
 
-        os.remove(genome_fname)
-        os.remove(bam_fname)
+        Path(genome_fname).unlink()
+        Path(bam_fname).unlink()
 
     def test_fetch_by_position(self):
         genome_fname, bam_fnames = self.setup_dummy_data()
@@ -45,9 +45,9 @@ class TestAlignmentManager(unittest.TestCase):
         self.assertIn("1_2", (_.qname for _ in read_group))
         self.assertEqual(rtam.next_read_start, 40)
 
-        os.remove(genome_fname)
+        Path(genome_fname).unlink()
         for fname in bam_fnames:
-            os.remove(fname)
+            Path(fname).unlink()
 
     def setup_dummy_data(self):
         genome_fname = ntf(suffix=".fa")

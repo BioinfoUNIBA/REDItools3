@@ -1,9 +1,10 @@
-import os
 import unittest
+from pathlib import Path
 from test.sam_gen import SAM, ntf
 
-from reditools.tools.analyze.setup_alignment_manager import \
-    setup_alignment_manager
+from reditools.tools.analyze.setup_alignment_manager import (
+    setup_alignment_manager,
+)
 
 
 class TestSetupAlignmentManager(unittest.TestCase):
@@ -21,7 +22,7 @@ class TestSetupAlignmentManager(unittest.TestCase):
 
 
         exclusions_fname = ntf(suffix=".bed")
-        with open(exclusions_fname, "w") as stream:
+        with Path(exclusions_fname).open("w") as stream:
             stream.write("bad_read")
 
         rtam = setup_alignment_manager(
@@ -35,6 +36,6 @@ class TestSetupAlignmentManager(unittest.TestCase):
         self.assertEqual(rtam.min_length, 123)
         self.assertIn("bad_read", rtam.excluded_read_names)
 
-        os.remove(fasta_fname)
-        os.remove(bam_fname)
-        os.remove(exclusions_fname)
+        Path(fasta_fname).unlink()
+        Path(bam_fname).unlink()
+        Path(exclusions_fname).unlink()

@@ -1,5 +1,5 @@
-import os
 import unittest
+from pathlib import Path
 from test.sam_gen import SAM, Sequence, ntf
 
 from reditools.alignment_file import RTAlignmentFile
@@ -15,8 +15,8 @@ class TestRTAlignmentFile(unittest.TestCase):
         self.bam_fname = ntf(suffix=".bam")
 
     def tearDown(self):
-        os.remove(self.genome_fname)
-        os.remove(self.bam_fname)
+        Path(self.genome_fname).unlink()
+        Path(self.bam_fname).unlink()
 
     def test_fetch_by_position(self):
         for start, stop in (

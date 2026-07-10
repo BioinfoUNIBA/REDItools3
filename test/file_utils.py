@@ -1,6 +1,6 @@
 import gzip
-import os
 import unittest
+from pathlib import Path
 from tempfile import NamedTemporaryFile
 
 from reditools import file_utils
@@ -37,7 +37,7 @@ class TestFileUtils(unittest.TestCase):
         with file_utils.open_stream(fname, "rt") as stream:
             file_content = stream.read()
         self.assertEqual(file_content, test_str)
-        os.remove(fname)
+        Path(fname).unlink()
 
     def test_open_stream_gzip(self):
         test_str = "test_gzip"
@@ -51,7 +51,7 @@ class TestFileUtils(unittest.TestCase):
         with file_utils.open_stream(fname, "rt") as stream:
             file_content = stream.read()
         self.assertEqual(file_content, test_str)
-        os.remove(fname)
+        Path(fname).unlink()
 
     def test_read_bed_file(self):
         bed_data = (
@@ -67,7 +67,7 @@ class TestFileUtils(unittest.TestCase):
         fname = self.write_file((_[0] for _ in bed_data), sep="\t")
         region_list = list(file_utils.read_bed_file(fname))
         self.check_test_data(bed_data, region_list)
-        os.remove(fname)
+        Path(fname).unlink()
 
     def test_read_many_bed_files(self):
         bed_data = (
@@ -86,7 +86,7 @@ class TestFileUtils(unittest.TestCase):
         region_list = list(file_utils.read_bed_file(*fnames))
         self.check_test_data(bed_data, sorted(region_list))
         for fname in fnames:
-            os.remove(fname)
+            Path(fname).unlink()
 
     def test_concat(self):
         file_contents = ("file1", "file2", "file3")
@@ -99,15 +99,15 @@ class TestFileUtils(unittest.TestCase):
             file_utils.concat(stream, *file_names, encoding="utf-8")
             concat_filename = stream.name
         for fname in file_names:
-            self.assertFalse(os.path.exists(fname))
+            self.assertFalse(Path(fname).exists())
 
-        with open(concat_filename, "r") as stream:
+        with Path(concat_filename).open("r") as stream:
             self.assertEqual(
                 stream.read(),
                 "".join([f"{_}\n" for _ in file_contents]),
             )
 
-        os.remove(concat_filename)
+        Path(concat_filename).unlink()
 
     def test_load_text_file(self):
         text_lines = ["rowA", "rowB", "rowC"]
@@ -120,4 +120,4 @@ class TestFileUtils(unittest.TestCase):
             stream.write("\n".join(text_lines))
         loaded_text = file_utils.load_text_file(fname)
         self.assertEqual(loaded_text, text_lines)
-        os.remove(fname)
+        Path(fname).unlink()

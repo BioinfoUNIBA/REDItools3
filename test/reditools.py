@@ -1,5 +1,5 @@
-import os
 import unittest
+from pathlib import Path
 from test.sam_gen import SAM, Genome, Sequence, ntf
 
 from reditools import reditools
@@ -36,8 +36,8 @@ class TestREDItools(unittest.TestCase):
         self.cp.add_base(30, "+", "G")
 
     def tearDown(self):
-        os.remove(self.bam_file)
-        os.remove(self.fa_file)
+        Path(self.bam_file).unlink()
+        Path(self.fa_file).unlink()
 
     def test_process_bases(self):
         rtresult = self.rtools._process_bases(self.cp)

@@ -1,5 +1,5 @@
-import os
 import unittest
+from pathlib import Path
 from test.sam_gen import SAM, ntf
 
 from reditools.region import Region
@@ -21,8 +21,8 @@ class TestRegionArgs(unittest.TestCase):
         sam_obj.save_to_sam(self.bam_fname, self.fasta_fname)
 
     def tearDown(self):
-        os.remove(self.fasta_fname)
-        os.remove(self.bam_fname)
+        Path(self.fasta_fname).unlink()
+        Path(self.bam_fname).unlink()
 
     def test_no_input(self):
         options = parse_args([self.bam_fname])

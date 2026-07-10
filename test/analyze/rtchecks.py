@@ -1,6 +1,6 @@
-import os
 import unittest
 from argparse import Namespace
+from pathlib import Path
 from tempfile import NamedTemporaryFile
 
 from reditools.compiled_position import CompiledPosition, RTResult
@@ -96,17 +96,17 @@ class TestRTChecks(unittest.TestCase):
         rtc = RTChecks(self.options)
         self.assertIsNone(self.run_check(rtc))
 
-        with open(bed_file, mode="a") as stream:
+        with Path(bed_file).open("a") as stream:
             stream.write("chr1\t0\t10\n")
         rtc = RTChecks(self.options)
         self.assertIsNotNone(self.run_check(rtc))
 
-        with open(bed_file, mode="a") as stream:
+        with Path(bed_file).open("a") as stream:
             stream.write("chr2\t0\t10\n")
         rtc = RTChecks(self.options)
         self.assertIsNotNone(self.run_check(rtc))
 
-        os.remove(bed_file)
+        Path(bed_file).unlink()
 
     def test_check_splicing(self):
         with NamedTemporaryFile(
@@ -123,22 +123,22 @@ class TestRTChecks(unittest.TestCase):
         rtc = RTChecks(self.options)
         self.assertIsNone(self.run_check(rtc))
 
-        with open(splice_file, mode="w") as stream:
+        with Path(splice_file).open("w") as stream:
             stream.write("chr1 1 4 A -\n")
         rtc = RTChecks(self.options)
         self.assertIsNotNone(self.run_check(rtc))
 
-        with open(splice_file, mode="w") as stream:
+        with Path(splice_file).open("w") as stream:
             stream.write("chr1 1 4 D +\n")
         rtc = RTChecks(self.options)
         self.assertIsNotNone(self.run_check(rtc))
 
-        with open(splice_file, mode="w") as stream:
+        with Path(splice_file).open("w") as stream:
             stream.write("chr1 1 4 D -\n")
         rtc = RTChecks(self.options)
         self.assertIsNone(self.run_check(rtc))
 
-        os.remove(splice_file)
+        Path(splice_file).unlink()
 
     def test_check_max_editing_nucleotides(self):
         self.options.max_editing_nucleotides = 1
@@ -171,14 +171,14 @@ class TestRTChecks(unittest.TestCase):
         rtc = RTChecks(self.options)
         self.assertIsNotNone(self.run_check(rtc))
 
-        with open(bed_file, mode="a") as stream:
+        with Path(bed_file).open("a") as stream:
             stream.write("chr1\t0\t20\n")
         rtc = RTChecks(self.options)
         self.assertIsNone(self.run_check(rtc))
 
-        with open(bed_file, mode="a") as stream:
+        with Path(bed_file).open("a") as stream:
             stream.write("chr2\t0\t20\n")
         rtc = RTChecks(self.options)
         self.assertIsNone(self.run_check(rtc))
 
-        os.remove(bed_file)
+        Path(bed_file).unlink()

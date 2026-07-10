@@ -1,5 +1,5 @@
-import os
 import unittest
+from pathlib import Path
 from test.sam_gen import SAM, Sequence, ntf
 
 from pysam import AlignmentFile
@@ -13,8 +13,8 @@ class TestCompiledReads(unittest.TestCase):
         self.bam_fname = ntf(suffix=".bam")
 
     def tearDown(self):
-        os.remove(self.fasta_fname)
-        os.remove(self.bam_fname)
+        Path(self.fasta_fname).unlink()
+        Path(self.bam_fname).unlink()
 
     def test_ref_seq_spliced(self):
         sam_obj = SAM()

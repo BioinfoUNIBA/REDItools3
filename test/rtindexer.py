@@ -1,6 +1,6 @@
 import csv
-import os
 import unittest
+from pathlib import Path
 from tempfile import NamedTemporaryFile
 
 from reditools.rtindexer import RTIndexer
@@ -57,8 +57,8 @@ class TestRTIndexer(unittest.TestCase):
             stream.write("chr1\t0\t2\n")
 
     def tearDown(self):
-        os.remove(self.output_filename)
-        os.remove(self.bed_filename)
+        Path(self.output_filename).unlink()
+        Path(self.bed_filename).unlink()
 
     def test_baseline(self):
         rti = RTIndexer()

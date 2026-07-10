@@ -1,10 +1,10 @@
-import os
 import random
 import unittest
 from itertools import chain
+from pathlib import Path
 from tempfile import NamedTemporaryFile
 
-from reditools.fasta_file import RTFastaFile, MissingContigError
+from reditools.fasta_file import MissingContigError, RTFastaFile
 
 
 class TestRTFastaFile(unittest.TestCase):
@@ -23,7 +23,7 @@ class TestRTFastaFile(unittest.TestCase):
             stream.write(f">{self.contig2}\n{self.seq2}\n")
 
     def tearDown(self):
-        os.remove(self.fasta_fname)
+        Path(self.fasta_fname).unlink()
 
     def test_get_base(self):
         with RTFastaFile(self.fasta_fname) as rff:

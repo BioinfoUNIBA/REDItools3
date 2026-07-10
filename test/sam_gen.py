@@ -1,7 +1,7 @@
-import os
 import random
 import re
 from dataclasses import InitVar, dataclass
+from pathlib import Path
 from tempfile import NamedTemporaryFile
 from test.aligner import Aligner
 
@@ -29,7 +29,7 @@ class Genome:
         return name
 
     def save_to_fasta(self, filename):
-        with open(filename, "w") as stream:
+        with Path(filename).open("w") as stream:
             for idx, (name, sequence) in enumerate(self.contigs.items(), 1):
                 stream.write(f">{name} {idx}\n{sequence}\n")
         samtools.faidx(filename)
@@ -205,11 +205,11 @@ class SAM:
             genome_filename,
             catch_stdout=True,
         )
-        with open(sam_filename, "w") as stream:
+        with Path(sam_filename).open("w") as stream:
             stream.write(md_sam)
         samtools.sort("-o", bam_filename, sam_filename)
         samtools.index(bam_filename)
-        os.remove(sam_filename)
+        Path(sam_filename).unlink()
 
     def _covered_seqs(self, contig_name, position):
         return [

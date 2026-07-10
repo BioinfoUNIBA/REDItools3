@@ -1,5 +1,5 @@
-import os
 import unittest
+from pathlib import Path
 from tempfile import NamedTemporaryFile
 
 from reditools.region import Region
@@ -48,7 +48,7 @@ class TestSplicingFile(unittest.TestCase):
         )
         splice_sites = list(load_splicing_file(fname, 5))
         self.check_test_data(test_data, splice_sites)
-        os.remove(fname)
+        Path(fname).unlink()
 
     def test_splicing_edge(self):
         test_data = [
@@ -62,4 +62,4 @@ class TestSplicingFile(unittest.TestCase):
             splice_sites,
             [Region(contig="chr1", start=0, stop=2)],
         )
-        os.remove(fname)
+        Path(fname).unlink()

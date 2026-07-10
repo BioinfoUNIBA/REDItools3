@@ -1,5 +1,5 @@
-import os
 import unittest
+from pathlib import Path
 from test.sam_gen import SAM, ntf
 
 from reditools.region import Region
@@ -66,8 +66,8 @@ class TestRegion(unittest.TestCase):
         region = Region.from_string("chr1", bam_fname)
         self.assertEqual(region, Region("chr1", 0, chr1_len))
 
-        os.remove(fasta_fname)
-        os.remove(bam_fname)
+        Path(fasta_fname).unlink()
+        Path(bam_fname).unlink()
 
     def test_parse_string(self):
         region = Region.parse_string("chr1:101-200")
