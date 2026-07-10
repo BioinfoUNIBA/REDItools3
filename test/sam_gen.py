@@ -28,7 +28,7 @@ class Genome:
         str
             Nucleotide sequence.
         """
-        return self.contigs.get(contig_name, None)
+        return self.contigs[contig_name]
 
     def add_contig(
         self,
@@ -95,7 +95,7 @@ class Genome:
 
 
 @dataclass
-class Sequence: 
+class Sequence:
     """SAM entry.
 
     Parameters
@@ -119,17 +119,17 @@ class Sequence:
     seq: str
     start: int
     flag: int = 0
-    phred: InitVar[list | None] = None
+    phred_list: InitVar[list | None] = None
     mapq: int = 255
     _cigar_str: str | None = None
-    qname: InitVar[str | None] = None
+    read_name: InitVar[str | None] = None
     pnext: int = 0
-    
+
     read_n = 0
     flag_reverse_strand = 16
     phred_default = 30
 
-    def __post_init__(self, phred: list[int] | None, qname: str | None) -> None:
+    def __post_init__(self, phred_list: list[int] | None, read_name: str | None) -> None:
         """Post initialization.
 
         Parameters
@@ -139,15 +139,15 @@ class Sequence:
         qname :  str | None
             Read name (one will be generated if None)
         """
-        if phred is None:
+        if phred_list is None:
             self.phred = [self.phred_default for _ in range(len(self.seq))]
         else:
-            self.phred = phred
+            self.phred = phred_list
 
-        if qname is None:
+        if read_name is None:
             self.qname = self.next_read_name()
         else:
-            self.qname = qname
+            self.qname = read_name
 
     def __len__(self) -> int:
         """Return sequence length.
@@ -216,7 +216,7 @@ class Sequence:
         self._cigar_str = "".join(cigar_pieces)
         return self._cigar_str
 
-    def make_pair(self):
+    def make_pair(self) -> Sequence:
         """Generate SAM paired entry.
 
         Returns
@@ -228,10 +228,10 @@ class Sequence:
             seq=self.seq,
             start=self.start,
             flag=self.pair_flag(self.flag),
-            phred=self.phred,
+            phred_list=self.phred,
             mapq=self.mapq,
             _cigar_str=self._cigar_str,
-            qname=self.qname,
+            read_name=self.qname,
             pnext=self.start,
         )
 
@@ -467,26 +467,6 @@ class SAM:
         samtools.index(bam_filename)
         Path(sam_filename).unlink()
 
-    def _covered_seqs(self, contig_name: str, position: int) -> list[int]:
-        """Get indices for sequences covering a specific base position.
-
-        Parameters
-        ----------
-        contig_name : str
-            Chromosome name.
-        position : int
-            Genomic position.
-
-        Returns
-        -------
-        list[int]
-            Indices for overlapping reads.
-        """
-        return [
-            idx for idx, seq in enumerate(self[contig_name])
-            if seq.start <= position < seq.stop
-        ]
-
     @classmethod
     def _phred(cls, int_value: int) -> str:
         """Convert PHRED score to character.
@@ -518,7 +498,7 @@ def ntf(*args: Any, **kwargs: Any) -> str:
     str
         Path to temporary file.
     """
-    with NamedTemporaryFile(
+    with NamedTemporaryFile(  # type: ignore[call-overload]
             *args,
             delete=False,
             mode="w",

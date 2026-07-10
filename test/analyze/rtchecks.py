@@ -21,7 +21,7 @@ class TestRTChecks(unittest.TestCase):
             bed_file=None,
         )
 
-    def run_check(self, rtc: RTChecks) -> bool:
+    def run_check(self, rtc: RTChecks) -> tuple | None:
         return rtc.check(RTResult(self.bases, "*"))
 
     def test_check_column_edit_frequency(self) -> None:

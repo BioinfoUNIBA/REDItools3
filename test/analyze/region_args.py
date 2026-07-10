@@ -29,7 +29,7 @@ class TestRegionArgs(unittest.TestCase):
         regions = region_args(options)
         self.assertEqual(len(regions), 3)
 
-    def test_region_input(self): -> None
+    def test_region_input(self) -> None:
         options = parse_args([self.bam_fname, "--region", "chr1:1-100"])
         regions = region_args(options)
         self.assertEqual(regions, [Region("chr1", 0, 100)])

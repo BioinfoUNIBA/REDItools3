@@ -18,12 +18,12 @@ class TestRTAnnotater(unittest.TestCase):
             "gCoverage": "200",
             "AnotherField": "123",
         })
-   
+
     def test_cmp_position(self) -> None:
         contig_order = {
             "chrZ": 1,
             "chr1": 2,
-            "chr2": 3,     
+            "chr2": 3,
         }
 
         rta = RTAnnotater(contig_order)
@@ -213,7 +213,7 @@ class TestRTAnnotater(unittest.TestCase):
                 { "Reference": "G"},
             )
 
-    def test_merge_files(self): -> None 
+    def test_merge_files(self) -> None:
         fieldnames = [
             "Region",
             "Position",

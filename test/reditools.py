@@ -53,7 +53,7 @@ class TestREDItools(unittest.TestCase):
         self.assertEqual(rtresult.reference, "A")
         self.assertEqual(rtresult.variants, ["AT"])
 
-    def test_strand_correction(self): -> None
+    def test_strand_correction(self) -> None:
         self.rtools.strand = reditools.FORWARD_STRAND_MODE
         self.rtools.strand_confidence_threshold = 0.5
         self.rtools.use_strand_correction()

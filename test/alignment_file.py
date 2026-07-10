@@ -43,11 +43,11 @@ class TestRTAlignmentFile(unittest.TestCase):
     def test_exclude_reads(self) -> None:
         self.sam_obj.add_read(
             "chr1",
-            Sequence(self.refseq, 0, qname="exclude_me"),
+            Sequence(self.refseq, 0, read_name="exclude_me"),
         )
         self.sam_obj.add_read(
             "chr1",
-            Sequence(self.refseq, 0, qname="include_me"),
+            Sequence(self.refseq, 0, read_name="include_me"),
         )
 
         self.sam_obj.genome.save_to_fasta(self.genome_fname)
@@ -68,7 +68,7 @@ class TestRTAlignmentFile(unittest.TestCase):
         )
         self.sam_obj.add_read(
             "chr1",
-            Sequence(self.refseq, 0, mapq=30, qname="include_me"),
+            Sequence(self.refseq, 0, mapq=30, read_name="include_me"),
         )
 
         self.sam_obj.genome.save_to_fasta(self.genome_fname)
@@ -86,7 +86,7 @@ class TestRTAlignmentFile(unittest.TestCase):
         )
         self.sam_obj.add_read(
             "chr1",
-            Sequence(self.refseq, 0, qname="include_me"),
+            Sequence(self.refseq, 0, read_name="include_me"),
         )
 
         self.sam_obj.genome.save_to_fasta(self.genome_fname)
@@ -103,7 +103,7 @@ class TestRTAlignmentFile(unittest.TestCase):
                 self.refseq,
                 0,
                 flag=flag,
-                qname=f"se_good_{idx}",
+                read_name=f"se_good_{idx}",
             )
             self.sam_obj.add_read("chr1", read)
         for idx, flag in enumerate([4, 256, 272, 512, 1024, 2048, 2064]):
@@ -111,7 +111,7 @@ class TestRTAlignmentFile(unittest.TestCase):
                 self.refseq,
                 0,
                 flag=flag,
-                qname=f"se_bad_{idx}",
+                read_name=f"se_bad_{idx}",
             )
             self.sam_obj.add_read("chr1", read)
 
@@ -131,7 +131,7 @@ class TestRTAlignmentFile(unittest.TestCase):
                     self.refseq,
                     0,
                     flag=flag,
-                    qname=f"pe_good_{idx}",
+                    read_name=f"pe_good_{idx}",
                 ),
             )
         bad_flags = [73, 89, 137, 153, 329, 339, 345, 355, 393, 409]
@@ -142,7 +142,7 @@ class TestRTAlignmentFile(unittest.TestCase):
                     self.refseq,
                     0,
                     flag=flag,
-                    qname=f"pe_bad_{idx}",
+                    read_name=f"pe_bad_{idx}",
                 ),
             )
 

@@ -437,7 +437,7 @@ def parse_args(sys_args: list[str] | None = None) -> argparse.Namespace:
         temp_dir = args.temp_dir
         try:
             args = args_from_json(temp_dir)
-        except (json.ArgumentTypeError, OSError) as exc:
+        except (json.JSONDecodeError, OSError) as exc:
             parser.error(f"Unable to resume analysis.\n{exc}")
         args.resume = True
         args.temp_dir = temp_dir

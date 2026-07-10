@@ -71,8 +71,8 @@ class Aligner:
         row_idx = len(ref_seq)
         col_idx = len(qry_seq)
 
-        ref_align = []
-        qry_align = []
+        ref_align: list[str] = []
+        qry_align: list[str] = []
         while row_idx > 0 or col_idx > 0:
             trace_val = trace_mat[row_idx][col_idx]
 
@@ -156,13 +156,13 @@ class NWMatrix:
             self.nw_matrix[row_idx][col_idx + 1] - self.gap,
             self.nw_matrix[row_idx + 1][col_idx] - self.gap,
         ]
-        t_max = max(t_list)                
+        t_max = max(t_list)
         self.nw_matrix[row_idx + 1][col_idx + 1] = t_max
         self.trace_matrix[row_idx + 1][col_idx + 1] += sum((
             idx + 2 for idx, tv in enumerate(t_list) if tv == t_max
         ))
 
-    def run_dp(self):
+    def run_dp(self) -> None:
         """Run dynamic programming."""
         for col_idx, ref_base in enumerate(self.qry_seq):
             for row_idx, query_base in enumerate(self.ref_seq):
@@ -196,7 +196,11 @@ class NWMatrix:
         )
         return nw_mat
 
-    def init_trace_matrix(self, ref_seq, query_seq):
+    def init_trace_matrix(
+        self,
+        ref_seq: str,
+        query_seq: str,
+    ) -> list[list[int]]:
         """Create an initialized trace matrix.
 
         Parameters

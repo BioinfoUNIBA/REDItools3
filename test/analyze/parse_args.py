@@ -78,7 +78,7 @@ class TestParseArgs(unittest.TestCase):
                 ])
 
     @contextmanager
-    def capture_sys_output(self) -> Iterator[tuple[str]]:
+    def capture_sys_output(self) -> Iterator[tuple[StringIO, StringIO]]:
         capture_out, capture_err = StringIO(), StringIO()
         current_out, current_err = sys.stdout, sys.stderr
         try:  # noqa: WPS229

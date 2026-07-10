@@ -55,10 +55,10 @@ class TestCompiledReads(unittest.TestCase):
     def test_ref_seq_snp(self) -> None:
         sam_obj = SAM()
         sam_obj.add_contig("chr1", length=60)
-        snpseq = list(sam_obj.genome["chr1"])
-        snpseq[30] = "A" if snpseq[30] == "T" else "T"
-        snpseq = "".join(snpseq)
-        sam_obj.add_read("chr1", Sequence(snpseq, 0, _cigar_str="30M1X29M"))
+        snpseq_list = list(sam_obj.genome["chr1"])
+        snpseq_list[30] = "A" if snpseq_list[30] == "T" else "T"
+        snpseq_str = "".join(snpseq_list)
+        sam_obj.add_read("chr1", Sequence(snpseq_str, 0, _cigar_str="30M1X29M"))
         sam_obj.genome.save_to_fasta(self.fasta_fname)
         sam_obj.save_to_sam(self.bam_fname, self.fasta_fname)
 
@@ -82,11 +82,11 @@ class TestCompiledReads(unittest.TestCase):
         ref_seq = sam_obj.genome["chr1"]
         sam_obj.add_read(
             "chr1",
-            Sequence(ref_seq, 0, flag=0, qname="read1"),
+            Sequence(ref_seq, 0, flag=0, read_name="read1"),
         )
         sam_obj.add_read(
             "chr1",
-            Sequence(ref_seq[1:], 1, flag=16, qname="read2"),
+            Sequence(ref_seq[1:], 1, flag=16, read_name="read2"),
         )
 
         sam_obj.genome.save_to_fasta(self.fasta_fname)
@@ -135,7 +135,7 @@ class TestCompiledReads(unittest.TestCase):
         self.assertEqual(
             [cr.get_strand(_) for _ in reads],
             [True, True, False, False],
-        ) 
+        )
 
         cr = CompiledReads(strand=2)
         self.assertEqual(
@@ -160,7 +160,7 @@ class TestCompiledReads(unittest.TestCase):
     def test_base_quality(self) -> None:
         sam_obj = SAM()
         sam_obj.add_contig("chr1", length=20)
-        read = Sequence(sam_obj.genome["chr1"], 0, phred=range(20))
+        read = Sequence(sam_obj.genome["chr1"], 0, phred_list=list(range(20)))
         sam_obj.add_read("chr1", read)
         sam_obj.genome.save_to_fasta(self.fasta_fname)
         sam_obj.save_to_sam(self.bam_fname, self.fasta_fname)
@@ -176,7 +176,7 @@ class TestCompiledReads(unittest.TestCase):
     def test_pop_range(self) -> None:
         sam_obj = SAM()
         sam_obj.add_contig("chr1", length=20)
-        read = Sequence(sam_obj.genome["chr1"], 0, phred=range(20))
+        read = Sequence(sam_obj.genome["chr1"], 0, phred_list=list(range(20)))
         sam_obj.add_read("chr1", read)
         sam_obj.genome.save_to_fasta(self.fasta_fname)
         sam_obj.save_to_sam(self.bam_fname, self.fasta_fname)

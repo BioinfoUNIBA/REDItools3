@@ -22,7 +22,7 @@ class TestSplicingFile(unittest.TestCase):
                 stream.write("\n")
             return stream.name
 
-    def check_test_data(self, test_data: Iterable, real_data: list) -> none:
+    def check_test_data(self, test_data: Iterable, real_data: list) -> None:
         self.assertEqual([_[1] for _ in test_data], real_data)
 
     def test_splicing_basic(self) -> None:

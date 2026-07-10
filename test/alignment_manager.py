@@ -58,15 +58,15 @@ class TestAlignmentManager(unittest.TestCase):
         refseq = sam_obj.genome["chr1"]
         sam_obj.genome.save_to_fasta(genome_fname)
 
-        sam_obj.add_read("chr1", Sequence(refseq, 0, qname="1_1"))
-        sam_obj.add_read("chr1", Sequence(refseq[20:], 20, qname="1_2"))
-        sam_obj.add_read("chr1", Sequence(refseq[40:], 40, qname="1_3"))
+        sam_obj.add_read("chr1", Sequence(refseq, 0, read_name="1_1"))
+        sam_obj.add_read("chr1", Sequence(refseq[20:], 20, read_name="1_2"))
+        sam_obj.add_read("chr1", Sequence(refseq[40:], 40, read_name="1_3"))
         sam_obj.save_to_sam(bam_fnames[0], genome_fname)
 
         sam_obj = SAM()
         sam_obj.add_contig("chr1", sequence=refseq)
-        sam_obj.add_read("chr1", Sequence(refseq[20:], 20, qname="2_1"))
-        sam_obj.add_read("chr1", Sequence(refseq[50:], 50, qname="2_2"))
+        sam_obj.add_read("chr1", Sequence(refseq[20:], 20, read_name="2_1"))
+        sam_obj.add_read("chr1", Sequence(refseq[50:], 50, read_name="2_2"))
         sam_obj.save_to_sam(bam_fnames[1], genome_fname)
 
         return genome_fname, bam_fnames
