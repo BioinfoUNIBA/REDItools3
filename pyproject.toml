@@ -51,3 +51,6 @@ external = ["WPS"]
 "test/__main__.py" = ["F401"]
 "*/__init__.py" = ["F401", "E501"]
 "test/**py" = ["PT009", "PT027", "SLF001"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"

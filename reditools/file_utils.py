@@ -85,8 +85,7 @@ def concat(
     """
     for fname in fnames:
         with Path(fname).open("r", encoding=encoding) as stream:
-            for line in stream:
-                output.write(line)
+            output.writelines(stream)
         if clean_up:
             Path(fname).unlink()
 

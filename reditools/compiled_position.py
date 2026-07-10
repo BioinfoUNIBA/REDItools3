@@ -157,7 +157,7 @@ class RTResult:
         self.position = self.cp.position
         self.contig = self.cp.contig
 
-        self.counter = {_: 0 for _ in self._base_order}
+        self.counter = dict.fromkeys(self._base_order, 0)
         for base in self.cp.bases:
             self.counter[base] += 1
 

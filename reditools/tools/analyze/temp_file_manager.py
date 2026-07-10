@@ -32,10 +32,13 @@ class TempFileManager:
         """
         self.dirpath = dirpath
         if regions:
-            temp_files = [
-                tempfile.NamedTemporaryFile(dir=self.dirpath, delete=False).name
-                for _ in regions
-            ]
+            temp_files = []
+            for _ in regions:
+                with tempfile.NamedTemporaryFile(
+                    dir=self.dirpath,
+                    delete=False,
+                ) as tf:
+                    temp_files.append(tf.name)
             self.region_file_list = list(zip(regions, temp_files))
             with Path(self.dirpath, save_file).open("w") as stream:
                 writer = csv.writer(stream)

@@ -3,7 +3,7 @@ import argparse
 import sys
 import traceback
 from functools import partial
-from multiprocessing.context import TimeoutError
+from multiprocessing.context import TimeoutError as MPTimeoutError
 from multiprocessing.pool import Pool
 
 from reditools.tools.analyze.redi_thread import REDIThreadManager
@@ -44,7 +44,7 @@ def run_pool(
             pool.close()
             pool.join()
             [_.get(1) for _ in imap_iter]
-    except TimeoutError:
+    except MPTimeoutError:
         return False
     except Exception:  # noqa: BLE001
         if options.debug:

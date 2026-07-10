@@ -75,7 +75,7 @@ class RTIndexer:
             position = int(row[self._position])
             if self.region[0] != row[self._contig] or \
                     self.region[1] > position or \
-                    self.region[2] is not None and self.region[2] < position:
+                    (self.region[2] is not None and self.region[2] < position):
                 return True
         if self.exclusions and self.exclusions.contains(
                 row[self._contig],

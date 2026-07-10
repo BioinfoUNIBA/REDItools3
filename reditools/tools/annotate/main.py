@@ -41,11 +41,11 @@ def contig_order_from_bam(bam_fname: str) -> dict[str, int]:
     dict[str, int]
         A dictionary mapping contig names to their 1-based order.
     """
-    contigs = {}
     with pysam.AlignmentFile(bam_fname, ignore_truncation=True) as bam:
-        for idx, contig in enumerate(bam.references, start=1):
-            contigs[contig] = idx
-    return contigs
+        return {
+            contig: idx
+            for idx, contig in enumerate(bam.references, start=1)
+        }
 
 def contig_order_from_fai(fai_fname: str) -> dict[str, int]:
     """Get contig order from a FASTA index file.
