@@ -42,8 +42,12 @@ include_trailing_comma=true
 line-length = 80
 
 select = ["ALL"]
-ignore = ["ANN101", "ANN102", "RUF100", "PYI034", "PLR0913", "FBT001", "FBT002", "D203", "D213", "INP001"]
+ignore = ["ANN101", "ANN102", "RUF100", "PYI034", "PLR0913", "FBT001", "FBT002", "D203", "D213", "INP001", "S311"]
+
+[tool.ruff.lint]
+external = ["WPS"]
 
 [tool.ruff.per-file-ignores]
 "test/__main__.py" = ["F401"]
 "*/__init__.py" = ["F401", "E501"]
+"test/**py" = ["PT009", "PT027", "SLF001"]

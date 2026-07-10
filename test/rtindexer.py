@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import csv
 import unittest
 from pathlib import Path
@@ -7,7 +9,7 @@ from reditools.rtindexer import RTIndexer
 
 
 class TestRTIndexer(unittest.TestCase):
-    test_data = [
+    test_data = (
         {
             "Region": "chr1",
             "Position": 1,
@@ -26,7 +28,7 @@ class TestRTIndexer(unittest.TestCase):
             "Reference": "G",
             "BaseCount[A,C,G,T]": "[0, 10, 10, 0]",
         },
-    ]
+    )
 
     def setUp(self) -> None:
         with NamedTemporaryFile(

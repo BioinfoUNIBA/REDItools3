@@ -1,11 +1,13 @@
+from __future__ import annotations
+
 import gzip
 import unittest
 from pathlib import Path
 from tempfile import NamedTemporaryFile
+from typing import Iterable
 
 from reditools import file_utils
 from reditools.region import Region
-from typing import Iterable
 
 
 class TestFileUtils(unittest.TestCase):
@@ -85,9 +87,7 @@ class TestFileUtils(unittest.TestCase):
                 Region("chr1", 30, 40),
             ),
         )
-        fnames = []
-        for row in bed_data:
-            fnames.append(self.write_file([row[0]], sep="\t"))
+        fnames = [self.write_file([row[0]], sep="\t") for row in bed_data]
         region_list = list(file_utils.read_bed_file(*fnames))
         self.check_test_data(bed_data, sorted(region_list))
         for fname in fnames:

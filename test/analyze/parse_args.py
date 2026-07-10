@@ -1,8 +1,11 @@
+from __future__ import annotations
+
 import sys
 import unittest
 from contextlib import contextmanager
 from io import StringIO
 from typing import Iterator
+
 from reditools import reditools
 from reditools.tools.analyze.parse_args.parse_args import parse_args
 
@@ -60,22 +63,20 @@ class TestParseArgs(unittest.TestCase):
         self.assertFalse(hasattr(args, "load_omopolymeric_file"))
 
     def test_edit_frequency(self) -> None:
-        with self.assertRaises(SystemExit):
-            with self.capture_sys_output() as (stdout, stderr):
-                parse_args([
-                    "test/test.bam",
-                    "--max-editing-nucleotides", "1",
-                    "--min-edits", "3",
-                ])
+        with self.assertRaises(SystemExit), self.capture_sys_output():
+            parse_args([
+                "test/test.bam",
+                "--max-editing-nucleotides", "1",
+                "--min-edits", "3",
+            ])
 
     def test_unstranded(self) -> None:
-        with self.assertRaises(SystemExit):
-            with self.capture_sys_output() as (stdout, stderr):
-                parse_args([
-                    "test/test.bam",
-                    "--strand", "0",
-                    "--strand-correction",
-                ])
+        with self.assertRaises(SystemExit), self.capture_sys_output():
+            parse_args([
+                "test/test.bam",
+                "--strand", "0",
+                "--strand-correction",
+            ])
 
     @contextmanager
     def capture_sys_output(self) -> Iterator[tuple[StringIO, StringIO]]:

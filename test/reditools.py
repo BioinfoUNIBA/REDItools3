@@ -1,15 +1,17 @@
+from __future__ import annotations
+
 import unittest
 from pathlib import Path
 from test.sam_gen import SAM, Genome, Sequence, ntf
 
 from reditools import reditools
 from reditools.alignment_manager import AlignmentManager
+from reditools.comp_map import comp_map
 from reditools.compiled_position import CompiledPosition
 from reditools.region import Region
 
 
 class TestREDItools(unittest.TestCase):
-    complement = {"A": "T", "T": "A", "C": "G", "G": "C"}
 
     def setUp(self) -> None:
         self.rtools = reditools.REDItools()
@@ -75,7 +77,7 @@ class TestREDItools(unittest.TestCase):
         new_genome.add_contig(
             "chr1",
             sequence="".join(
-                self.complement[_] for _ in self.sam_obj.genome["chr1"]
+                comp_map[_] for _ in self.sam_obj.genome["chr1"]
             ),
         )
         new_genome.save_to_fasta(self.fa_file)

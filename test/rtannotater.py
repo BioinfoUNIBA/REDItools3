@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import unittest
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
-from reditools.rtannotater import RTAnnotater
+from reditools.rtannotater import RTAnnotater, AnalyzeMismatchError
 
 
 class TestRTAnnotater(unittest.TestCase):
@@ -207,7 +209,7 @@ class TestRTAnnotater(unittest.TestCase):
 
     def test_mismatched_reference(self) -> None:
         rta = RTAnnotater({})
-        with self.assertRaises(ValueError):
+        with self.assertRaises(AnalyzeMismatchError):
             rta.annotate_row(
                 { "Reference": "A"},
                 { "Reference": "G"},

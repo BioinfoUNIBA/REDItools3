@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 import unittest
 from pathlib import Path
 from tempfile import NamedTemporaryFile
+from typing import Iterable
 
 from reditools.region import Region
 from reditools.splicing_file import load_splicing_file
-from typing import Iterable
 
 
 class TestSplicingFile(unittest.TestCase):
@@ -57,7 +59,7 @@ class TestSplicingFile(unittest.TestCase):
             ("chr1", "1", "25", "D", "-"),
             ("chr1", "3", "25", "D", "-"),
         ]
-        fname = self.write_file(["#Header"] + test_data)
+        fname = self.write_file(["#Header", *test_data])
         splice_sites = list(load_splicing_file(fname, 5))
         self.assertEqual(
             splice_sites,

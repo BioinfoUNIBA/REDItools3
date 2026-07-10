@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import random
 import unittest
 from itertools import chain
@@ -60,20 +62,18 @@ class TestRTFastaFile(unittest.TestCase):
                 rff.get_base("chrtest3", 0)
 
     def test_get_base_out_of_bounds(self) -> None:
-        with RTFastaFile(self.fasta_fname) as rff:
-            with self.assertRaises(IndexError):
-                start = len(self.seq1) - 20
-                stop = len(self.seq1) + 20
-                positions = range(start, stop)
-                seq_iter = rff.get_base(
-                    self.contig1,
-                    *positions,
-                )
-                list(seq_iter)
+        with RTFastaFile(self.fasta_fname) as rff, \
+                self.assertRaises(IndexError):
+            start = len(self.seq1) - 20
+            stop = len(self.seq1) + 20
+            positions = range(start, stop)
+            seq_iter = rff.get_base(
+                self.contig1,
+                *positions,
+            )
+            list(seq_iter)
     @classmethod
     def random_seq(cls, length: int) -> str:
-        sequence = []
-        for _ in range(length):
-            sequence.append(random.choice("ACTG"))
+        sequence = [random.choice("ACTG") for _ in range(length)]
         return "".join(sequence)
 

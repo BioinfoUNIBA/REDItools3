@@ -1,10 +1,13 @@
+from __future__ import annotations
+
 import random
 import re
 from dataclasses import InitVar, dataclass
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from test.aligner import Aligner
-from typing import Iterator, Any
+from typing import Any, Iterator
+
 from pysam import samtools
 
 
@@ -73,8 +76,10 @@ class Genome:
             Path to save file to.
         """
         with Path(filename).open("w") as stream:
-            for idx, (name, sequence) in enumerate(self.contigs.items(), 1):
-                stream.write(f">{name} {idx}\n{sequence}\n")
+            stream.writelines((
+                f">{name} {idx}\n{sequence}\n"
+                for idx, (name, sequence) in enumerate(self.contigs.items(), 1)
+            ))
         samtools.faidx(filename)
 
     @classmethod
@@ -129,7 +134,11 @@ class Sequence:
     flag_reverse_strand = 16
     phred_default = 30
 
-    def __post_init__(self, phred_list: list[int] | None, read_name: str | None) -> None:
+    def __post_init__(
+        self,
+        phred_list: list[int] | None,
+        read_name: str | None,
+    ) -> None:
         """Post initialization.
 
         Parameters
@@ -185,9 +194,8 @@ class Sequence:
         cigar = self.cigar_str(ref_seq)
         tlen = 0
         for count, op in re.findall(r"(?P<count>\d+)(?P<op>[A-Z])", cigar):
-            count = int(count)
             if op not in ("S", "I"):
-                tlen += count
+                tlen += int(count)
         if self.flag & Sequence.flag_reverse_strand:
             return -tlen
         return tlen
@@ -421,7 +429,7 @@ class SAM:
         """
         for contig, reads in self.reads.items():
             ref_seq = self.genome[contig]
-            for idx, sequence in enumerate(reads):
+            for sequence in reads:
                 yield "\t".join([str(_) for _ in (
                     sequence.qname,
                     sequence.flag,
@@ -483,7 +491,7 @@ class SAM:
     """
         return chr(33 + int_value)
 
-def ntf(*args: Any, **kwargs: Any) -> str:
+def ntf(*args: Any, **kwargs: Any) -> str:  # noqa: ANN401
     """Create a new temporary file.
 
     Parameters
@@ -504,5 +512,4 @@ def ntf(*args: Any, **kwargs: Any) -> str:
             mode="w",
             **kwargs,
     ) as stream:
-        filename = stream.name
-    return filename
+        return stream.name

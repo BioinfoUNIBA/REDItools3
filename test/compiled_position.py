@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import unittest
 
 from reditools.compiled_position import CompiledPosition, RTResult
