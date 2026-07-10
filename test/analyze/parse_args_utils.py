@@ -1,7 +1,7 @@
 import argparse
 import unittest
 
-from reditools.tools.analyze.parse_args.parse_args import (bounded_float,
+from reditools.tools.analyze.parse_args.bounded_types import (bounded_float,
                                                            bounded_int,
                                                            check_number_bounds)
 

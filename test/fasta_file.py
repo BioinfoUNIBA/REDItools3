@@ -4,7 +4,7 @@ import unittest
 from itertools import chain
 from tempfile import NamedTemporaryFile
 
-from reditools.fasta_file import RTFastaFile
+from reditools.fasta_file import RTFastaFile, MissingContigError
 
 
 class TestRTFastaFile(unittest.TestCase):
@@ -54,9 +54,9 @@ class TestRTFastaFile(unittest.TestCase):
 
     def test_get_base_missing_contig(self):
         with RTFastaFile(self.fasta_fname) as rff:
-            with self.assertRaises(KeyError):
+            with self.assertRaises(MissingContigError):
                 rff.get_base('test3', 0)
-            with self.assertRaises(KeyError):
+            with self.assertRaises(MissingContigError):
                 rff.get_base('chrtest3', 0)
 
     def test_get_base_out_of_bounds(self):
