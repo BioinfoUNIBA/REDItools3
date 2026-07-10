@@ -33,3 +33,17 @@ issues = "https://github.com/BioinfoUNIBA/REDItools3/issues"
 
 [project.optional-dependencies]
 wps = ["flake8", "wemake-python-styleguide"]
+
+[tool.isort]
+multi_line_output=3
+include_trailing_comma=true
+
+[tool.ruff]
+line-length = 80
+
+select = ["ALL"]
+ignore = ["ANN101", "ANN102", "RUF100", "PYI034", "PLR0913", "FBT001", "FBT002", "D203", "D213", "INP001"]
+
+[tool.ruff.per-file-ignores]
+"test/__main__.py" = ["F401"]
+"*/__init__.py" = ["F401", "E501"]
