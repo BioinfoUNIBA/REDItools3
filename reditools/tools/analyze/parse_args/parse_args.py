@@ -6,10 +6,8 @@ import json
 import tempfile
 
 from reditools import reditools
-from reditools.tools.analyze.parse_args.bounded_types import (
-    bounded_float,
-    bounded_int,
-)
+from reditools.tools.analyze.parse_args.bounded_types import (bounded_float,
+                                                              bounded_int)
 from reditools.tools.analyze.parse_args.json_args import args_from_json
 
 
