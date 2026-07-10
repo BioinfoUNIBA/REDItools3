@@ -36,15 +36,15 @@ class Aligner:
             elif trace_val in [3, 7]:
                 row_idx -= 1
                 ref_align.insert(0, ref_seq[row_idx])
-                qry_align.insert(0, '-')
+                qry_align.insert(0, "-")
             elif trace_val == 4:
                 col_idx -= 1
-                ref_align.insert(0, '-')
+                ref_align.insert(0, "-")
                 qry_align.insert(0, qry_seq[col_idx])
 
         return (
-            ''.join(ref_align),
-            ''.join(qry_align),
+            "".join(ref_align),
+            "".join(qry_align),
         )
 
 class NWMatrix:

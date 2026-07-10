@@ -9,18 +9,18 @@ from reditools.fasta_file import RTFastaFile, MissingContigError
 
 class TestRTFastaFile(unittest.TestCase):
     def setUp(self):
-        self.contig1 = 'test1'
+        self.contig1 = "test1"
         self.seq1 = self.random_seq(80)
-        self.contig2 = 'chrtest2'
+        self.contig2 = "chrtest2"
         self.seq2 = self.random_seq(80)
         with NamedTemporaryFile(
                 delete=False,
-                mode='w',
-                encoding='utf-8',
+                mode="w",
+                encoding="utf-8",
         ) as stream:
             self.fasta_fname = stream.name
-            stream.write(f'>{self.contig1}\n{self.seq1}\n')
-            stream.write(f'>{self.contig2}\n{self.seq2}\n')
+            stream.write(f">{self.contig1}\n{self.seq1}\n")
+            stream.write(f">{self.contig2}\n{self.seq2}\n")
 
     def tearDown(self):
         os.remove(self.fasta_fname)
@@ -29,7 +29,7 @@ class TestRTFastaFile(unittest.TestCase):
         with RTFastaFile(self.fasta_fname) as rff:
             positions = list(range(len(self.seq1)))
             fasta_seq = rff.get_base(self.contig1, *positions)
-            self.assertEqual(self.seq1, ''.join(fasta_seq))
+            self.assertEqual(self.seq1, "".join(fasta_seq))
 
     def test_get_base_splice(self):
         with RTFastaFile(self.fasta_fname) as rff:
@@ -40,24 +40,24 @@ class TestRTFastaFile(unittest.TestCase):
             fasta_seq = rff.get_base(self.contig1, *positions)
             self.assertEqual(
                 self.seq1[:20] + self.seq1[-20:],
-                ''.join(fasta_seq),
+                "".join(fasta_seq),
             )
 
     def test_get_base_prefix(self):
         with RTFastaFile(self.fasta_fname) as rff:
             positions = range(len(self.seq2))
-            fasta_seq = rff.get_base('test2', *positions)
-            self.assertEqual(self.seq2, ''.join(fasta_seq))
+            fasta_seq = rff.get_base("test2", *positions)
+            self.assertEqual(self.seq2, "".join(fasta_seq))
 
-            fasta_seq = rff.get_base('chrtest2', *positions)
-            self.assertEqual(self.seq2, ''.join(fasta_seq))
+            fasta_seq = rff.get_base("chrtest2", *positions)
+            self.assertEqual(self.seq2, "".join(fasta_seq))
 
     def test_get_base_missing_contig(self):
         with RTFastaFile(self.fasta_fname) as rff:
             with self.assertRaises(MissingContigError):
-                rff.get_base('test3', 0)
+                rff.get_base("test3", 0)
             with self.assertRaises(MissingContigError):
-                rff.get_base('chrtest3', 0)
+                rff.get_base("chrtest3", 0)
 
     def test_get_base_out_of_bounds(self):
         with RTFastaFile(self.fasta_fname) as rff:
@@ -74,6 +74,6 @@ class TestRTFastaFile(unittest.TestCase):
     def random_seq(cls, length):
         sequence = []
         for _ in range(length):
-            sequence.append(random.choice('ACTG'))
-        return ''.join(sequence)
+            sequence.append(random.choice("ACTG"))
+        return "".join(sequence)
 

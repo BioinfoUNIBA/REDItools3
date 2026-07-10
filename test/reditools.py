@@ -9,17 +9,17 @@ from reditools.region import Region
 
 
 class TestREDItools(unittest.TestCase):
-    complement = {'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C'}
+    complement = {"A": "T", "T": "A", "C": "G", "G": "C"}
 
     def setUp(self):
         self.rtools = reditools.REDItools()
 
-        self.bam_file = ntf(suffix='.bam')
-        self.fa_file = ntf(suffix='.fa')
+        self.bam_file = ntf(suffix=".bam")
+        self.fa_file = ntf(suffix=".fa")
 
         self.sam_obj = SAM()
-        self.sam_obj.add_contig('chr1', length=10)
-        self.sam_obj.add_read('chr1', Sequence(self.sam_obj.genome['chr1'], 0))
+        self.sam_obj.add_contig("chr1", length=10)
+        self.sam_obj.add_read("chr1", Sequence(self.sam_obj.genome["chr1"], 0))
 
         self.sam_obj.genome.save_to_fasta(self.fa_file)
         self.sam_obj.save_to_sam(self.bam_file, self.fa_file)
@@ -27,13 +27,13 @@ class TestREDItools(unittest.TestCase):
         self.rtam = AlignmentManager()
         self.rtam.add_file(self.bam_file)
 
-        self.cp = CompiledPosition(ref='A', position=1, contig='chr1')
-        self.cp.add_base(30, '-', 'A')
-        self.cp.add_base(30, '-', 'A')
-        self.cp.add_base(30, '-', 'A')
-        self.cp.add_base(30, '-', 'T')
-        self.cp.add_base(30, '+', 'G')
-        self.cp.add_base(30, '+', 'G')
+        self.cp = CompiledPosition(ref="A", position=1, contig="chr1")
+        self.cp.add_base(30, "-", "A")
+        self.cp.add_base(30, "-", "A")
+        self.cp.add_base(30, "-", "A")
+        self.cp.add_base(30, "-", "T")
+        self.cp.add_base(30, "+", "G")
+        self.cp.add_base(30, "+", "G")
 
     def tearDown(self):
         os.remove(self.bam_file)
@@ -41,41 +41,41 @@ class TestREDItools(unittest.TestCase):
 
     def test_process_bases(self):
         rtresult = self.rtools._process_bases(self.cp)
-        self.assertEqual(rtresult.reference, 'A')
-        self.assertEqual(rtresult.strand, '*')
-        self.assertEqual(rtresult.variants, ['AG', 'AT'])
+        self.assertEqual(rtresult.reference, "A")
+        self.assertEqual(rtresult.strand, "*")
+        self.assertEqual(rtresult.variants, ["AG", "AT"])
 
     def test_strand_filter(self):
         self.rtools.strand = reditools.FORWARD_STRAND_MODE
         self.rtools.strand_confidence_threshold = 0.5
         rtresult = self.rtools._process_bases(self.cp)
-        self.assertEqual(rtresult.strand, '-')
-        self.assertEqual(rtresult.reference, 'A')
-        self.assertEqual(rtresult.variants, ['AT'])
+        self.assertEqual(rtresult.strand, "-")
+        self.assertEqual(rtresult.reference, "A")
+        self.assertEqual(rtresult.variants, ["AT"])
 
     def test_strand_correction(self):
         self.rtools.strand = reditools.FORWARD_STRAND_MODE
         self.rtools.strand_confidence_threshold = 0.5
         self.rtools.use_strand_correction()
         rtresult = self.rtools._process_bases(self.cp)
-        self.assertEqual(rtresult.strand, '-')
-        self.assertEqual(rtresult.reference, 'T')
-        self.assertEqual(rtresult.variants, ['TA'])
+        self.assertEqual(rtresult.strand, "-")
+        self.assertEqual(rtresult.reference, "T")
+        self.assertEqual(rtresult.variants, ["TA"])
 
     def test_add_reference(self):
         rtresult = next(
             self.rtools.analyze(
                 self.rtam,
-                Region.from_string('chr1', self.bam_file),
+                Region.from_string("chr1", self.bam_file),
             ),
         )
-        self.assertEqual(rtresult.reference, self.sam_obj.genome['chr1'][0])
+        self.assertEqual(rtresult.reference, self.sam_obj.genome["chr1"][0])
 
         new_genome = Genome()
         new_genome.add_contig(
-            'chr1',
-            sequence=''.join(
-                self.complement[_] for _ in self.sam_obj.genome['chr1']
+            "chr1",
+            sequence="".join(
+                self.complement[_] for _ in self.sam_obj.genome["chr1"]
             ),
         )
         new_genome.save_to_fasta(self.fa_file)
@@ -83,20 +83,20 @@ class TestREDItools(unittest.TestCase):
         rtresult = next(
             self.rtools.analyze(
                 self.rtam,
-                Region.from_string('chr1', self.bam_file),
+                Region.from_string("chr1", self.bam_file),
             ),
         )
-        self.assertEqual(rtresult.reference, self.sam_obj.genome['chr1'][0])
+        self.assertEqual(rtresult.reference, self.sam_obj.genome["chr1"][0])
 
     def test_region(self):
         rtresults = list(self.rtools.analyze(
             self.rtam,
-            Region.from_string('chr1:3-7', self.bam_file),
+            Region.from_string("chr1:3-7", self.bam_file),
         ))
         self.assertEqual(len(rtresults), 5)
 
         rtresults = list(self.rtools.analyze(
             self.rtam,
-            Region.from_string('chr1:8-20', self.bam_file),
+            Region.from_string("chr1:8-20", self.bam_file),
         ))
         self.assertEqual(len(rtresults), 3)
