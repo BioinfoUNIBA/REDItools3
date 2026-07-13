@@ -1,3 +1,4 @@
+"""Classes for SAM and FASTA file generation."""
 from __future__ import annotations
 
 import random

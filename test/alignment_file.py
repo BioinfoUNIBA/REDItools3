@@ -1,3 +1,4 @@
+"""Test cases for RTAlignmentFile."""
 from __future__ import annotations
 
 import unittest

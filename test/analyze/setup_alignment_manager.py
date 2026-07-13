@@ -1,3 +1,4 @@
+"""Test cases for setup_alignment_manager() method."""
 from __future__ import annotations
 
 import unittest
@@ -10,7 +11,10 @@ from reditools.tools.analyze.setup_alignment_manager import (
 
 
 class TestSetupAlignmentManager(unittest.TestCase):
+    """Test cases for setup_alignment_manager() method."""
+
     def test_setup(self) -> None:
+        """Check setup_alignment_manager() method."""
         fasta_fname = ntf(suffix=".fa")
         bam_fname = ntf(suffix=".bam")
 

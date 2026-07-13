@@ -1,3 +1,4 @@
+"""Test cases for RegonCollection class."""
 from __future__ import annotations
 
 import unittest

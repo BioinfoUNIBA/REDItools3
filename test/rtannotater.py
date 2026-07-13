@@ -1,3 +1,4 @@
+"""Test cases for RTAnnotater class."""
 from __future__ import annotations
 
 import unittest
@@ -8,7 +9,10 @@ from reditools.rtannotater import AnalyzeMismatchError, RTAnnotater
 
 
 class TestRTAnnotater(unittest.TestCase):
+    """Test cases for RTAnnotater class."""
+
     def test_legacy_translate(self) -> None:
+        """Check legacy_translate() method."""
         test_dict = {
             "Coverage-q30": "100",
             "gCoverage-q30": "200",
@@ -22,6 +26,7 @@ class TestRTAnnotater(unittest.TestCase):
         })
 
     def test_cmp_position(self) -> None:
+        """Check cmp_position() method."""
         contig_order = {
             "chrZ": 1,
             "chr1": 2,
@@ -56,6 +61,7 @@ class TestRTAnnotater(unittest.TestCase):
         )
 
     def test_annotate_row(self) -> None:
+        """Check annotate_row() method."""
         rta = RTAnnotater({})
         self.assertEqual(
             rta.annotate_row(
@@ -96,7 +102,8 @@ class TestRTAnnotater(unittest.TestCase):
         )
 
     def test_annotate_complement_row_no_dna_edit(self) -> None:
-        rta = RTAnnotater({}, True)
+        """Check annotate_row() on minus strand with unedited DNA."""
+        rta = RTAnnotater({}, True)  # noqa: FBT003
         self.assertEqual(
             rta.annotate_row(
                 {
@@ -137,7 +144,8 @@ class TestRTAnnotater(unittest.TestCase):
         )
 
     def test_annotate_complement_row(self) -> None:
-        rta = RTAnnotater({}, True)
+        """Check annotate_row() on minus strand."""
+        rta = RTAnnotater({}, True)  # noqa: FBT003
         self.assertEqual(
             rta.annotate_row(
                 {
@@ -172,6 +180,7 @@ class TestRTAnnotater(unittest.TestCase):
         )
 
     def test_annotate_no_complement_row(self) -> None:
+        """Check annotate_row() on minus strand without complementing."""
         rta = RTAnnotater({})
         self.assertEqual(
             rta.annotate_row(
@@ -208,6 +217,7 @@ class TestRTAnnotater(unittest.TestCase):
 
 
     def test_mismatched_reference(self) -> None:
+        """Check error handling for reference mismatch."""
         rta = RTAnnotater({})
         with self.assertRaises(AnalyzeMismatchError):
             rta.annotate_row(
@@ -216,6 +226,7 @@ class TestRTAnnotater(unittest.TestCase):
             )
 
     def test_merge_files(self) -> None:
+        """Check merge_files() method."""
         fieldnames = [
             "Region",
             "Position",

@@ -1,3 +1,4 @@
+"""Test cases for region_args module."""
 from __future__ import annotations
 
 import unittest
@@ -10,7 +11,10 @@ from reditools.tools.analyze.region_args import region_args
 
 
 class TestRegionArgs(unittest.TestCase):
+    """Test cases for region_args module."""
+
     def setUp(self) -> None:
+        """Pre-flight setup."""
         self.fasta_fname = ntf(suffix=".fa")
         self.bam_fname = ntf(suffix=".bam")
 
@@ -23,20 +27,24 @@ class TestRegionArgs(unittest.TestCase):
         sam_obj.save_to_sam(self.bam_fname, self.fasta_fname)
 
     def tearDown(self) -> None:
+        """Post-checks cleanup."""
         Path(self.fasta_fname).unlink()
         Path(self.bam_fname).unlink()
 
     def test_no_input(self) -> None:
+        """Check region_args() with no options."""
         options = parse_args([self.bam_fname])
         regions = region_args(options)
         self.assertEqual(len(regions), 3)
 
     def test_region_input(self) -> None:
+        """Check region_args() with specified region."""
         options = parse_args([self.bam_fname, "--region", "chr1:1-100"])
         regions = region_args(options)
         self.assertEqual(regions, [Region("chr1", 0, 100)])
 
     def test_region_window(self) -> None:
+        """Check region_args() with specified region and window size."""
         options = parse_args([
             self.bam_fname,
             "--region",
@@ -48,6 +56,7 @@ class TestRegionArgs(unittest.TestCase):
         self.assertEqual(len(regions), 10)
 
     def test_bam_window(self) -> None:
+        """Check region_args() with window size."""
         options = parse_args([self.bam_fname, "--window", "70"])
         regions = region_args(options)
         self.assertEqual(len(regions), 5)

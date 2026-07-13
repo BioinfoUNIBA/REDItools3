@@ -1,3 +1,4 @@
+"""Test cases for RTChecks class."""
 from __future__ import annotations
 
 import unittest
@@ -10,7 +11,10 @@ from reditools.tools.analyze.rtchecks import RTChecks
 
 
 class TestRTChecks(unittest.TestCase):
+    """Test cases for RTChecks class."""
+
     def setUp(self) -> None:
+        """Pre-flight setup."""
         self.bases = CompiledPosition(contig="chr1", position=1, ref="A")
         self.options = Namespace(
             max_editing_nucleotides=4,
@@ -24,9 +28,22 @@ class TestRTChecks(unittest.TestCase):
         )
 
     def run_check(self, rtc: RTChecks) -> tuple | None:
+        """Perform a quality control check.
+
+        Parameters
+        ----------
+        rtc : RTChecks
+            An RTChecks QC object.
+
+        Returns
+        -------
+        tuple | None
+            Output fo rtc.check()
+        """
         return rtc.check(RTResult(self.bases, "*"))
 
     def test_check_column_edit_frequency(self) -> None:
+        """Check --min-edits input."""
         self.options.min_edits = 1
         rtc = RTChecks(self.options)
         self.assertIsNotNone(self.run_check(rtc))
@@ -49,6 +66,7 @@ class TestRTChecks(unittest.TestCase):
         self.assertIsNotNone(self.run_check(rtc))
 
     def test_check_column_min_edits(self) -> None:
+        """Check min-edits-per-nucleotide input."""
         self.options.min_edits_per_nucleotide = 1
         rtc = RTChecks(self.options)
         self.assertIsNone(self.run_check(rtc))
@@ -71,6 +89,7 @@ class TestRTChecks(unittest.TestCase):
         self.assertIsNotNone(self.run_check(rtc))
 
     def test_check_min_read_depth(self) -> None:
+        """Check min-read-depth input."""
         self.options.min_read_depth = 2
         rtc = RTChecks(self.options)
         self.assertIsNotNone(self.run_check(rtc))
@@ -85,6 +104,7 @@ class TestRTChecks(unittest.TestCase):
         self.assertIsNone(self.run_check(rtc))
 
     def test_check_exclusions(self) -> None:
+        """Check exclude-regions input."""
         with NamedTemporaryFile(
                 delete=False,
                 suffix=".bed",
@@ -111,6 +131,7 @@ class TestRTChecks(unittest.TestCase):
         Path(bed_file).unlink()
 
     def test_check_splicing(self) -> None:
+        """Check splicing-file input."""
         with NamedTemporaryFile(
             delete=False,
             suffix=".txt",
@@ -143,6 +164,7 @@ class TestRTChecks(unittest.TestCase):
         Path(splice_file).unlink()
 
     def test_check_max_editing_nucleotides(self) -> None:
+        """Check max-editing-nucleotides input."""
         self.options.max_editing_nucleotides = 1
         rtc = RTChecks(self.options)
         self.assertIsNone(self.run_check(rtc))
@@ -162,6 +184,7 @@ class TestRTChecks(unittest.TestCase):
         self.assertIsNone(self.run_check(rtc))
 
     def test_check_target_positions(self) -> None:
+        """Check bed-file input."""
         with NamedTemporaryFile(
                 delete=False,
                 suffix=".bed",

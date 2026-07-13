@@ -1,3 +1,4 @@
+"""Test cases for CompiledReads class."""
 from __future__ import annotations
 
 import unittest
@@ -186,9 +187,10 @@ class TestCompiledReads(unittest.TestCase):
 
         with AlignmentFile(self.bam_fname) as af:
             read = next(af.fetch())
-            cr = CompiledReads(min_base_quality=10)
+            mbq = 10
+            cr = CompiledReads(min_base_quality=mbq)
             for _, _, phred, _ in cr._prep_read(read):
-                self.assertTrue(phred >= 10)
+                self.assertTrue(phred >= mbq)
             cr.add_reads([read])
             self.assertEqual(len(cr._nucleotides), 10)
 

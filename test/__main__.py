@@ -1,3 +1,4 @@
+"""Perform unittest quality controls."""
 import unittest
 from test.alignment_file import TestRTAlignmentFile
 from test.alignment_manager import TestAlignmentManager

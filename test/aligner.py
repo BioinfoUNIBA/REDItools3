@@ -1,3 +1,4 @@
+"""Needleman-Wunsch sequence aligner."""
 from __future__ import annotations
 
 

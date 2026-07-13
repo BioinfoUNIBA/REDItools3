@@ -1,3 +1,4 @@
+"""Test cases for Region class."""
 from __future__ import annotations
 
 import unittest
@@ -97,7 +98,7 @@ class TestRegion(unittest.TestCase):
             Region._to_int("X")
 
     def test_order(self) -> None:
-        """Check stortability"""
+        """Check stortability."""
         regions_list = [
             Region("chr1", 20, 30),
             Region("chr1", 10, 30),

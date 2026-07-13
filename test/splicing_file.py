@@ -1,3 +1,4 @@
+"""Test cases for splice_file module."""
 from __future__ import annotations
 
 import unittest
@@ -10,7 +11,23 @@ from reditools.splicing_file import load_splicing_file
 
 
 class TestSplicingFile(unittest.TestCase):
+    """Test cases for splice_file module."""
+
     def write_file(self, data_list: str | list, sep: str=" ") -> str:
+        """Write data to a file.
+
+        Parameters
+        ----------
+        data_list : str | list
+            Data to write to file. If a list, will use sep to concatenate.
+        sep : str
+            Field seperator. Only applicable if data_list is a list.
+
+        Returns
+        -------
+        str
+            Path to output file.
+        """
         with NamedTemporaryFile(
                 delete=False,
                 mode="w",
@@ -24,10 +41,24 @@ class TestSplicingFile(unittest.TestCase):
                 stream.write("\n")
             return stream.name
 
-    def check_test_data(self, test_data: Iterable, real_data: list) -> None:
+    def check_test_data(
+        self,
+        test_data: Iterable[Iterable],
+        real_data: list,
+    ) -> None:
+        """Perform consistency check between real and expected output.
+
+        Parameters
+        ----------
+        test_data : Iterable[Iterable]
+            Expected output. Uses the second sub element of each element.
+        real_data : list
+            Actual output.
+        """
         self.assertEqual([_[1] for _ in test_data], real_data)
 
     def test_splicing_basic(self) -> None:
+        """Check load_splicing_file() method."""
         test_data = [
             (
                 ("chr1", "10", "25", "A", "+"),
@@ -54,6 +85,7 @@ class TestSplicingFile(unittest.TestCase):
         Path(fname).unlink()
 
     def test_splicing_edge(self) -> None:
+        """Check effects when at the very start of a contig."""
         test_data = [
             ("chr1", "1", "25", "A", "+"),
             ("chr1", "1", "25", "D", "-"),

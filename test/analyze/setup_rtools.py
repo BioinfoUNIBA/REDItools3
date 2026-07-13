@@ -1,3 +1,4 @@
+"""Test cases for setup_rtools() method."""
 from __future__ import annotations
 
 import unittest
@@ -8,7 +9,10 @@ from reditools.tools.analyze.setup_rtools import setup_rtools
 
 
 class TestSetupRTools(unittest.TestCase):
+    """Test cases for setup_rtools() method."""
+
     def test_options(self) -> None:
+        """Check setup_rtools() method."""
         options = parse_args([
             "example.bam",
             "-r", "genome.fa",

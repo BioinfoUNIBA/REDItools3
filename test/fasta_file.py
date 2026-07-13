@@ -1,3 +1,4 @@
+"""Test cases for RTFastaFaile class."""
 from __future__ import annotations
 
 import random
