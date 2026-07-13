@@ -21,8 +21,7 @@ def args_to_json(
     filename : str
         Name of the file (defaults to json_args_filename)
     """
-    json_path = Path(dirname) / filename
-    with json_path.open("w") as stream:
+    with Path(dirname, filename).open("w") as stream:
         json.dump(vars(options), stream)  # noqa: WPS421
 
 def args_from_json(
@@ -43,7 +42,6 @@ def args_from_json(
     argparse.Namespace
         Commandline arguments for reditools analyze
     """
-    json_path = Path(dirname) / filename
-    with json_path.open("r") as stream:
+    with Path(dirname, filename).open("r") as stream:
         json_args = json.load(stream)
     return argparse.Namespace(**json_args)
