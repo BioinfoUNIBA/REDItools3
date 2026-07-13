@@ -40,14 +40,7 @@ class TempFileManager:
                 ) as tf:
                     temp_files.append(tf.name)
             self.region_file_list = list(zip(regions, temp_files))
-            with Path(self.dirpath, save_file).open("w") as stream:
-                writer = csv.writer(stream)
-                writer.writerow(["Region", "Filename"])
-                for region, filename in self.region_file_list:
-                    writer.writerow([
-                        region,
-                        Path(filename).name,
-                    ])
+            self.save_to_file()
         else:
             with Path(self.dirpath, save_file).open("r") as stream:
                 reader = csv.DictReader(stream)
@@ -62,6 +55,32 @@ class TempFileManager:
     def __enter__(self) -> TempFileManager:
         """Open TempFileManager."""
         return self
+
+    def __exit__(
+        self,
+        typ: type[BaseException] | None,
+        exc: BaseException | None,
+        tb: TracebackType | None,
+    ) -> None:
+        """If no error occurred, remove all temporary files.
+
+        Deletes the *.done files, cli JSON, and region CSV files.
+        """
+        if typ is not None:
+            return
+
+        for _, filename in self.region_file_list:
+            Path(f"{filename}.done").unlink()
+
+        for temp_file in (json_args.json_args_filename, save_file):
+            Path(self.dirpath, temp_file).unlink()
+        try:
+            Path(self.dirpath).rmdir()
+        except OSError as os_exc:
+            sys.stderr.write(
+                "[WARNING] Could not delete temporary files directory "
+                f"{self.dirpath}. {os_exc}\n",
+            )
 
     def __iter__(self) -> Iterator[tuple[Region, str]]:
         """Iterate over region-filename pairs.
@@ -93,27 +112,13 @@ class TempFileManager:
             mode,
         )
 
-    def cleanup(self) -> None:
-        """Delete the *.done files, cli JSON, and region CSV files."""
-        for _, filename in self.region_file_list:
-            Path(f"{filename}.done").unlink()
-
-        for temp_file in (json_args.json_args_filename, save_file):
-            Path(self.dirpath, temp_file).unlink()
-        try:
-            Path(self.dirpath).rmdir()
-        except OSError as exc:
-            sys.stderr.write(
-                "[WARNING] Could not delete temporary files directory "
-                f"{self.dirpath}. {exc}\n",
-            )
-
-    def __exit__(
-        self,
-        typ: type[BaseException] | None,
-        exc: BaseException | None,
-        tb: TracebackType | None,
-    ) -> None:
-        """If no error occurred, remove all temporary files."""
-        if typ is None:
-            self.cleanup()
+    def save_to_file(self) -> None:
+        """Save list of region files to CSV."""
+        with Path(self.dirpath).open("w") as stream:
+            writer = csv.writer(stream)
+            writer.writerow(["Region", "Filename"])
+            for region, filename in self.region_file_list:
+                writer.writerow([
+                    region,
+                    Path(filename).name,
+                ])

@@ -4,13 +4,13 @@ from __future__ import annotations
 import unittest
 
 from reditools.tools.analyze.parse_args.bounded_types import (
+    CastFloatError,
+    CastIntError,
+    ValueAboveMaximumError,
+    ValueBelowMinimumError,
     bounded_float,
     bounded_int,
     check_number_bounds,
-    ValueBelowMinimumError,
-    ValueAboveMaximumError,
-    CastIntError,
-    CastFloatError,
 )
 
 
