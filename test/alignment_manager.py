@@ -42,7 +42,7 @@ class TestAlignmentManager(unittest.TestCase):
     def test_propagation(self) -> None:
         """Check that properties of AlignmentManager propagate to sub files."""
         rtam = AlignmentManager(min_length=10, min_quality=30)
-        rtam.add_file(self.bam_fname)
+        rtam.add_file(self.bam_fname_1)
 
         self.assertEqual(rtam._bams[0].readqc.min_length, 10)
         self.assertEqual(rtam._bams[0].readqc.min_quality, 30)
