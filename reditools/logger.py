@@ -35,7 +35,7 @@ class Logger:
         pid = os.getpid()
         try:
             ip_addr = socket.gethostbyname(hostname)
-        except:
+        except socket.gaierror:
             self.hostname_string = f"{hostname}|{pid}"
         else:
             self.hostname_string = f"{hostname}|{ip_addr}|{pid}"

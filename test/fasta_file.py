@@ -9,7 +9,11 @@ from tempfile import NamedTemporaryFile
 from test.sam_gen import Genome
 
 from reditools.constants import bases
-from reditools.fasta_file import MissingContigError, RTFastaFile, PastContigEndError
+from reditools.fasta_file import (
+    MissingContigError,
+    PastContigEndError,
+    RTFastaFile,
+)
 
 
 class TestRTFastaFile(unittest.TestCase):
