@@ -103,8 +103,7 @@ def analyze(
                 f"But there are only {len(temp_file_manager)} genomic "
                 "range(s). Consider change the value of --window\n",
             )
-        options.threads = len(temp_file_manager)
-
+            options.threads = len(temp_file_manager)
         if not run_pool(options, temp_file_manager):
             return False
 

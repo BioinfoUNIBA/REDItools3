@@ -7,8 +7,8 @@ from test.sam_gen import SAM, Genome, Sequence, ntf
 
 from reditools import reditools
 from reditools.alignment_manager import AlignmentManager
-from reditools.comp_map import comp_map
 from reditools.compiled_position import CompiledPosition
+from reditools.constants import comp_map
 from reditools.region import Region
 
 

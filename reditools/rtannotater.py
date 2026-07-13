@@ -5,7 +5,7 @@ import csv
 from typing import IO, Iterator
 
 from reditools import file_utils
-from reditools.comp_map import comp_map
+from reditools.constants import comp_map
 
 
 class AnalyzeMismatchError(ValueError):

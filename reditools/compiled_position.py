@@ -4,7 +4,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Iterator
 
-from reditools.comp_map import comp_map
+from reditools.constants import bases as base_order
+from reditools.constants import comp_map
 
 
 @dataclass
@@ -134,8 +135,6 @@ class RTResult:
         A list of observed variants (e.g., ['AG']).
     """
 
-    _base_order = "ACGT"
-
     def __init__(
         self,
         compiled_position: CompiledPosition,
@@ -157,12 +156,12 @@ class RTResult:
         self.position = self.cp.position
         self.contig = self.cp.contig
 
-        self.counter = dict.fromkeys(self._base_order, 0)
+        self.counter = dict.fromkeys(base_order, 0)
         for base in self.cp.bases:
             self.counter[base] += 1
 
         self.variants = [
-            f"{self.reference}{_}" for _ in self._base_order
+            f"{self.reference}{_}" for _ in base_order
             if self[_] and _ != self.reference
         ]
 
@@ -191,7 +190,7 @@ class RTResult:
         int
             The count of each base in order: "A, "C", "G", "T".
         """
-        return (self[base] for base in self._base_order)
+        return (self[base] for base in base_order)
 
     def __len__(self) -> int:
         """Return the total number of reads at this position.
@@ -216,7 +215,7 @@ class RTResult:
             The editing ratio.
         """
         max_edits = 0
-        for base, count in zip(self._base_order, self):
+        for base, count in zip(base_order, self):
             if base != self.reference and count > max_edits:
                 max_edits = count
         try:

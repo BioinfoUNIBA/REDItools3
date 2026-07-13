@@ -5,6 +5,7 @@ import csv
 from itertools import permutations
 from typing import Iterator
 
+from reditools.constants import bases
 from reditools.file_utils import open_stream, read_bed_file
 from reditools.region_collection import RegionCollection
 
@@ -16,7 +17,6 @@ class RTIndexer:
     _position = "Position"
     _contig = "Region"
     _count = "BaseCount[A,C,G,T]"
-    _nucs = "ACGT"
 
     def __init__(
             self,
@@ -34,7 +34,7 @@ class RTIndexer:
         self.exclusions = RegionCollection()
         self.counts = {
             "-".join(_): 0
-            for _ in permutations(self._nucs, 2)
+            for _ in permutations(bases, 2)
         }
         self.region = region
 
@@ -105,7 +105,7 @@ class RTIndexer:
                 if self.do_ignore(row):
                     continue
                 for nuc, count in zip(
-                        self._nucs,
+                        bases,
                         self._counts_to_list(row[self._count]),
                 ):
                     ref = row[self._ref]
@@ -122,7 +122,7 @@ class RTIndexer:
             indices.
         """
         indices: dict[str, float] = {}
-        for idx in set(self.counts) - {f"{nuc}-{nuc}" for nuc in self._nucs}:
+        for idx in set(self.counts) - {f"{nuc}-{nuc}" for nuc in bases}:
             ref = idx[0]
             numerator = self.counts[idx]
             denominator = self.counts.get(f"{ref}-{ref}", 0) + numerator
