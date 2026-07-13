@@ -14,8 +14,8 @@ class TestAlignmentManager(unittest.TestCase):
     def setUp(self) -> None:
         """Pre-flight setup."""
         self.genome_fname = ntf(suffix=".fa")
-        self.bam_fname_1 = ntf(suffix=".bam")
-        self.bam_fname_2 = ntf(suffix=".bam")
+        self.bam_fname1 = ntf(suffix=".bam")
+        self.bam_fname2 = ntf(suffix=".bam")
 
         sam_obj = SAM()
         sam_obj.add_contig("chr1", length=80)
@@ -25,24 +25,24 @@ class TestAlignmentManager(unittest.TestCase):
         sam_obj.add_read("chr1", Sequence(refseq, 0, read_name="1_1"))
         sam_obj.add_read("chr1", Sequence(refseq[20:], 20, read_name="1_2"))
         sam_obj.add_read("chr1", Sequence(refseq[40:], 40, read_name="1_3"))
-        sam_obj.save_to_sam(self.bam_fname_1, self.genome_fname)
+        sam_obj.save_to_sam(self.bam_fname1, self.genome_fname)
 
         sam_obj = SAM()
         sam_obj.add_contig("chr1", sequence=refseq)
         sam_obj.add_read("chr1", Sequence(refseq[20:], 20, read_name="2_1"))
         sam_obj.add_read("chr1", Sequence(refseq[50:], 50, read_name="2_2"))
-        sam_obj.save_to_sam(self.bam_fname_2, self.genome_fname)
+        sam_obj.save_to_sam(self.bam_fname2, self.genome_fname)
 
     def tearDown(self) -> None:
         """Post checks cleanup."""
         Path.unlink(self.genome_fname)
-        Path.unlink(self.bam_fname_1)
-        Path.unlink(self.bam_fname_2)
+        Path.unlink(self.bam_fname1)
+        Path.unlink(self.bam_fname2)
 
     def test_propagation(self) -> None:
         """Check that properties of AlignmentManager propagate to sub files."""
         rtam = AlignmentManager(min_length=10, min_quality=30)
-        rtam.add_file(self.bam_fname_1)
+        rtam.add_file(self.bam_fname1)
 
         self.assertEqual(rtam._bams[0].readqc.min_length, 10)
         self.assertEqual(rtam._bams[0].readqc.min_quality, 30)
@@ -50,8 +50,8 @@ class TestAlignmentManager(unittest.TestCase):
     def test_fetch_by_position(self) -> None:
         """Check fetch_by_position works for all sub files."""
         rtam = AlignmentManager(min_length=10, min_quality=30)
-        rtam.add_file(self.bam_fname_1)
-        rtam.add_file(self.bam_fname_2)
+        rtam.add_file(self.bam_fname1)
+        rtam.add_file(self.bam_fname2)
 
         read_iter = rtam.fetch_by_position("chr1")
 
