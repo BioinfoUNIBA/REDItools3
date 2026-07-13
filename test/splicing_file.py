@@ -43,7 +43,7 @@ class TestSplicingFile(unittest.TestCase):
 
     def check_test_data(
         self,
-        test_data: Iterable[Iterable],
+        test_data: Iterable[list | tuple],
         real_data: list,
     ) -> None:
         """Perform consistency check between real and expected output.

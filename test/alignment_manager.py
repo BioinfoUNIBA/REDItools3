@@ -35,9 +35,9 @@ class TestAlignmentManager(unittest.TestCase):
 
     def tearDown(self) -> None:
         """Post checks cleanup."""
-        Path.unlink(self.genome_fname)
-        Path.unlink(self.bam_fname1)
-        Path.unlink(self.bam_fname2)
+        Path(self.genome_fname).unlink()
+        Path(self.bam_fname1).unlink()
+        Path(self.bam_fname2).unlink()
 
     def test_propagation(self) -> None:
         """Check that properties of AlignmentManager propagate to sub files."""
@@ -57,11 +57,11 @@ class TestAlignmentManager(unittest.TestCase):
 
         read_group = next(read_iter)
         self.assertEqual(len(read_group), 1)
-        self.assertEqual(read_group[0].qname, "1_1")
+        self.assertEqual(read_group[0].query_name, "1_1")
         self.assertEqual(rtam.next_read_start, 20)
 
         read_group = next(read_iter)
         self.assertEqual(len(read_group), 2)
-        self.assertIn("2_1", (_.qname for _ in read_group))
-        self.assertIn("1_2", (_.qname for _ in read_group))
+        self.assertIn("2_1", (_.query_name for _ in read_group))
+        self.assertIn("1_2", (_.query_name for _ in read_group))
         self.assertEqual(rtam.next_read_start, 40)

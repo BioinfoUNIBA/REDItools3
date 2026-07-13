@@ -183,22 +183,21 @@ class TestCompiledReads(unittest.TestCase):
         """Check base quality filters."""
         sam_obj = SAM()
         sam_obj.add_contig("chr1", length=20)
-        read = Sequence(
+        sam_obj.add_read("chr1", Sequence(
             sam_obj.genome["chr1"],
             0,
             phred_list=list(range(20)),
-        )
-        sam_obj.add_read("chr1", read)
+        ))
         sam_obj.genome.save_to_fasta(self.fasta_fname)
         sam_obj.save_to_sam(self.bam_fname, self.fasta_fname)
 
         with AlignmentFile(self.bam_fname) as af:
-            read = next(af.fetch())
+            algn_seg = next(af.fetch())
             mbq = 10
             cr = CompiledReads(min_base_quality=mbq)
-            for _, _, phred, _ in cr._prep_read(read):
+            for _, _, phred, _ in cr._prep_read(algn_seg):
                 self.assertTrue(phred >= mbq)
-            cr.add_reads([read])
+            cr.add_reads([algn_seg])
             self.assertEqual(len(cr._nucleotides), 10)
 
     def test_pop_range(self) -> None:

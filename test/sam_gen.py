@@ -471,7 +471,7 @@ class SAM:
             catch_stdout=True,
         )
         with Path(sam_filename).open("w") as stream:
-            stream.write(md_sam)
+            stream.writelines(md_sam)
         samtools.sort("-o", bam_filename, sam_filename)
         samtools.index(bam_filename)
         Path(sam_filename).unlink()

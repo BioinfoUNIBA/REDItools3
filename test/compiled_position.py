@@ -11,7 +11,7 @@ class TestCompiledPosition(unittest.TestCase):
 
     def setUp(self) -> None:
         """Pre-flight setup."""
-        self.cp = CompiledPosition("A", "chr1", 100)
+        self.cp = CompiledPosition(ref="A", contig="chr1", position=100)
 
     def test_len(self) -> None:
         """Check len() functions for both classes."""

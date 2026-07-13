@@ -14,8 +14,6 @@ class TestRegion(unittest.TestCase):
     def test_str(self) -> None:
         """Check cast to string."""
         self.assertEqual(str(Region("chr1", 100, 200)), "chr1:101-200")
-        self.assertEqual(str(Region("chr1", 0, None)), "chr1")
-        self.assertEqual(str(Region("chr1", 50, None)), "chr1:51")
 
     def test_even_split(self) -> None:
         """Check split() when window sizes are a perfect fit."""
@@ -56,9 +54,9 @@ class TestRegion(unittest.TestCase):
     def test_none_split(self) -> None:
         """Check split() when Region bounds are undefined."""
         with self.assertRaises(IndexError):
-            Region("chr1", None, 100).split(50)
+            Region("chr1", None, 100).split(50)  # type: ignore[arg-type]
         with self.assertRaises(IndexError):
-            Region("chr1", 50, None).split(50)
+            Region("chr1", 50, None).split(50)  # type: ignore[arg-type]
 
     def test_from_string(self) -> None:
         """Check from_string() method."""

@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 from reditools.alignment_file import RTAlignmentFile
 
 if TYPE_CHECKING:
-    from typing import Collection, Iterable, Iterator
+    from typing import Collection, Iterator
 
     from pysam import AlignedSegment
 
@@ -160,7 +160,10 @@ class AlignmentManager:
         self._bams: list[RTAlignmentFile] = []
         self.file_list: list[str] = []
         self.next_read_start: int | None = None
-        self.excluded_read_names = excluded_read_names
+        if excluded_read_names is None:
+            self.excluded_read_names: Collection[str] = []
+        else:
+            self.excluded_read_names = excluded_read_names
         self.min_quality = min_quality
         self.min_length = min_length
 
@@ -184,7 +187,7 @@ class AlignmentManager:
     def fetch_by_position(
         self,
         region: Region | str,
-    ) -> Iterable[list[AlignedSegment]]:
+    ) -> Iterator[list[AlignedSegment]]:
         """Fetch reads from all managed files, grouped by position.
 
         Parameters

@@ -68,7 +68,7 @@ class TestRTAlignmentFile(unittest.TestCase):
         ) as rtaf:
             reads = next(rtaf.fetch_by_position("chr1"))
             self.assertEqual(len(reads), 1)
-            self.assertEqual(reads[0].qname, "include_me")
+            self.assertEqual(reads[0].query_name, "include_me")
 
     def test_check_quality(self) -> None:
         """Check MAPQ quality filter."""
@@ -87,7 +87,7 @@ class TestRTAlignmentFile(unittest.TestCase):
         with RTAlignmentFile(self.bam_fname, min_quality=20) as rtaf:
             reads = next(rtaf.fetch_by_position("chr1"))
             self.assertEqual(len(reads), 1)
-            self.assertEqual(reads[0].qname, "include_me")
+            self.assertEqual(reads[0].query_name, "include_me")
 
     def test_check_length(self) -> None:
         """Check minimum read length filter."""
@@ -106,7 +106,7 @@ class TestRTAlignmentFile(unittest.TestCase):
         with RTAlignmentFile(self.bam_fname, min_length=30) as rtaf:
             reads = next(rtaf.fetch_by_position("chr1"))
             self.assertEqual(len(reads), 1)
-            self.assertEqual(reads[0].qname, "include_me")
+            self.assertEqual(reads[0].query_name, "include_me")
 
     def test_check_se_flags(self) -> None:
         """Check for filtering by SAM flags."""
@@ -133,7 +133,11 @@ class TestRTAlignmentFile(unittest.TestCase):
         with RTAlignmentFile(self.bam_fname) as rtaf:
             reads = next(rtaf.fetch_by_position("chr1"))
             self.assertEqual(len(reads), 2)
-            self.assertTrue(all(_.qname.startswith("se_good") for _ in reads))
+            for algn_seg in reads:
+                self.assertTrue(
+                    algn_seg.query_name is not None and \
+                    algn_seg.query_name.startswith("se_good"),
+                )
 
     def test_check_pe_flags(self) -> None:
         """Check for SAM paired end flags."""
@@ -165,4 +169,8 @@ class TestRTAlignmentFile(unittest.TestCase):
         with RTAlignmentFile(self.bam_fname) as rtaf:
             reads = next(rtaf.fetch_by_position("chr1"))
             self.assertEqual(len(reads), 4)
-            self.assertTrue(all(_.qname.startswith("pe_good") for _ in reads))
+            for read in reads:
+                self.assertTrue(
+                    read.query_name is not None and \
+                    read.query_name.startswith("pe_good"),
+                )
