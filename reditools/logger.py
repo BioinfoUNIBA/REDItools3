@@ -39,7 +39,6 @@ class Logger:
             self.hostname_string = f"{hostname}|{pid}"
         else:
             self.hostname_string = f"{hostname}|{ip_addr}|{pid}"
-        self.hostname_string = f"{hostname}|{pid}"
         self._level = level.upper()
 
         if self._level == self.debug_level:
