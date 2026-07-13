@@ -32,9 +32,13 @@ class Logger:
             The logging level ('SILENT', 'INFO', or 'DEBUG').
         """
         hostname = socket.gethostname()
-        #ip_addr = socket.gethostbyname(hostname)
         pid = os.getpid()
-        #self.hostname_string = f"{hostname}|{ip_addr}|{pid}"
+        try:
+            ip_addr = socket.gethostbyname(hostname)
+        except:
+            self.hostname_string = f"{hostname}|{pid}"
+        else:
+            self.hostname_string = f"{hostname}|{ip_addr}|{pid}"
         self.hostname_string = f"{hostname}|{pid}"
         self._level = level.upper()
 

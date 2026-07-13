@@ -188,7 +188,7 @@ class RTResult:
         Yields
         ------
         int
-            The count of each base in order: "A, "C", "G", "T".
+            The count of each base in order: "A", "C", "G", "T".
         """
         return (self[base] for base in base_order)
 

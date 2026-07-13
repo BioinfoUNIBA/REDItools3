@@ -103,7 +103,7 @@ class RTFastaFile:
         """
         if contig not in self.pysam_fasta_file:
             if contig.startswith("chr"):
-                new_contig = contig.replace("chr", "")
+                new_contig = contig[3:]
             else:
                 new_contig = f"chr{contig}"
             if new_contig not in self.pysam_fasta_file:
