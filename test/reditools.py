@@ -12,8 +12,10 @@ from reditools.region import Region
 
 
 class TestREDItools(unittest.TestCase):
+    """Test cases for REDItools class."""
 
     def setUp(self) -> None:
+        """Pre-flight setup."""
         self.rtools = reditools.REDItools()
 
         self.bam_file = ntf(suffix=".bam")
@@ -38,16 +40,19 @@ class TestREDItools(unittest.TestCase):
         self.cp.add_base(30, "+", "G")
 
     def tearDown(self) -> None:
+        """Post-checks cleanup."""
         Path(self.bam_file).unlink()
         Path(self.fa_file).unlink()
 
     def test_process_bases(self) -> None:
+        """Check _process_bases() function."""
         rtresult = self.rtools._process_bases(self.cp)
         self.assertEqual(rtresult.reference, "A")
         self.assertEqual(rtresult.strand, "*")
         self.assertEqual(rtresult.variants, ["AG", "AT"])
 
     def test_strand_filter(self) -> None:
+        """Check strand modes."""
         self.rtools.strand = reditools.FORWARD_STRAND_MODE
         self.rtools.strand_confidence_threshold = 0.5
         rtresult = self.rtools._process_bases(self.cp)
@@ -56,6 +61,7 @@ class TestREDItools(unittest.TestCase):
         self.assertEqual(rtresult.variants, ["AT"])
 
     def test_strand_correction(self) -> None:
+        """Check strand correction mode."""
         self.rtools.strand = reditools.FORWARD_STRAND_MODE
         self.rtools.strand_confidence_threshold = 0.5
         self.rtools.use_strand_correction()
@@ -65,6 +71,7 @@ class TestREDItools(unittest.TestCase):
         self.assertEqual(rtresult.variants, ["TA"])
 
     def test_add_reference(self) -> None:
+        """Check using MD tags and FASTA files as references."""
         rtresult = next(
             self.rtools.analyze(
                 self.rtam,
@@ -90,7 +97,8 @@ class TestREDItools(unittest.TestCase):
         )
         self.assertEqual(rtresult.reference, self.sam_obj.genome["chr1"][0])
 
-    def test_region(self) -> None:
+    def test_analyze(self) -> None:
+        """Check the analyze function."""
         rtresults = list(self.rtools.analyze(
             self.rtam,
             Region.from_string("chr1:3-7", self.bam_file),

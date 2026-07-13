@@ -11,7 +11,24 @@ from reditools.region import Region
 
 
 class TestFileUtils(unittest.TestCase):
+    """Test cases for file_utils."""
+
     def write_file(self, data_list: str | Iterable, sep: str=" ") -> str:
+        """Write data to file.
+
+        Parameters
+        ----------
+        data_list : str | Iterable
+            Data to write. If data_list is not a string, it will be joined
+            using sep.
+        sep : str
+            Field seperator. Only used if data_list is not a string.
+
+        Returns
+        -------
+        str
+            Filename data saved to.
+        """
         with NamedTemporaryFile(
                 delete=False,
                 mode="w",
@@ -30,9 +47,19 @@ class TestFileUtils(unittest.TestCase):
         test_data: Iterable[tuple],
         real_data: list,
     ) -> None:
+        """Check test data matches real data.
+
+        Parameters
+        ----------
+        test_data : Iterable[tuple]
+            Assumes second element of each tuple what the output should be.
+        real_data : list
+            What the output actually was.
+        """
         self.assertEqual([_[1] for _ in test_data], real_data)
 
     def test_open_stream_plain(self) -> None:
+        """Check read/write plain text files."""
         test_str = "test123"
         with NamedTemporaryFile(
                 delete=False,
@@ -47,6 +74,7 @@ class TestFileUtils(unittest.TestCase):
         Path(fname).unlink()
 
     def test_open_stream_gzip(self) -> None:
+        """Check read/write gzipped files."""
         test_str = "test_gzip"
         with NamedTemporaryFile(
                 delete=False,
@@ -61,6 +89,7 @@ class TestFileUtils(unittest.TestCase):
         Path(fname).unlink()
 
     def test_read_bed_file(self) -> None:
+        """Check read BED files."""
         bed_data = (
             (
                 ("chr1", 10, 20),
@@ -77,6 +106,7 @@ class TestFileUtils(unittest.TestCase):
         Path(fname).unlink()
 
     def test_read_many_bed_files(self) -> None:
+        """Check read multiple BED files."""
         bed_data = (
             (
                 ("chr1", 10, 20),
@@ -94,6 +124,7 @@ class TestFileUtils(unittest.TestCase):
             Path(fname).unlink()
 
     def test_concat(self) -> None:
+        """Check file concatenation."""
         file_contents = ("file1", "file2", "file3")
         file_names = [self.write_file([_]) for _ in file_contents]
 
@@ -115,6 +146,7 @@ class TestFileUtils(unittest.TestCase):
         Path(concat_filename).unlink()
 
     def test_load_text_file(self) -> None:
+        """Check read plaintext files."""
         text_lines = ["rowA", "rowB", "rowC"]
         with NamedTemporaryFile(
                 delete=False,

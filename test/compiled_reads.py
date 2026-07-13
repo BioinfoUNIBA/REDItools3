@@ -10,15 +10,20 @@ from reditools.compiled_reads import CompiledReads, RefFetch
 
 
 class TestCompiledReads(unittest.TestCase):
+    """Test cases for CompiledReads class."""
+
     def setUp(self) -> None:
+        """Pre-flight setup."""
         self.fasta_fname = ntf(suffix=".fa")
         self.bam_fname = ntf(suffix=".bam")
 
     def tearDown(self) -> None:
+        """Post-check cleanup."""
         Path(self.fasta_fname).unlink()
         Path(self.bam_fname).unlink()
 
     def test_ref_seq_spliced(self) -> None:
+        """Check ability to get reference sequence from spliced reads."""
         sam_obj = SAM()
         sam_obj.add_contig("chr1", length=60)
         spliceseq = sam_obj.genome["chr1"]
@@ -39,6 +44,7 @@ class TestCompiledReads(unittest.TestCase):
         self.assertEqual("".join(fa_ref_fetch.get_refseq(read)), spliceseq)
 
     def test_ref_seq_unspliced(self) -> None:
+        """Check ability to get reference sequence from contiguous reads."""
         sam_obj = SAM()
         sam_obj.add_contig("chr1", length=60)
         refseq = sam_obj.genome["chr1"]
@@ -55,6 +61,7 @@ class TestCompiledReads(unittest.TestCase):
         self.assertEqual("".join(fa_ref_fetch.get_refseq(read)), refseq)
 
     def test_ref_seq_snp(self) -> None:
+        """Check ability to get reference sequence from reads with SNPs."""
         sam_obj = SAM()
         sam_obj.add_contig("chr1", length=60)
         snpseq_list = list(sam_obj.genome["chr1"])
@@ -79,6 +86,10 @@ class TestCompiledReads(unittest.TestCase):
         )
 
     def test_se_strands(self) -> None:
+        """Check ability to recognize single-stranded data.
+
+        Checks for unstranded, forward, and reverse strand data.
+        """
         sam_obj = SAM()
         sam_obj.add_contig("chr1")
         ref_seq = sam_obj.genome["chr1"]
@@ -116,6 +127,10 @@ class TestCompiledReads(unittest.TestCase):
         )
 
     def test_pe_strands(self) -> None:
+        """Check ability to recognize paired-end data.
+
+        Checks for unstranded, forward, and reverse strand data.
+        """
         sam_obj = SAM()
         sam_obj.add_contig("chr1")
         ref_seq = sam_obj.genome["chr1"]
@@ -146,6 +161,7 @@ class TestCompiledReads(unittest.TestCase):
         )
 
     def test_trim(self) -> None:
+        """Check read trimming."""
         sam_obj = SAM()
         sam_obj.add_contig("chr1", length=20)
         sam_obj.add_read("chr1", Sequence(sam_obj.genome["chr1"], 0))
@@ -160,6 +176,7 @@ class TestCompiledReads(unittest.TestCase):
             self.assertEqual(max(cr._nucleotides.keys()), 15)
 
     def test_base_quality(self) -> None:
+        """Check base quality filters."""
         sam_obj = SAM()
         sam_obj.add_contig("chr1", length=20)
         read = Sequence(sam_obj.genome["chr1"], 0, phred_list=list(range(20)))
@@ -176,6 +193,7 @@ class TestCompiledReads(unittest.TestCase):
             self.assertEqual(len(cr._nucleotides), 10)
 
     def test_pop_range(self) -> None:
+        """Check pop_range function."""
         sam_obj = SAM()
         sam_obj.add_contig("chr1", length=20)
         read = Sequence(sam_obj.genome["chr1"], 0, phred_list=list(range(20)))

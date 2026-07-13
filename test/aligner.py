@@ -4,6 +4,10 @@ from __future__ import annotations
 class Aligner:
     """Needleman-Wunsch sequence aligner."""
 
+    _trace_match = frozenset((2, 5, 6, 9))
+    _trace_del = frozenset((3, 7))
+    _trace_ins = 4
+
     def __init__(self, match: int=1, mismatch: int=1, gap: int=1) -> None:
         """Initialize self.
 
@@ -79,16 +83,16 @@ class Aligner:
         while row_idx > 0 or col_idx > 0:
             trace_val = trace_mat[row_idx][col_idx]
 
-            if trace_val in [2, 5, 6, 9]:
+            if trace_val in self._trace_match:
                 row_idx -= 1
                 col_idx -= 1
                 ref_align.insert(0, ref_seq[row_idx])
                 qry_align.insert(0, qry_seq[col_idx])
-            elif trace_val in [3, 7]:
+            elif trace_val in self._trace_del:
                 row_idx -= 1
                 ref_align.insert(0, ref_seq[row_idx])
                 qry_align.insert(0, "-")
-            elif trace_val == 4:
+            elif trace_val == self._trace_ins:
                 col_idx -= 1
                 ref_align.insert(0, "-")
                 qry_align.insert(0, qry_seq[col_idx])

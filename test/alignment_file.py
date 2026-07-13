@@ -8,7 +8,10 @@ from reditools.alignment_file import RTAlignmentFile
 
 
 class TestRTAlignmentFile(unittest.TestCase):
+    """Test cases for RTAlignmentFile."""
+
     def setUp(self) -> None:
+        """Preflight setup."""
         self.sam_obj = SAM()
         self.sam_obj.add_contig("chr1", length=60)
         self.refseq = self.sam_obj.genome["chr1"]
@@ -17,10 +20,12 @@ class TestRTAlignmentFile(unittest.TestCase):
         self.bam_fname = ntf(suffix=".bam")
 
     def tearDown(self) -> None:
+        """Posttest teardown."""
         Path(self.genome_fname).unlink()
         Path(self.bam_fname).unlink()
 
     def test_fetch_by_position(self) -> None:
+        """Check fetch_by_position standard functionality."""
         for start, stop in (
                 (0, 20),
                 (20, None),
@@ -43,6 +48,7 @@ class TestRTAlignmentFile(unittest.TestCase):
             self.assertEqual(len(next(reads_iter)), 1)
 
     def test_exclude_reads(self) -> None:
+        """Check ability to exclude reads by name."""
         self.sam_obj.add_read(
             "chr1",
             Sequence(self.refseq, 0, read_name="exclude_me"),
@@ -64,6 +70,7 @@ class TestRTAlignmentFile(unittest.TestCase):
             self.assertEqual(reads[0].qname, "include_me")
 
     def test_check_quality(self) -> None:
+        """Check MAPQ quality filter."""
         self.sam_obj.add_read(
             "chr1",
             Sequence(self.refseq, 0, mapq=10),
@@ -82,6 +89,7 @@ class TestRTAlignmentFile(unittest.TestCase):
             self.assertEqual(reads[0].qname, "include_me")
 
     def test_check_length(self) -> None:
+        """Check minimum read length filter."""
         self.sam_obj.add_read(
             "chr1",
             Sequence(self.refseq[:20], 0),
@@ -100,6 +108,7 @@ class TestRTAlignmentFile(unittest.TestCase):
             self.assertEqual(reads[0].qname, "include_me")
 
     def test_check_se_flags(self) -> None:
+        """Check for filtering by SAM flags."""
         for idx, flag in enumerate([0, 16]):
             read = Sequence(
                 self.refseq,
@@ -126,6 +135,7 @@ class TestRTAlignmentFile(unittest.TestCase):
             self.assertTrue(all(_.qname.startswith("se_good") for _ in reads))
 
     def test_check_pe_flags(self) -> None:
+        """Check for SAM paired end flags."""
         for idx, flag in enumerate([83, 99]):
             self.sam_obj.add_read_pair(
                 "chr1",

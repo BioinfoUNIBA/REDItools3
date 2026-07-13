@@ -488,7 +488,7 @@ class SAM:
         -------
         str
             PHRED character.
-    """
+        """
         return chr(33 + int_value)
 
 def ntf(*args: Any, **kwargs: Any) -> str:  # noqa: ANN401

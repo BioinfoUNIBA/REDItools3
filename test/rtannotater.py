@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
-from reditools.rtannotater import RTAnnotater, AnalyzeMismatchError
+from reditools.rtannotater import AnalyzeMismatchError, RTAnnotater
 
 
 class TestRTAnnotater(unittest.TestCase):
