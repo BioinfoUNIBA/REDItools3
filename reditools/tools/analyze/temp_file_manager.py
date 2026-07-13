@@ -114,7 +114,7 @@ class TempFileManager:
 
     def save_to_file(self) -> None:
         """Save list of region files to CSV."""
-        with Path(self.dirpath).open("w") as stream:
+        with Path(self.dirpath, save_file).open("w") as stream:
             writer = csv.writer(stream)
             writer.writerow(["Region", "Filename"])
             for region, filename in self.region_file_list:
