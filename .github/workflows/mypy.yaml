@@ -3,9 +3,11 @@ on:
   push:
     paths:
       - 'reditools/**py'
+      - 'test/**py'
   pull_request:
     paths:
       - 'reditools/**py'
+      - 'test/**py'
 jobs:
   mypy:
     runs-on: ubuntu-latest
@@ -27,4 +29,4 @@ jobs:
       - name: Add mypy annotator
         uses: pr-annotators/mypy-pr-annotator@v1.0.0
       - name: Run mypy
-        run: uv run mypy reditools/
+        run: uv run mypy reditools/ test/
