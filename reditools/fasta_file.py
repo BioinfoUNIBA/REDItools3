@@ -101,12 +101,12 @@ class RTFastaFile:
         PastContigEndError
             If a position is outside the bounds of the contig.
         """
-        if contig not in self.pysam_fasta_file:
+        if contig not in self.pysam_fasta_file.references:
             if contig.startswith("chr"):
                 new_contig = contig[3:]
             else:
                 new_contig = f"chr{contig}"
-            if new_contig not in self.pysam_fasta_file:
+            if new_contig not in self.pysam_fasta_file.references:
                 raise MissingContigError(contig)
             contig = new_contig
         sorted_pos = sorted(position)
@@ -116,6 +116,7 @@ class RTFastaFile:
             sorted_pos[-1] + 1,
         )
         try:
-            return (seq[_ - sorted_pos[0]].upper() for _ in position)
+            for pos in position:
+                yield seq[pos - sorted_pos[0]].upper()
         except IndexError as exc:
             raise PastContigEndError(contig, max(position)) from exc

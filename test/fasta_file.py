@@ -9,7 +9,7 @@ from tempfile import NamedTemporaryFile
 from test.sam_gen import Genome
 
 from reditools.constants import bases
-from reditools.fasta_file import MissingContigError, RTFastaFile
+from reditools.fasta_file import MissingContigError, RTFastaFile, PastContigEndError
 
 
 class TestRTFastaFile(unittest.TestCase):
@@ -82,15 +82,15 @@ class TestRTFastaFile(unittest.TestCase):
         """Check errors when accessing non-existent chromosomes."""
         with RTFastaFile(self.fasta_fname) as rff:
             with self.assertRaises(MissingContigError):
-                rff.get_base("test3", 0)
+                list(rff.get_base("test3", 0))
             with self.assertRaises(MissingContigError):
-                rff.get_base("chrtest3", 0)
+                list(rff.get_base("chrtest3", 0))
 
     def test_get_base_out_of_bounds(self) -> None:
         """Check errors when accessing bases outside of chromosome boundns."""
         refseq = self.genome[self.naked_contig_name]
         with RTFastaFile(self.fasta_fname) as rff, \
-                self.assertRaises(IndexError):
+                self.assertRaises(PastContigEndError):
             positions = range(
                 len(refseq) - 20,
                 len(refseq) + 20,
