@@ -57,10 +57,10 @@ class CheckMinReadDepth:
             None if read depth is sufficient, a tuple with error message
             otherwise.
         """
-        if len(rtresult) < self.min_read_depth:
+        if rtresult.depth < self.min_read_depth:
             return (
                 "DISCARDING COLUMN {} [MIN_READ_DEPTH={}]",
-                len(rtresult),
+                rtresult.depth,
                 self.min_read_depth,
             )
         return None

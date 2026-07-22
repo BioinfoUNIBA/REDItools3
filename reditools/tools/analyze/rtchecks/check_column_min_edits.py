@@ -31,7 +31,7 @@ class CheckColumnMinEdits:
         options : argparse.Namespace
             The command-line options containing min_edits_per_nucleotide.
         """
-        self.min_edits_per_nucleotide = options.min_edits_per_nucleotide
+        self.min_edits = options.min_edits_per_nucleotide
 
     @classmethod
     def is_needed(cls, options: argparse.Namespace) -> bool:
@@ -65,10 +65,10 @@ class CheckColumnMinEdits:
         """
         for base in bases:
             if base != rtresult.reference and \
-                    0 < rtresult[base] < self.min_edits_per_nucleotide:
+                    0 < rtresult.base_counts[base] < self.min_edits:
                 return (
                     "DISCARDING COLUMN edits={} < {}",
-                    rtresult[base],
-                    self.min_edits_per_nucleotide,
+                    rtresult.base_counts[base],
+                    self.min_edits,
                 )
         return None

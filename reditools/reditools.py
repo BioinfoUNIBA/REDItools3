@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 
 from reditools.compiled_position import RTResult
 from reditools.compiled_reads import CompiledReads
+from reditools.constants import reverse_strand_symbol
 from reditools.logger import Logger
 
 if TYPE_CHECKING:
@@ -143,7 +144,7 @@ class REDItools:
                     self.log(
                         Logger.debug_level,
                         "Yielding output for {} reads",
-                        len(rtresult),
+                        rtresult.depth,
                     )
                     yield rtresult
         self.log(
@@ -186,6 +187,6 @@ class REDItools:
                 threshold=self.strand_confidence_threshold,
             )
             bases.filter_by_strand(strand)
-            if self._use_strand_correction and strand == "-":
+            if self._use_strand_correction and strand == reverse_strand_symbol:
                 bases.complement()
-        return RTResult(bases, strand)
+        return RTResult.from_compiled_position(bases, strand)

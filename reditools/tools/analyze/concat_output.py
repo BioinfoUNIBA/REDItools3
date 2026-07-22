@@ -5,23 +5,7 @@ import csv
 import sys
 
 from reditools import file_utils
-
-fieldnames = [
-    "Region",
-    "Position",
-    "Reference",
-    "Strand",
-    "Coverage",
-    "MeanQ",
-    "BaseCount[A,C,G,T]",
-    "AllSubs",
-    "Frequency",
-    "gCoverage",
-    "gMeanQ",
-    "gBaseCount[A,C,G,T]",
-    "gAllSubs",
-    "gFrequency",
-]
+from reditools.constants import analyze_output_fieldnames as fieldnames
 
 
 def concat_output(

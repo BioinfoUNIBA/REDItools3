@@ -75,7 +75,7 @@ class RegionFormatError(ValueError):
         self.message = f"Unrecognized format: {region_str}."
         super().__init__(self.message)
 
-@dataclass(slots=True, order=True, frozen=True)
+@dataclass(slots=True, order=True)
 class Region:
     """Represent a genomic region.
 
