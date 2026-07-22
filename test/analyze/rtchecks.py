@@ -40,7 +40,7 @@ class TestRTChecks(unittest.TestCase):
         tuple | None
             Output fo rtc.check()
         """
-        return rtc.check(RTResult(self.bases, "*"))
+        return rtc.check(RTResult.from_compiled_position(self.bases, "*"))
 
     def test_check_column_edit_frequency(self) -> None:
         """Check --min-edits input."""

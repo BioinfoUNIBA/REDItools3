@@ -219,6 +219,10 @@ class RTResult:
         Updates the reference, variants, and base_counts properties.
         """
         self.reference = comp_map[self.reference]
+        self.base_counts = {
+            base: self.base_counts[comp_map[base]]
+            for base in self.base_counts
+        }
         self.variants = sorted([
             "".join([comp_map[_] for _ in variant])
             for variant in self.variants
@@ -279,18 +283,18 @@ class RTResult:
         RTResult
         """
         strand_value = src_dict["Strand"]
-        if strand_vaue == forward_strand_number:
+        if strand_value == forward_strand_number:
             strand = forward_strand_symbol
-        elif strand_vaue == reverse_strand_number:
+        elif strand_value == reverse_strand_number:
             strand = reverse_strand_symbol
-        elif strand_vaue == undetermined_strand_number:
+        elif strand_value == undetermined_strand_number:
             strand = undetermined_strand_symbol
         else:
-            strand = strand_vaue
-        depth = int(src_dict.get(
-            "Coverage",
-            src_dict["Coverage-q30"],
-        ))
+            strand = strand_value
+        if "Coverage" in src_dict:
+            depth = src_dict["Coverage"]  # noqa: WPS529
+        else:
+            depth = src_dict["Coverage-q30"]
         counter = {
             base: int(count)
             for base, count in zip(
@@ -305,7 +309,7 @@ class RTResult:
             contig=src_dict["Region"],
             base_counts=counter,
             variants=src_dict["AllSubs"].split(" "),
-            depth=depth,
+            depth=int(depth),
             edit_ratio=float(src_dict["Frequency"]),
             mean_quality=float(src_dict["MeanQ"]),
         )

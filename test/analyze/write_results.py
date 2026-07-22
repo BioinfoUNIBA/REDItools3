@@ -23,9 +23,9 @@ class TestWriteResults(unittest.TestCase):
         cp.add_base(40, "+", "A")
         cp.add_base(30, "+", "G")
         cp.add_base(30, "+", "T")
-        self.rtresults.append(RTResult(cp, "+"))
-        self.rtresults.append(RTResult(cp, "-"))
-        self.rtresults.append(RTResult(cp, "*"))
+        self.rtresults.append(RTResult.from_compiled_position(cp, "+"))
+        self.rtresults.append(RTResult.from_compiled_position(cp, "-"))
+        self.rtresults.append(RTResult.from_compiled_position(cp, "*"))
 
         with NamedTemporaryFile(mode="w", dir=".", delete=False) as temp_file:
             self.fname = temp_file.name
