@@ -87,6 +87,18 @@ class RTAnnotater:
                 self.annotate_row(rna_entry, dna_entry)
             yield rna_entry
 
+    def filtered_annotate(self, rna_iter, dna_iter):
+        dna_entry = next(dna_iter, None)
+
+        for rna_entry in rna_iter:
+            while dna_entry is not None and \
+                    self.cmp_position(rna_entry, dna_entry) > 0:
+                dna_entry = next(dna_iter, None)
+            if dna_entry is not None and \
+                    self.cmp_position(rna_entry, dna_entry) == 0:
+                self.annotate_row(rna_entry, dna_entry)
+                yield rna_entry
+
     def cmp_position(
             self,
             rna_entry: RTResult,

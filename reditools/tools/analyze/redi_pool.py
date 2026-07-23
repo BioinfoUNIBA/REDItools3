@@ -13,6 +13,7 @@ from reditools.tools.analyze.temp_file_manager import TempFileManager
 def run_pool(
     options: argparse.Namespace,
     temp_filemanager: TempFileManager,
+    dna_mode: bool=False
 ) -> bool:
     """Create a pool of threads and analyze the data.
 
@@ -28,10 +29,14 @@ def run_pool(
     bool
         True if the analysis completes successfully, False otherwise.
     """
+    if dna_mode:
+        init_method = REDIThreadManager.init_dna_thread
+    else:
+        init_method = REDIThreadManager.init_thread
     try:
         with Pool(
             options.threads,
-            REDIThreadManager.init_thread,
+            init_method,
             (options,),
         ) as pool:
             imap_iter = [
