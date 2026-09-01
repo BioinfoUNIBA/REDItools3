@@ -5,9 +5,14 @@ import pathlib
 import unittest
 from test.sam_gen import SAM, Sequence, ntf
 
+from reditools.logger import Logger
 from reditools.reditools import REDItools
 from reditools.tools.analyze.parse_args.parse_args import parse_args
-from reditools.tools.analyze.redi_thread import REDIThread
+from reditools.tools.analyze.redi_thread import (
+    REDIThread,
+    contig_order_from_bam,
+    log_level,
+)
 
 
 class TestREDIThread(unittest.TestCase):
@@ -19,11 +24,17 @@ class TestREDIThread(unittest.TestCase):
         self.bam_fname = ntf(suffix=".bam")
 
         sam = SAM()
+        sam.add_contig("chr2", length=60)
+        sam.add_read("chr2", Sequence(
+            sam.genome["chr2"],
+            0,
+        ))
         sam.add_contig("chr1", length=60)
         sam.add_read("chr1", Sequence(
             sam.genome["chr1"],
             0,
         ))
+
 
         sam.genome.save_to_fasta(self.genome_fname)
         sam.save_to_sam(self.bam_fname, self.genome_fname)
@@ -34,7 +45,7 @@ class TestREDIThread(unittest.TestCase):
         pathlib.Path(self.bam_fname).unlink()
 
     def test_options(self) -> None:
-        """Check setup_rtools() method."""
+        """Check that CLI options properly setup the thread pieces."""
         options = parse_args([
             self.bam_fname,
             "-r", "genome.fa",
@@ -44,7 +55,10 @@ class TestREDIThread(unittest.TestCase):
             "--strand", "1",
             "--strand-confidence-threshold", "0.567",
             "--strand-correction",
+            "--min-read-length", "33",
+            "--min-read-quality", "99",
         ])
+
         redi_thread = REDIThread(options)
         rtools = redi_thread.rtools
         self.assertIsInstance(rtools, REDItools)
@@ -55,3 +69,25 @@ class TestREDIThread(unittest.TestCase):
         self.assertEqual(rtools.strand, 1)
         self.assertEqual(rtools.strand_confidence_threshold, 0.567)
         self.assertTrue(rtools._use_strand_correction)
+
+        sam_manager = redi_thread.sam_manager
+        self.assertEqual(sam_manager.min_quality, 99)
+        self.assertEqual(sam_manager.min_length, 33)
+
+
+    def test_log_level(self) -> None:
+        """Check CLI options for log level."""
+        options = parse_args([self.bam_fname])
+        self.assertEqual(log_level(options), Logger.silent_level)
+        options = parse_args([self.bam_fname, "--verbose"])
+        self.assertEqual(log_level(options), Logger.info_level)
+        options = parse_args([self.bam_fname, "--debug"])
+        self.assertEqual(log_level(options), Logger.debug_level)
+
+    def test_contig_order_from_bam(self) -> None:
+        """Test contig_order_from_bam() function."""
+        contig_order = contig_order_from_bam(self.bam_fname)
+        self.assertEqual(contig_order, {
+            "chr2": 1,
+            "chr1": 2,
+        })
