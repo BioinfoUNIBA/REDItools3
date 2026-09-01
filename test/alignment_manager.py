@@ -36,8 +36,11 @@ class TestAlignmentManager(unittest.TestCase):
     def tearDown(self) -> None:
         """Post checks cleanup."""
         Path(self.genome_fname).unlink()
+        Path(f"{self.genome_fname}.fai").unlink()
         Path(self.bam_fname1).unlink()
+        Path(f"{self.bam_fname1}.bai").unlink()
         Path(self.bam_fname2).unlink()
+        Path(f"{self.bam_fname2}.bai").unlink()
 
     def test_propagation(self) -> None:
         """Check that properties of AlignmentManager propagate to sub files."""

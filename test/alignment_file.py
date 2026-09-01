@@ -23,7 +23,9 @@ class TestRTAlignmentFile(unittest.TestCase):
     def tearDown(self) -> None:
         """Posttest teardown."""
         Path(self.genome_fname).unlink()
+        Path(f"{self.genome_fname}.fai").unlink()
         Path(self.bam_fname).unlink()
+        Path(f"{self.bam_fname}.bai").unlink()
 
     def test_fetch_by_position(self) -> None:
         """Check fetch_by_position standard functionality."""

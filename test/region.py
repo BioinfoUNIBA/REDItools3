@@ -78,7 +78,9 @@ class TestRegion(unittest.TestCase):
         self.assertEqual(region, Region("chr1", 0, chr1_len))
 
         Path(fasta_fname).unlink()
+        Path(f"{fasta_fname}.fai").unlink()
         Path(bam_fname).unlink()
+        Path(f"{bam_fname}.bai").unlink()
 
     def test_parse_string(self) -> None:
         """Check parse_string() method."""

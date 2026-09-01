@@ -43,7 +43,9 @@ class TestREDItools(unittest.TestCase):
     def tearDown(self) -> None:
         """Post-checks cleanup."""
         Path(self.bam_file).unlink()
+        Path(f"{self.bam_file}.bai").unlink()
         Path(self.fa_file).unlink()
+        Path(f"{self.fa_file}.fai").unlink()
 
     def test_process_bases(self) -> None:
         """Check _process_bases() function."""

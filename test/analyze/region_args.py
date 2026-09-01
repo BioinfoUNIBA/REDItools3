@@ -29,7 +29,9 @@ class TestRegionArgs(unittest.TestCase):
     def tearDown(self) -> None:
         """Post-checks cleanup."""
         Path(self.fasta_fname).unlink()
+        Path(f"{self.fasta_fname}.fai").unlink()
         Path(self.bam_fname).unlink()
+        Path(f"{self.bam_fname}.bai").unlink()
 
     def test_no_input(self) -> None:
         """Check region_args() with no options."""

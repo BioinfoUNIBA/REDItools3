@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import pathlib
 import unittest
+import pysam
 from test.sam_gen import SAM, Sequence, ntf
 
 from reditools.logger import Logger
@@ -31,6 +32,7 @@ class TestREDIThread(unittest.TestCase):
             sam.genome["chr1"],
             0,
         ))
+        sam.add_contig("chr3", length=60)
 
         sam.genome.save_to_fasta(self.genome_fname)
         sam.save_to_sam(self.bam_fname, self.genome_fname)
@@ -51,7 +53,9 @@ class TestREDIThread(unittest.TestCase):
     def tearDown(self) -> None:
         """Posttest teardown."""
         pathlib.Path(self.genome_fname).unlink()
+        pathlib.Path(f"{self.genome_fname}.fai").unlink()
         pathlib.Path(self.bam_fname).unlink()
+        pathlib.Path(f"{self.bam_fname}.bai").unlink()
 
     def test_options(self) -> None:
         """Check that CLI options properly setup the thread pieces."""
@@ -71,7 +75,6 @@ class TestREDIThread(unittest.TestCase):
         self.assertEqual(sam_manager.min_quality, 99)
         self.assertEqual(sam_manager.min_length, 33)
 
-
     def test_log_level(self) -> None:
         """Check CLI options for log level."""
         options = parse_args([self.bam_fname])
@@ -87,6 +90,7 @@ class TestREDIThread(unittest.TestCase):
         self.assertEqual(contig_order, {
             "chr2": 1,
             "chr1": 2,
+            "chr3": 3,
         })
 
     def test_dna_options(self) -> None:
@@ -150,4 +154,42 @@ class TestREDIThread(unittest.TestCase):
             Region("chr1", 0, 100),
             result_file,
         ))
+        pathlib.Path(result_file).unlink()
         pathlib.Path(done_file).unlink()
+
+    def test_dna_filter(self) -> None:
+        """Check the filter option will only include annotated rows."""
+        dna_sam_file = ntf(suffix=".bam")
+        with pysam.FastaFile(self.genome_fname) as fa:
+            sam = SAM()
+            for _ in fa.references:
+                sam.add_contig(_, sequence=fa.fetch(_))
+            sam.add_read(
+                "chr1",
+                Sequence(sam.genome["chr1"][:5], 0),
+            )
+            sam.save_to_sam(dna_sam_file, self.genome_fname)
+
+        thread = redi_thread.REDIThreadDNA(parse_args([
+            self.bam_fname,
+            "-r", self.genome_fname,
+            "--dna-sample", dna_sam_file,
+            "--dna-filter",
+            "--min-edits", "0",
+            "--dna-min-read-length", "0",
+        ]))
+
+        results_file = ntf()
+        thread.analyze(Region("chr1", 0, 100), results_file)
+        with pathlib.Path(results_file).open("r") as stream:
+            self.assertEqual(len(list(stream)), 5)
+        pathlib.Path(results_file).unlink()
+
+        results_file = ntf()
+        thread.analyze(Region("chr3", 0, 100), results_file)
+        with pathlib.Path(results_file).open("r") as stream:
+            self.assertEqual(len(list(stream)), 0)
+        pathlib.Path(results_file).unlink()
+
+        pathlib.Path(dna_sam_file).unlink()
+        pathlib.Path(f"{dna_sam_file}.bai").unlink()
