@@ -227,7 +227,7 @@ class REDIThreadManager:
         cls.thread = REDIThreadDNA(options)
 
     @classmethod
-    def analyze(cls, region: Region, filename: str) -> None:
+    def analyze(cls, region: Region, filename: str) -> bool:
         """Instruct thread to analyze a specific genomic region.
 
         Parameters
@@ -236,10 +236,17 @@ class REDIThreadManager:
             The genomic region to analyze.
         filename : str
             Path to save output to.
+
+        Returns
+        -------
+        bool
+            True if the analysis runs, False if previously completed.
         """
         if cls.thread is None:
             raise UninitializedError
         done_file = f"{filename}.done"
-        if not Path(done_file).exists():
-            cls.thread.analyze(region, filename)
-            Path(done_file).touch()
+        if Path(done_file).exists():
+            return False
+        cls.thread.analyze(region, filename)
+        Path(done_file).touch()
+        return True

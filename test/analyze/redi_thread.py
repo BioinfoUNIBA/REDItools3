@@ -7,13 +7,9 @@ from test.sam_gen import SAM, Sequence, ntf
 
 from reditools.logger import Logger
 from reditools.reditools import REDItools
+from reditools.region import Region
 from reditools.tools.analyze.parse_args.parse_args import parse_args
-from reditools.tools.analyze.redi_thread import (
-    REDIThread,
-    REDIThreadDNA,
-    contig_order_from_bam,
-    log_level,
-)
+from reditools.tools.analyze import redi_thread
 
 
 class TestREDIThread(unittest.TestCase):
@@ -36,9 +32,21 @@ class TestREDIThread(unittest.TestCase):
             0,
         ))
 
-
         sam.genome.save_to_fasta(self.genome_fname)
         sam.save_to_sam(self.bam_fname, self.genome_fname)
+
+        self.cli_input = [
+            self.bam_fname,
+            "-r", self.genome_fname,
+            "--min-base-position", "10",
+            "--max-base-position", "30",
+            "--min-base-quality", "23",
+            "--strand", "1",
+            "--strand-confidence-threshold", "0.567",
+            "--strand-correction",
+            "--min-read-length", "33",
+            "--min-read-quality", "99",
+        ]
 
     def tearDown(self) -> None:
         """Posttest teardown."""
@@ -47,23 +55,11 @@ class TestREDIThread(unittest.TestCase):
 
     def test_options(self) -> None:
         """Check that CLI options properly setup the thread pieces."""
-        options = parse_args([
-            self.bam_fname,
-            "-r", "genome.fa",
-            "--min-base-position", "10",
-            "--max-base-position", "30",
-            "--min-base-quality", "23",
-            "--strand", "1",
-            "--strand-confidence-threshold", "0.567",
-            "--strand-correction",
-            "--min-read-length", "33",
-            "--min-read-quality", "99",
-        ])
-
-        redi_thread = REDIThread(options)
-        rtools = redi_thread.rtools
+        options = parse_args(self.cli_input)
+        thread = redi_thread.REDIThread(options)
+        rtools = thread.rtools
         self.assertIsInstance(rtools, REDItools)
-        self.assertEqual(rtools.reference, "genome.fa")
+        self.assertEqual(rtools.reference, self.genome_fname)
         self.assertEqual(rtools.min_base_position, 10)
         self.assertEqual(rtools.max_base_position, 30)
         self.assertEqual(rtools.min_base_quality, 23)
@@ -71,7 +67,7 @@ class TestREDIThread(unittest.TestCase):
         self.assertEqual(rtools.strand_confidence_threshold, 0.567)
         self.assertTrue(rtools._use_strand_correction)
 
-        sam_manager = redi_thread.sam_manager
+        sam_manager = thread.sam_manager
         self.assertEqual(sam_manager.min_quality, 99)
         self.assertEqual(sam_manager.min_length, 33)
 
@@ -79,15 +75,15 @@ class TestREDIThread(unittest.TestCase):
     def test_log_level(self) -> None:
         """Check CLI options for log level."""
         options = parse_args([self.bam_fname])
-        self.assertEqual(log_level(options), Logger.silent_level)
+        self.assertEqual(redi_thread.log_level(options), Logger.silent_level)
         options = parse_args([self.bam_fname, "--verbose"])
-        self.assertEqual(log_level(options), Logger.info_level)
+        self.assertEqual(redi_thread.log_level(options), Logger.info_level)
         options = parse_args([self.bam_fname, "--debug"])
-        self.assertEqual(log_level(options), Logger.debug_level)
+        self.assertEqual(redi_thread.log_level(options), Logger.debug_level)
 
     def test_contig_order_from_bam(self) -> None:
         """Test contig_order_from_bam() function."""
-        contig_order = contig_order_from_bam(self.bam_fname)
+        contig_order = redi_thread.contig_order_from_bam(self.bam_fname)
         self.assertEqual(contig_order, {
             "chr2": 1,
             "chr1": 2,
@@ -96,18 +92,8 @@ class TestREDIThread(unittest.TestCase):
     def test_dna_options(self) -> None:
         """Check that CLI options properly setup the RNA-DNA thread pieces."""
         options = parse_args([
-            self.bam_fname,
+            *self.cli_input,
             "--dna-sample", self.bam_fname,
-            "-r", "genome.fa",
-            "--min-base-position", "10",
-            "--max-base-position", "30",
-            "--min-base-quality", "23",
-            "--strand", "1",
-            "--strand-confidence-threshold", "0.567",
-            "--strand-correction",
-            "--min-read-length", "33",
-            "--min-read-quality", "99",
-
             "--dna-min-base-position", "20",
             "--dna-max-base-position", "40",
             "--dna-min-base-quality", "43",
@@ -115,11 +101,11 @@ class TestREDIThread(unittest.TestCase):
             "--dna-min-read-quality", "999",
         ])
 
-        redi_thread = REDIThreadDNA(options)
+        thread = redi_thread.REDIThreadDNA(options)
 
-        rtools = redi_thread.rtools
+        rtools = thread.rtools
         self.assertIsInstance(rtools, REDItools)
-        self.assertEqual(rtools.reference, "genome.fa")
+        self.assertEqual(rtools.reference, self.genome_fname)
         self.assertEqual(rtools.min_base_position, 10)
         self.assertEqual(rtools.max_base_position, 30)
         self.assertEqual(rtools.min_base_quality, 23)
@@ -127,18 +113,41 @@ class TestREDIThread(unittest.TestCase):
         self.assertEqual(rtools.strand_confidence_threshold, 0.567)
         self.assertTrue(rtools._use_strand_correction)
 
-        sam_manager = redi_thread.sam_manager
+        sam_manager = thread.sam_manager
         self.assertEqual(sam_manager.min_quality, 99)
         self.assertEqual(sam_manager.min_length, 33)
 
-        rtools = redi_thread.dna_rtools
+        rtools = thread.dna_rtools
         self.assertIsInstance(rtools, REDItools)
-        self.assertEqual(rtools.reference, "genome.fa")
+        self.assertEqual(rtools.reference, self.genome_fname)
         self.assertEqual(rtools.min_base_position, 20)
         self.assertEqual(rtools.max_base_position, 40)
         self.assertEqual(rtools.min_base_quality, 43)
         self.assertEqual(rtools.strand, 0)
 
-        sam_manager = redi_thread.dna_sam_manager
+        sam_manager = thread.dna_sam_manager
         self.assertEqual(sam_manager.min_quality, 999)
         self.assertEqual(sam_manager.min_length, 53)
+
+    def test_thread_manager_init(self) -> None:
+        """Thread manager should crash if not initalized."""
+        # Have to do this hard-coded because the thread can be
+        # initialized from other test code.
+        redi_thread.REDIThreadManager.thread = None
+        with self.assertRaises(redi_thread.UninitializedError):
+            redi_thread.REDIThreadManager.analyze(
+                Region("chr1", 0, 100),
+                "example.out",
+            )
+
+    def test_thread_manager_done(self) -> None:
+        """Check that the thread manager quites early if previously done."""
+        result_file = ntf()
+        done_file = f"{result_file}.done"
+        pathlib.Path(done_file).touch()
+        redi_thread.REDIThreadManager.init_thread(parse_args(self.cli_input))
+        self.assertFalse(redi_thread.REDIThreadManager.analyze(
+            Region("chr1", 0, 100),
+            result_file,
+        ))
+        pathlib.Path(done_file).unlink()
