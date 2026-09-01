@@ -119,7 +119,7 @@ class REDIThread:
             Path to save output to.
         """
         rtresults = self.rtools.analyze(self.sam_manager, region)
-        return write_results(
+        write_results(
             rtresults,
             filename,
             self.rtqc,
@@ -190,7 +190,7 @@ class REDIThreadDNA(REDIThread):
             rtresults = self.rta.filtered_annotate(rna_results, dna_results)
         else:
             rtresults = self.rta.annotate(rna_results, dna_results)
-        return write_results(
+        write_results(
             rtresults,
             filename,
             self.rtqc,

@@ -158,14 +158,14 @@ class TestRTResult(unittest.TestCase):
         self.cp.add_base(35, "-", "C")
         self.cp.add_base(30, "+", "G")
         rtresult = RTResult.from_compiled_position(self.cp, "*")
-        self.assertEqual(rtresult.output_list(True), [
+        self.assertEqual(rtresult.output_list(True), [  # noqa: FBT003
             "chr1", "101", "A", "2", "3", "35.00", "[1, 1, 1, 0]", "AC AG",
             "0.50", "-", "-", "-", "-", "-",
         ])
         rtresult = RTResult.from_compiled_position(self.cp, "-")
-        self.assertEqual(rtresult.output_list(True)[3], "0")
+        self.assertEqual(rtresult.output_list(True)[3], "0")  # noqa: FBT003
         rtresult = RTResult.from_compiled_position(self.cp, "+")
-        self.assertEqual(rtresult.output_list(True)[3], "1")
+        self.assertEqual(rtresult.output_list(True)[3], "1")  # noqa: FBT003
 
     def test_annotate(self) -> None:
         """Test adding DNA result as annotation."""
