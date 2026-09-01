@@ -10,6 +10,7 @@ from reditools.reditools import REDItools
 from reditools.tools.analyze.parse_args.parse_args import parse_args
 from reditools.tools.analyze.redi_thread import (
     REDIThread,
+    REDIThreadDNA,
     contig_order_from_bam,
     log_level,
 )
@@ -91,3 +92,53 @@ class TestREDIThread(unittest.TestCase):
             "chr2": 1,
             "chr1": 2,
         })
+
+    def test_dna_options(self) -> None:
+        """Check that CLI options properly setup the RNA-DNA thread pieces."""
+        options = parse_args([
+            self.bam_fname,
+            "--dna-sample", self.bam_fname,
+            "-r", "genome.fa",
+            "--min-base-position", "10",
+            "--max-base-position", "30",
+            "--min-base-quality", "23",
+            "--strand", "1",
+            "--strand-confidence-threshold", "0.567",
+            "--strand-correction",
+            "--min-read-length", "33",
+            "--min-read-quality", "99",
+
+            "--dna-min-base-position", "20",
+            "--dna-max-base-position", "40",
+            "--dna-min-base-quality", "43",
+            "--dna-min-read-length", "53",
+            "--dna-min-read-quality", "999",
+        ])
+
+        redi_thread = REDIThreadDNA(options)
+
+        rtools = redi_thread.rtools
+        self.assertIsInstance(rtools, REDItools)
+        self.assertEqual(rtools.reference, "genome.fa")
+        self.assertEqual(rtools.min_base_position, 10)
+        self.assertEqual(rtools.max_base_position, 30)
+        self.assertEqual(rtools.min_base_quality, 23)
+        self.assertEqual(rtools.strand, 1)
+        self.assertEqual(rtools.strand_confidence_threshold, 0.567)
+        self.assertTrue(rtools._use_strand_correction)
+
+        sam_manager = redi_thread.sam_manager
+        self.assertEqual(sam_manager.min_quality, 99)
+        self.assertEqual(sam_manager.min_length, 33)
+
+        rtools = redi_thread.dna_rtools
+        self.assertIsInstance(rtools, REDItools)
+        self.assertEqual(rtools.reference, "genome.fa")
+        self.assertEqual(rtools.min_base_position, 20)
+        self.assertEqual(rtools.max_base_position, 40)
+        self.assertEqual(rtools.min_base_quality, 43)
+        self.assertEqual(rtools.strand, 0)
+
+        sam_manager = redi_thread.dna_sam_manager
+        self.assertEqual(sam_manager.min_quality, 999)
+        self.assertEqual(sam_manager.min_length, 53)
