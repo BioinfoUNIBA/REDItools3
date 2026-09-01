@@ -1,20 +1,42 @@
 """Test cases for setup_rtools() method."""
 from __future__ import annotations
 
+import pathlib
 import unittest
+from test.sam_gen import SAM, Sequence, ntf
 
 from reditools.reditools import REDItools
 from reditools.tools.analyze.parse_args.parse_args import parse_args
-from reditools.tools.analyze.setup_rtools import setup_rtools
+from reditools.tools.analyze.redi_thread import REDIThread
 
 
-class TestSetupRTools(unittest.TestCase):
+class TestREDIThread(unittest.TestCase):
     """Test cases for setup_rtools() method."""
+
+    def setUp(self) -> None:
+        """Pre-flight setup."""
+        self.genome_fname = ntf(suffix=".fa")
+        self.bam_fname = ntf(suffix=".bam")
+
+        sam = SAM()
+        sam.add_contig("chr1", length=60)
+        sam.add_read("chr1", Sequence(
+            sam.genome["chr1"],
+            0,
+        ))
+
+        sam.genome.save_to_fasta(self.genome_fname)
+        sam.save_to_sam(self.bam_fname, self.genome_fname)
+
+    def tearDown(self) -> None:
+        """Posttest teardown."""
+        pathlib.Path(self.genome_fname).unlink()
+        pathlib.Path(self.bam_fname).unlink()
 
     def test_options(self) -> None:
         """Check setup_rtools() method."""
         options = parse_args([
-            "example.bam",
+            self.bam_fname,
             "-r", "genome.fa",
             "--min-base-position", "10",
             "--max-base-position", "30",
@@ -23,7 +45,8 @@ class TestSetupRTools(unittest.TestCase):
             "--strand-confidence-threshold", "0.567",
             "--strand-correction",
         ])
-        rtools = setup_rtools(options)
+        redi_thread = REDIThread(options)
+        rtools = redi_thread.rtools
         self.assertIsInstance(rtools, REDItools)
         self.assertEqual(rtools.reference, "genome.fa")
         self.assertEqual(rtools.min_base_position, 10)

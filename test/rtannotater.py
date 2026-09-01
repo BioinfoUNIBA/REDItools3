@@ -5,9 +5,9 @@ import unittest
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
+from reditools.compiled_position import RTResult
 from reditools.constants import analyze_output_fieldnames
 from reditools.rtannotater import AnalyzeMismatchError, RTAnnotater
-from reditools.compiled_position import CompiledPosition, RTResult
 
 
 class TestRTAnnotater(unittest.TestCase):
@@ -59,7 +59,7 @@ class TestRTAnnotater(unittest.TestCase):
         self.rna.contig = "chrZ"
         self.dna.contig = "chr2"
         self.assertTrue(rta.cmp_position(self.rna, self.dna) < 0)
-        
+
         self.rna.contig = "chr1"
         self.rna.position = 10
 
@@ -125,18 +125,18 @@ class TestRTAnnotater(unittest.TestCase):
             stream.write("\t".join(analyze_output_fieldnames))
             stream.write("\n")
             stream.write("\t".join([
-                "chr1", "3", "A", "*", "5", "30.00", "[5, 0, 0, 0]", "-", "0.00",
-                "-", "-", "-", "-", "-",
+                "chr1", "3", "A", "*", "5", "30.00", "[5, 0, 0, 0]", "-",
+                "0.00", "-", "-", "-", "-", "-",
             ]))
             stream.write("\n")
             stream.write("\t".join([
-                "chr1", "5", "A", "*", "5", "30.00", "[2, 0, 3, 0]", "AG", "0.60",
-                "-", "-", "-", "-", "-",
+                "chr1", "5", "A", "*", "5", "30.00", "[2, 0, 3, 0]", "AG",
+                "0.60", "-", "-", "-", "-", "-",
             ]))
             stream.write("\n")
             stream.write("\t".join([
-                "chr2", "7", "G", "*", "5", "30.00", "[2, 0, 3, 0]", "GA", "0.40",
-                "-", "-", "-", "-", "-",
+                "chr2", "7", "G", "*", "5", "30.00", "[2, 0, 3, 0]", "GA",
+                "0.40", "-", "-", "-", "-", "-",
             ]))
             stream.write("\n")
 
@@ -149,18 +149,18 @@ class TestRTAnnotater(unittest.TestCase):
             stream.write("\t".join(analyze_output_fieldnames))
             stream.write("\n")
             stream.write("\t".join([
-                "chrZ", "3", "A", "*", "5", "30.00", "[5, 0, 0, 0]", "-", "0.00",
-                "-", "-", "-", "-", "-",
+                "chrZ", "3", "A", "*", "5", "30.00", "[5, 0, 0, 0]", "-",
+                "0.00", "-", "-", "-", "-", "-",
             ]))
             stream.write("\n")
             stream.write("\t".join([
-                "chr1", "5", "A", "*", "5", "35.00", "[2, 0, 0, 3]", "AT", "0.60",
-                "-", "-", "-", "-", "-",
+                "chr1", "5", "A", "*", "5", "35.00", "[2, 0, 0, 3]", "AT",
+                "0.60", "-", "-", "-", "-", "-",
             ]))
             stream.write("\n")
             stream.write("\t".join([
-                "chr1", "9", "G", "*", "5", "30.00", "[2, 0, 3, 0]", "GA", "0.40",
-                "-", "-", "-", "-", "-",
+                "chr1", "9", "G", "*", "5", "30.00", "[2, 0, 3, 0]", "GA",
+                "0.40", "-", "-", "-", "-", "-",
             ]))
             stream.write("\n")
 

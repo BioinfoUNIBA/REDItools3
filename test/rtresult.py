@@ -135,11 +135,14 @@ class TestRTResult(unittest.TestCase):
         rtresult = RTResult.from_compiled_position(self.cp, "*")
         rtresult.complement()
         self.assertEqual(rtresult.reference, "T")
-        self.assertEqual(rtresult.base_counts, {"A": 0, "C": 1, "G": 1, "T": 1})
+        self.assertEqual(
+            rtresult.base_counts,
+            {"A": 0, "C": 1, "G": 1, "T": 1},
+        )
         self.assertEqual(rtresult.variants, ["TC", "TG"])
 
     def test_output_list(self) -> None:
-        """test output_list() method."""
+        """Test output_list() method."""
         self.cp.add_base(40, "+", "A")
         self.cp.add_base(35, "-", "C")
         self.cp.add_base(30, "+", "G")
@@ -150,7 +153,7 @@ class TestRTResult(unittest.TestCase):
         ])
 
     def test_output_list_number_strand(self) -> None:
-        """test output_list() method when using number strands."""
+        """Test output_list() method when using number strands."""
         self.cp.add_base(40, "+", "A")
         self.cp.add_base(35, "-", "C")
         self.cp.add_base(30, "+", "G")

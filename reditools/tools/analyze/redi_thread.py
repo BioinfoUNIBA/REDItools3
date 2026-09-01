@@ -2,12 +2,13 @@
 from __future__ import annotations
 
 from pathlib import Path
-import pysam
 from typing import TYPE_CHECKING
 
+import pysam
+
 from reditools import reditools
-from reditools.rtannotater import RTAnnotater
 from reditools.logger import Logger
+from reditools.rtannotater import RTAnnotater
 from reditools.tools.analyze.rtchecks import RTChecks
 from reditools.tools.analyze.setup_alignment_manager import (
     setup_alignment_manager,
