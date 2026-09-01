@@ -87,7 +87,28 @@ class RTAnnotater:
                 self.annotate_row(rna_entry, dna_entry)
             yield rna_entry
 
-    def filtered_annotate(self, rna_iter, dna_iter):
+    def filtered_annotate(
+        self,
+        rna_iter: Iterator[RTResult],
+        dna_iter: Iterator[RTResult],
+    ) -> Iterator[RTResult]:
+        """Read input files and yields annotated results.
+
+        Works the same as annotate(), except only entries both DNA and RNA
+        reads are yielded..
+
+        Parameters
+        ----------
+        rna_iter : Iterator[RTResult]
+            Iterator of RTResults from RNA analysis.
+        dna_iter : Iterator[RTResult]
+            Iterator of RTResults from analysis to use as annotation.
+
+        Yields
+        ------
+        RTResult
+            rna_iter results annotated with dna_iter results.
+        """
         dna_entry = next(dna_iter, None)
 
         for rna_entry in rna_iter:

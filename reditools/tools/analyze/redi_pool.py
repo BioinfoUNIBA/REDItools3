@@ -13,7 +13,7 @@ from reditools.tools.analyze.temp_file_manager import TempFileManager
 def run_pool(
     options: argparse.Namespace,
     temp_filemanager: TempFileManager,
-    dna_mode: bool=False
+    dna_mode: bool=False,
 ) -> bool:
     """Create a pool of threads and analyze the data.
 

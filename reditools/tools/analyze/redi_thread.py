@@ -27,7 +27,18 @@ class UninitializedError(AttributeError):
         self.message = "REDIThreadManager not initialized."
         super().__init__(self.message)
 
-def log_level(options):
+def log_level(options: argparse.Namespace) -> str:
+    """Determine Logger log level from CLI options.
+
+    Parameters
+    ----------
+    options : argparse.Namespace
+        CLI options
+
+    Returns
+    -------
+    int : Logger log level
+    """
     if options.debug:
         return Logger.debug_level
     if options.verbose:
@@ -116,7 +127,16 @@ class REDIThread:
         )
 
 class REDIThreadDNA(REDIThread):
+    """Worker thread for parallel REDItools analysis with both RNA and DNA."""
+
     def __init__(self, options: argparse.Namespace) -> None:
+        """Worker thread function for parallel REDItools analysis.
+
+        Parameters
+        ----------
+        options : argparse.Namespace
+            The command-line options.
+        """
         super().__init__(options)
         self.dna_rtools = reditools.REDItools()
         self.dna_rtools.log_level = log_level(options)
@@ -138,7 +158,10 @@ class REDIThreadDNA(REDIThread):
         self.dna_rtqc = RTChecks(options)
         self.filter = options.dna_filter
 
-        with pysam.AlignmentFile(options.dna_sample, ignore_truncation=True) as bam:
+        with pysam.AlignmentFile(
+                options.dna_sample,
+                ignore_truncation=True,
+        ) as bam:
             contig_order = {
                 contig: idx
                 for idx, contig in enumerate(bam.references, start=1)
@@ -163,9 +186,9 @@ class REDIThreadDNA(REDIThread):
         rna_results = self.rtools.analyze(self.sam_manager, region)
         dna_results = self.dna_rtools.analyze(self.dna_sam_manager, region)
         if self.filter:
-            rtresults = self.rta.annotate(rna_results, dna_results)
-        else:
             rtresults = self.rta.filtered_annotate(rna_results, dna_results)
+        else:
+            rtresults = self.rta.annotate(rna_results, dna_results)
         return write_results(
             rtresults,
             filename,
@@ -192,7 +215,14 @@ class REDIThreadManager:
         cls.thread = REDIThread(options)
 
     @classmethod
-    def init_dna_thread(cls, options):
+    def init_dna_thread(cls, options: argparse.Namespace) -> None:
+        """Initialize a REDIThreadDNA.
+
+        Parameters
+        ----------
+        options : argparse.Namespace
+            The command-line options.
+        """
         cls.thread = REDIThreadDNA(options)
 
     @classmethod
