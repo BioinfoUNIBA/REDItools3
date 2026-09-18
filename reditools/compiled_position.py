@@ -165,9 +165,12 @@ class RTResult:
         for base in self.cp.bases:
             self.counter[base] += 1
 
-        self.variants = [
-            f"{self.reference}{_}" for _ in base_order
+        alts = [
+            _ for _ in sorted(base_order, key=self.__getitem__)
             if self[_] and _ != self.reference
+        ]
+        self.variants = [
+            f"{self.reference}{_}" for _ in alts
         ]
 
     def __getitem__(self, base: str) -> int:
