@@ -69,7 +69,7 @@ def write_results(
                 len(rt_result),
                 f"{rt_result.mean_quality:.2f}",
                 list(rt_result),
-                " ".join(sorted(variants)) if variants else _empty,
+                " ".join(variants) if variants else _empty,
                 f"{rt_result.edit_ratio:.2f}",
                 _empty, _empty, _empty, _empty, _empty,
             ])
