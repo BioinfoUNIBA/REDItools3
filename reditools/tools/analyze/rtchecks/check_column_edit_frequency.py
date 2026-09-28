@@ -10,7 +10,14 @@ if TYPE_CHECKING:
 
 
 class CheckColumnEditFrequency:
-    """Check if a position has a minimum number of total edits.
+    """Check if a position has a minimum number of alternate bases.
+
+    An alternate base is when there is at least one read representing a base
+    other than the reference. For example, if the reference base is A, then
+    the alternate possible bases are C, G, and T. If there are no detected
+    edits, then the column edit frequency is 0. If there is one or more reads
+    with a C at this position, than the column edit frequency would be 1. The
+    maxmimum possible column edit frequency is 3.
 
     Attributes
     ----------
@@ -44,7 +51,7 @@ class CheckColumnEditFrequency:
         """
         return options.min_edits > 0
 
-    def run_check(self, rtresult: RTResult) -> None | tuple:
+    def run_check(self, rtresult: RTResult) -> tuple | None:
         """Run the check on a specific position.
 
         Parameters
@@ -58,11 +65,11 @@ class CheckColumnEditFrequency:
             None if total edits are sufficient, a tuple with error message
             otherwise.
         """
-        edits_no = len(rtresult) - rtresult["REF"]
-        if edits_no < self.min_edits:
+        variant_no = len(rtresult.variants)
+        if variant_no < self.min_edits:
             return (
                 "DISCARDING COLUMN edits={} < {}",
-                edits_no,
+                variant_no,
                 self.min_edits,
             )
         return None

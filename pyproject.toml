@@ -46,13 +46,13 @@ select = ["ALL"]
 external = ["WPS"]
 ignore = [
     "RUF100", "PYI034", "PLR0913", "FBT001", "FBT002", "D203", "D213",
-    "INP001", "S311", "I",
+    "INP001", "S311", "I", "CPY001"
 ]
 
 [tool.ruff.lint.per-file-ignores]
 "test/__main__.py" = ["F401"]
 "**/__init__.py" = ["F401"]
-"test/**py" = ["PT", "SLF001", "FLY002"]
+"test/**py" = ["PT", "SLF001", "FLY002", "FBT003"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
