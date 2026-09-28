@@ -72,7 +72,7 @@ class CheckVariants:
         """
         return "ALL" not in [_.upper() for _ in options.variants]
 
-    def run_check(self, rtresult: RTResult) -> None | tuple:
+    def run_check(self, rtresult: RTResult) -> tuple | None:
         """Verify that detected variants are among the allowed ones.
 
         Parameters

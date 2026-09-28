@@ -44,7 +44,7 @@ class CheckColumnEditFrequency:
         """
         return options.min_edits > 0
 
-    def run_check(self, rtresult: RTResult) -> None | tuple:
+    def run_check(self, rtresult: RTResult) -> tuple | None:
         """Run the check on a specific position.
 
         Parameters

@@ -72,7 +72,7 @@ class REDIThread:
 class REDIThreadManager:
     """Manages a worker thread function for parallel REDItools analysis."""
 
-    thread: None | REDIThread = None
+    thread: REDIThread | None = None
 
     @classmethod
     def init_thread(cls, options: argparse.Namespace) -> None:

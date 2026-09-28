@@ -41,7 +41,7 @@ class RTChecks:
             check(options) for check in all_checks if check.is_needed(options)
         ]
 
-    def check(self, rtresult: RTResult) -> None | tuple:
+    def check(self, rtresult: RTResult) -> tuple | None:
         """Run all enabled checks against a set of base results.
 
         Parameters
