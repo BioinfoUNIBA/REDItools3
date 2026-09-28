@@ -60,7 +60,6 @@ def write_results(
             if msg:
                 logger(Logger.debug_level, *msg)
                 continue
-            variants = rt_result.variants
             writer.writerow([
                 rt_result.contig,
                 rt_result.position + 1,
@@ -69,7 +68,7 @@ def write_results(
                 len(rt_result),
                 f"{rt_result.mean_quality:.2f}",
                 list(rt_result),
-                " ".join(sorted(variants)) if variants else _empty,
+                " ".join(rt_result.variants) if rt_result.variants else _empty,
                 f"{rt_result.edit_ratio:.2f}",
                 _empty, _empty, _empty, _empty, _empty,
             ])

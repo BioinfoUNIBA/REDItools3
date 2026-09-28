@@ -166,7 +166,12 @@ class RTResult:
             self.counter[base] += 1
 
         self.variants = [
-            f"{self.reference}{_}" for _ in base_order
+            f"{self.reference}{_}"
+            for _ in sorted(
+                base_order,
+                key=self.__getitem__,
+                reverse=True,
+            )
             if self[_] and _ != self.reference
         ]
 
