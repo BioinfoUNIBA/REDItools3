@@ -1,4 +1,5 @@
 name: isort
+
 on:
   push:
     paths:
@@ -8,18 +9,25 @@ on:
     paths:
       - 'reditools/**py'
       - 'test/**py'
+
 jobs:
-  build:
+  isort:
+    name: isort
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
-      - name: Set up Python 3.16
-        uses: actions/setup-python@v2
+      - uses: ConorMacBride/install-package@v1
         with:
-          python-version: "3.16"
+          apt: libbz2-dev  zlib1g-dev liblzma-dev build-essential
+      - uses: actions/checkout@v6
+      - name: Checkout
+        uses: actions/checkout@master
+      - name: Set Up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version-file: "pyproject.toml"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
       - name: Install isort
-        run: |
-          pip install isort
+        run: uv pip install isort
       - name: Run isort
-        run: |
-          isort -c reditools/ test/
+        run: uv run isort -c reditools/ test/
