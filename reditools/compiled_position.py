@@ -196,6 +196,7 @@ class RTResult:
         for base in self.cp.bases:
             self.counter[base] += 1
 
+        ref_reads = self[self.cp.ref]
         self.variants = [
             _ for _ in sorted(
                 base_order,
@@ -203,7 +204,7 @@ class RTResult:
                 reverse=True,
             )
             if self[_] and \
-                self[_] / (self[_] + self[self.cp.ref]) > noise_threshold and  # noqa: WPS221 \
+                self[_] / (self[_] + ref_reads) > noise_threshold and \
                 _ != self.reference
         ]
 

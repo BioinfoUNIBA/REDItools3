@@ -56,6 +56,13 @@ class TestSplitREDItools(unittest.TestCase):
         self.assertEqual(rev_result.strand, "-")
         self.assertEqual(rev_result.variants, ["T"])
 
+        # Check noise threshold
+        self.rtools.noise_threshold = 0.4
+        fwd_result, rev_result = self.rtools._process_bases(cp)
+
+        self.assertEqual(fwd_result.variants, ["G"])
+        self.assertEqual(rev_result.variants, [])
+
     def test_process_bases_monostrand(self) -> None:
         """Check _process_bases() function."""
         cp = CompiledPosition(ref="A", position=1, contig="chr1")
