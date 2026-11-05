@@ -132,10 +132,10 @@ class TestCompiledPosition(unittest.TestCase):
         self.cp.add_base(35, "-", "C")
         self.cp.add_base(30, "+", "G")
         fwd, rev = self.cp.split_by_strand()
-        self.assertEqual(fwd.bases, ["A", "G"])
-        self.assertEqual(fwd.strands, ["+", "+"])
-        self.assertEqual(rev.bases, ["C"])
-        self.assertEqual(rev.strands, ["-"])
+        self.assertEqual(fwd.bases, ['A', 'G'])
+        self.assertEqual(fwd.strands, ['+', '+'])
+        self.assertEqual(rev.bases, ['C'])
+        self.assertEqual(rev.strands, ['-'])
 
     def test_split_by_strand_no_reads(self) -> None:
         """Check split_by_strand function when there are no reads."""
@@ -149,5 +149,5 @@ class TestCompiledPosition(unittest.TestCase):
         self.cp.add_base(40, "-", "G")
         cps = self.cp.split_by_strand()
         self.assertEqual(len(cps), 1)
-        self.assertEqual(cps[0].bases, ["A", "A", "G"])
-        self.assertEqual(cps[0].strands, ["-", "-", "-"])
+        self.assertEqual(cps[0].bases, ['A', 'A', 'G'])
+        self.assertEqual(cps[0].strands, ['-', '-', '-'])
