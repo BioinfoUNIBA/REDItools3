@@ -89,7 +89,7 @@ class TestParseArgs(unittest.TestCase):
             ])
 
     def test_sep_strand_conflict(self) -> None:
-        """Checks that sepearte-strands and unstranded are incompatible."""
+        """Check that sep strands and unstranded are incompatible."""
         with self.assertRaises(SystemExit), self.capture_sys_output():
             parse_args([
                 "test/test.bam",

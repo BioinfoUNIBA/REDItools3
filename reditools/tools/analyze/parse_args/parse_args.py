@@ -264,7 +264,8 @@ def build_argument_parser() -> argparse.ArgumentParser:  # noqa: WPS213, WPS210
         help=(
             "Only report the strandedness if at least -T proportion of "
             "reads are of a given strand. This option is only applicable "
-            f"if -s/--strand is not {reditools.UNSTRANDED_MODE}."
+            f"if -s/--strand is not {reditools.UNSTRANDED_MODE} and "
+            "--separate-strands is not used."
         ),
     )
     strand_group.add_argument(
@@ -286,6 +287,11 @@ def build_argument_parser() -> argparse.ArgumentParser:  # noqa: WPS213, WPS210
         default=False,
         help=(
             "Report edits for each strand on separate lines of the output. "
+            "When using this option, all result filters will be applied to "
+            "each strand individually. For example, a base position with 7 "
+            "forward reads and 3 reverse reads would produce no output "
+            " with --min-read-depth 10 and only report the fowrard reads "
+            " with --min-read-depth 5. "
             "This option is only applicable if -s/--strand is not "
             f"{reditools.UNSTRANDED_MODE}."
         ),
