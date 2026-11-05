@@ -125,3 +125,29 @@ class TestCompiledPosition(unittest.TestCase):
         self.cp.add_base(30, "+", "C")
         rtresult = RTResult(self.cp, "*")
         self.assertEqual(rtresult.mean_quality, 20)
+
+    def test_split_by_strand(self) -> None:
+        """Check split_by_strand function."""
+        self.cp.add_base(40, "+", "A")
+        self.cp.add_base(35, "-", "C")
+        self.cp.add_base(30, "+", "G")
+        fwd, rev = self.cp.split_by_strand()
+        self.assertEqual(fwd.bases, ['A', 'G'])
+        self.assertEqual(fwd.strands, ['+', '+'])
+        self.assertEqual(rev.bases, ['C'])
+        self.assertEqual(rev.strands, ['-'])
+
+    def test_split_by_strand_no_reads(self) -> None:
+        """Check split_by_strand function when there are no reads."""
+        cps = self.cp.split_by_strand()
+        self.assertEqual(len(cps), 0)
+
+    def test_split_by_strand_one_stranded(self) -> None:
+        """Check split_by_strand function when only one strand present."""
+        self.cp.add_base(40, "-", "A")
+        self.cp.add_base(40, "-", "A")
+        self.cp.add_base(40, "-", "G")
+        cps = self.cp.split_by_strand()
+        self.assertEqual(len(cps), 1)
+        self.assertEqual(cps[0].bases, ['A', 'A', 'G'])
+        self.assertEqual(cps[0].strands, ['-', '-', '-'])
