@@ -88,6 +88,15 @@ class TestParseArgs(unittest.TestCase):
                 "--strand-correction",
             ])
 
+    def test_sep_strand_conflict(self) -> None:
+        """Checks that sepearte-strands and unstranded are incompatible."""
+        with self.assertRaises(SystemExit), self.capture_sys_output():
+            parse_args([
+                "test/test.bam",
+                "--strand", "0",
+                "--separate-strands",
+            ])
+
     @contextmanager
     def capture_sys_output(self) -> Iterator[tuple[StringIO, StringIO]]:
         """Capture standard and error output.
