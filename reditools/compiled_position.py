@@ -167,13 +167,14 @@ class RTResult:
     counter : dict
         A dictionary counting occurrences of each nucleotide.
     variants : list
-        A list of observed variants (e.g., ['AG']).
+        A list of observed alternate bases ('A', 'C', 'G', and/or 'T').
     """
 
     def __init__(
         self,
         compiled_position: CompiledPosition,
         strand: str,
+        noise_threshold: float=0,
     ) -> None:
         """Initialize RTResult.
 
@@ -195,14 +196,16 @@ class RTResult:
         for base in self.cp.bases:
             self.counter[base] += 1
 
+        ref_reads = self[self.cp.ref]
         self.variants = [
-            f"{self.reference}{_}"
-            for _ in sorted(
+            _ for _ in sorted(
                 base_order,
                 key=self.__getitem__,
                 reverse=True,
             )
-            if self[_] and _ != self.reference
+            if self[_] and \
+                self[_] / (self[_] + ref_reads) > noise_threshold and \
+                _ != self.reference
         ]
 
     def __getitem__(self, base: str) -> int:

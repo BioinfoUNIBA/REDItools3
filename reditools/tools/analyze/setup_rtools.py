@@ -34,6 +34,7 @@ def setup_rtools(options: argparse.Namespace) -> reditools.REDItools:
     rtools.min_base_position = options.min_base_position
     rtools.max_base_position = options.max_base_position
     rtools.min_base_quality = options.min_base_quality
+    rtools.noise_threshold = options.noise_threshold
 
     rtools.strand = options.strand
     rtools.strand_confidence_threshold = options.strand_confidence_threshold

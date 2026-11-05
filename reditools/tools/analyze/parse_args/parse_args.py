@@ -227,6 +227,20 @@ def build_argument_parser() -> argparse.ArgumentParser:  # noqa: WPS213, WPS210
             "the Coverage column.)"
         ),
     )
+    rf_group.add_argument(
+        "-n",
+        "--noise-threshold",
+        type=bounded_float(min_value=0, max_value=1),
+        default=0,
+        help=(
+            "Only report edits with a ratio greater than or equal to -n "
+            "(corresponds to the Frequency column.) This option generally "
+            "filters what gets reported in the AllSubs column. Edits filtered "
+            "by this option will not be considered by --variants, "
+            "--max-editing-nucleotides, --min-edits, or "
+            "--min-edits-per-nucleotide filters."
+        ),
+    )
 
     strand_group = parser.add_argument_group(
         title="Strandedness Options",

@@ -53,7 +53,7 @@ class CheckVariants:
         )
         if bad_alt is not None:
             raise BadVariantError(bad_alt)
-        self.variants = {_.upper() for _ in options.variants}
+        self.variants = {tuple(_.upper()) for _ in options.variants}
 
     @classmethod
     def is_needed(cls, options: argparse.Namespace) -> bool:
@@ -86,10 +86,14 @@ class CheckVariants:
             None if at least one variant is allowed, otherwise a failure
             message.
         """
-        if any(_ in self.variants for _ in rtresult.variants):
+        if any(
+            (rtresult.reference, _) in self.variants
+            for _ in rtresult.variants
+        ):
             return None
         return (
-            "DISCARD COLUMN Edits {} not in requested alts {}",
+            "DISCARD COLUMN Edits {}-{} not in requested alts {}",
+            rtresult.reference,
             rtresult.variants,
             self.variants,
         )

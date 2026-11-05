@@ -55,6 +55,8 @@ class REDItools:
         self.min_base_position = 0
         self.max_base_position = 0
 
+        self.noise_threshold: float = 0
+
         self._min_read_quality = 0
 
         self._specific_edits = None
@@ -172,7 +174,7 @@ class REDItools:
             bases.filter_by_strand(strand)
             if self._use_strand_correction and strand == "-":
                 bases.complement()
-        rtresult = RTResult(bases, strand)
+        rtresult = RTResult(bases, strand, self.noise_threshold)
         self.log(
             Logger.debug_level,
             "Yielding output for {} reads",

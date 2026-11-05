@@ -65,11 +65,11 @@ class CheckColumnEditFrequency:
             None if total edits are sufficient, a tuple with error message
             otherwise.
         """
-        variant_no = len(rtresult.variants)
-        if variant_no < self.min_edits:
+        n_variants = len(rtresult.variants)
+        if n_variants < self.min_edits:
             return (
-                "DISCARDING COLUMN edits={} < {}",
-                variant_no,
+                "DISCARDING COLUMN len(variants)={} < {}",
+                n_variants,
                 self.min_edits,
             )
         return None

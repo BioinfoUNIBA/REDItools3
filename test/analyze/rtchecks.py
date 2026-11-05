@@ -27,7 +27,7 @@ class TestRTChecks(unittest.TestCase):
             bed_file=None,
         )
 
-    def run_check(self, is_none: bool) -> None:
+    def run_check(self, is_none: bool, noise_threshold: float=0) -> None:
         """Perform a quality control check.
 
         Create an RTChecks object from self.options and runs check(self.bases).
@@ -37,9 +37,11 @@ class TestRTChecks(unittest.TestCase):
         ----------
         is_none : bool
             If True, runs assertIsNone. Else, runs assesrtIsNotNone.
+        noise_threshold : float
+            Noise threshold for RTResult constructor.
         """
         rtc = RTChecks(self.options)
-        check_value =  rtc.check(RTResult(self.bases, "*"))
+        check_value =  rtc.check(RTResult(self.bases, "*", noise_threshold))
         if is_none:
             self.assertIsNone(check_value)
         else:
@@ -191,3 +193,27 @@ class TestRTChecks(unittest.TestCase):
         self.run_check(True)
 
         Path(bed_file).unlink()
+
+    def test_noise_threshold(self) -> None:
+        """Check that RTCheks operate on filtered variants only."""
+        for base in ("A", "A", "A", "T", "G", "G"):
+            self.bases.add_base(10, "+", base)
+
+        self.options.variants = ["AT"]
+        self.run_check(True, 0)
+        self.run_check(False, 0.3)
+        self.options.variants = ["ALL"]
+
+        self.options.max_editing_nucleotides = 1
+        self.run_check(False, 0)
+        self.run_check(True, 0.3)
+        self.options.max_editing_nucleotides = 4
+
+        self.options.min_edits = 2
+        self.run_check(True, 0)
+        self.run_check(False, 0.3)
+        self.options.min_edits = 0
+
+        self.options.min_edits_per_nucleotide = 2
+        self.run_check(False, 0)
+        self.run_check(True, 0.3)
