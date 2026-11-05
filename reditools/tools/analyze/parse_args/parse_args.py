@@ -236,9 +236,9 @@ def build_argument_parser() -> argparse.ArgumentParser:  # noqa: WPS213, WPS210
             "Only report edits with a ratio greater than or equal to -n "
             "(corresponds to the Frequency column.) This option generally "
             "filters what gets reported in the AllSubs column. Edits filtered "
-            "by this option will not be evaulated by --variants, "
+            "by this option will not be considered by --variants, "
             "--max-editing-nucleotides, --min-edits, or "
-            "--min-edits-per-nucleotide"
+            "--min-edits-per-nucleotide filters."
         ),
     )
 
