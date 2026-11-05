@@ -47,7 +47,7 @@ class TestREDItools(unittest.TestCase):
 
     def test_process_bases(self) -> None:
         """Check _process_bases() function."""
-        rtresult = self.rtools._process_bases(self.cp)
+        rtresult = self.rtools._process_bases(self.cp)[0]
         self.assertEqual(rtresult.reference, "A")
         self.assertEqual(rtresult.strand, "*")
         self.assertEqual(rtresult.variants, ["AG", "AT"])
@@ -56,7 +56,7 @@ class TestREDItools(unittest.TestCase):
         """Check strand modes."""
         self.rtools.strand = reditools.FORWARD_STRAND_MODE
         self.rtools.strand_confidence_threshold = 0.5
-        rtresult = self.rtools._process_bases(self.cp)
+        rtresult = self.rtools._process_bases(self.cp)[0]
         self.assertEqual(rtresult.strand, "-")
         self.assertEqual(rtresult.reference, "A")
         self.assertEqual(rtresult.variants, ["AT"])
@@ -66,7 +66,7 @@ class TestREDItools(unittest.TestCase):
         self.rtools.strand = reditools.FORWARD_STRAND_MODE
         self.rtools.strand_confidence_threshold = 0.5
         self.rtools.use_strand_correction()
-        rtresult = self.rtools._process_bases(self.cp)
+        rtresult = self.rtools._process_bases(self.cp)[0]
         self.assertEqual(rtresult.strand, "-")
         self.assertEqual(rtresult.reference, "T")
         self.assertEqual(rtresult.variants, ["TA"])

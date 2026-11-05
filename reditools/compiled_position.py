@@ -113,6 +113,36 @@ class CompiledPosition:
         self.strands = [self.strands[_] for _ in keep]
         self.bases = [self.bases[_] for _ in keep]
 
+    def split_by_strand(self) -> tuple[CompiledPosition, ...]:
+        """Split the CompiledPosition into new objects for each strand.
+
+        Returns
+        -------
+        tuple[CompiledPosition]
+            CompiledPositions for each strand.
+
+        """
+        idx_by_strand: dict[str, list[int]] = {
+            "+": [],
+            "-": [],
+            "*": [],
+        }
+        for idx in range(len(self.bases)):  # noqa: WPS518
+            idx_by_strand[self.strands[idx]].append(idx)
+
+        return tuple(
+            CompiledPosition(
+                self.ref,
+                self.position,
+                self.contig,
+                [self.qualities[_] for _ in strand_sublist],
+                [self.strands[_] for _ in strand_sublist],
+                [self.bases[_] for _ in strand_sublist],
+            )
+            for strand_sublist in idx_by_strand.values()
+            if len(strand_sublist) > 0
+        )
+
     def complement(self) -> None:
         """Replace all bases and the reference with their complements."""
         self.bases = [comp_map[base] for base in self.bases]
