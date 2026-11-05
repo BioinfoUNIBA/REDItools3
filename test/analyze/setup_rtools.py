@@ -22,6 +22,7 @@ class TestSetupRTools(unittest.TestCase):
             "--strand", "1",
             "--strand-confidence-threshold", "0.567",
             "--strand-correction",
+            "--noise-threshold", "0.5",
         ])
         rtools = setup_rtools(options)
         self.assertIsInstance(rtools, REDItools)
@@ -32,6 +33,7 @@ class TestSetupRTools(unittest.TestCase):
         self.assertEqual(rtools.strand, 1)
         self.assertEqual(rtools.strand_confidence_threshold, 0.567)
         self.assertTrue(rtools._use_strand_correction)
+        self.assertEqual(rtools.noise_threshold, 0.5)
 
     def test_split(self) -> None:
         """Check that correct class is used with --separate-strands."""
