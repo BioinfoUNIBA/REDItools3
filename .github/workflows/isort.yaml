@@ -27,7 +27,7 @@ jobs:
           python-version-file: "pyproject.toml"
       - name: Install uv
         uses: astral-sh/setup-uv@v7
-      - name: Install isort
-        run: uv pip install isort
-      - name: Run isort
+      - name: Install the project
+        run: uv sync --extra dev --dev
+      - name: Run tests
         run: uv run isort -c reditools/ test/
