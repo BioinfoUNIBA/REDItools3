@@ -33,6 +33,7 @@ issues = "https://github.com/BioinfoUNIBA/REDItools3/issues"
 
 [project.optional-dependencies]
 wps = ["flake8", "wemake-python-styleguide"]
+dev = ["flake8", "wemake-python-styleguide", "isort"]
 
 [tool.isort]
 multi_line_output=3

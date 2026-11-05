@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import unittest
 
-from reditools.reditools import REDItools
+from reditools.reditools import REDItools, SplitREDItools
 from reditools.tools.analyze.parse_args.parse_args import parse_args
 from reditools.tools.analyze.setup_rtools import setup_rtools
 
@@ -32,3 +32,13 @@ class TestSetupRTools(unittest.TestCase):
         self.assertEqual(rtools.strand, 1)
         self.assertEqual(rtools.strand_confidence_threshold, 0.567)
         self.assertTrue(rtools._use_strand_correction)
+
+    def test_split(self) -> None:
+        """Check that correct class is used with --separate-strands."""
+        options = parse_args([
+            "example.bam",
+            "--strand", "1",
+            "--separate-strands",
+        ])
+        rtools = setup_rtools(options)
+        self.assertIsInstance(rtools, SplitREDItools)

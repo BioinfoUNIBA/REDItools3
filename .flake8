@@ -1,6 +1,6 @@
 [flake8]
 select = WPS
-ignore = WPS230
+ignore = WPS230, WPS608
 max-local-variables = 6
 max-cognitive-score = 13
 

@@ -47,7 +47,7 @@ class TestREDItools(unittest.TestCase):
 
     def test_process_bases(self) -> None:
         """Check _process_bases() function."""
-        rtresult = self.rtools._process_bases(self.cp)
+        rtresult = self.rtools._process_bases(self.cp)[0]
         self.assertEqual(rtresult.reference, "A")
         self.assertEqual(rtresult.strand, "*")
         self.assertEqual(rtresult.variants, ["G", "T"])
@@ -56,7 +56,7 @@ class TestREDItools(unittest.TestCase):
         """Check strand modes."""
         self.rtools.strand = reditools.FORWARD_STRAND_MODE
         self.rtools.strand_confidence_threshold = 0.5
-        rtresult = self.rtools._process_bases(self.cp)
+        rtresult = self.rtools._process_bases(self.cp)[0]
         self.assertEqual(rtresult.strand, "-")
         self.assertEqual(rtresult.reference, "A")
         self.assertEqual(rtresult.variants, ["T"])
@@ -66,7 +66,7 @@ class TestREDItools(unittest.TestCase):
         self.rtools.strand = reditools.FORWARD_STRAND_MODE
         self.rtools.strand_confidence_threshold = 0.5
         self.rtools.use_strand_correction()
-        rtresult = self.rtools._process_bases(self.cp)
+        rtresult = self.rtools._process_bases(self.cp)[0]
         self.assertEqual(rtresult.strand, "-")
         self.assertEqual(rtresult.reference, "T")
         self.assertEqual(rtresult.variants, ["A"])
@@ -116,16 +116,16 @@ class TestREDItools(unittest.TestCase):
         """Check noise threshold feature."""
         self.rtools.noise_threshold = 0.1
         self.assertEqual(
-            self.rtools._process_bases(self.cp).variants,
+            self.rtools._process_bases(self.cp)[0].variants,
             ["G", "T"],
         )
         self.rtools.noise_threshold = 0.3
         self.assertEqual(
-            self.rtools._process_bases(self.cp).variants,
+            self.rtools._process_bases(self.cp)[0].variants,
             ["G"],
         )
         self.rtools.noise_threshold = 0.5
         self.assertEqual(
-            self.rtools._process_bases(self.cp).variants,
+            self.rtools._process_bases(self.cp)[0].variants,
             [],
         )

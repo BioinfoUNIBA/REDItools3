@@ -18,12 +18,15 @@ def setup_rtools(options: argparse.Namespace) -> reditools.REDItools:
     reditools.REDItools
         A configured REDItools instance.
     """
-    rtools = reditools.REDItools()
+    if options.separate_strands:
+        rtools: reditools.REDItools = reditools.SplitREDItools()
+    else:
+        rtools = reditools.REDItools()
 
     if options.debug:
-        rtools.log_level = Logger.debug_level
+        rtools.set_log_level(Logger.debug_level)
     elif options.verbose:
-        rtools.log_level = Logger.info_level
+        rtools.set_log_level(Logger.info_level)
 
     if options.reference:
         rtools.add_reference(options.reference)
