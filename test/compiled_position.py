@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import unittest
 
-from reditools.compiled_position import CompiledPosition
+from reditools.compiled_position import CompiledPosition, RTResult
 
 
 class TestCompiledPosition(unittest.TestCase):
@@ -56,11 +56,84 @@ class TestCompiledPosition(unittest.TestCase):
         )
 
     def test_variants(self) -> None:
-        """Check variants() function."""
+        """Check variant summary for RTResult."""
+        self.cp.add_base(10, "+", "A")
+        self.cp.add_base(10, "+", "C")
+        for _ in range(3):
+            self.cp.add_base(10, "+", "T")
+        rtresult = RTResult.from_compiled_position(self.cp, "*")
+        self.assertEqual(rtresult.variants, ["T", "C"])
+
+    def test_edit_ratio(self) -> None:
+        """Check edit_ratio cacluation from RTResult."""
+        rtresult = RTResult.from_compiled_position(self.cp, "*")
+        self.assertEqual(rtresult.edit_ratio, 0)
+
+        self.cp.add_base(10, "+", "A")
+        self.cp.add_base(10, "+", "C")
+        rtresult = RTResult.from_compiled_position(self.cp, "*")
+        self.assertEqual(rtresult.edit_ratio, 0.5)
+
+        self.cp.add_base(10, "+", "T")
+        rtresult = RTResult.from_compiled_position(self.cp, "*")
+        self.assertEqual(rtresult.edit_ratio, 0.5)
+
+        self.cp.add_base(10, "+", "C")
+        self.cp.add_base(10, "+", "C")
+        rtresult = RTResult.from_compiled_position(self.cp, "*")
+        self.assertEqual(rtresult.edit_ratio, 0.75)
+
+    def test_mean_quality(self) -> None:
+        """Check mean_quality calculation from RTResult."""
+        rtresult = RTResult.from_compiled_position(self.cp, "*")
+        self.assertEqual(rtresult.mean_quality, 0)
+
+        self.cp.add_base(10, "+", "C")
+        self.cp.add_base(20, "+", "C")
+        self.cp.add_base(30, "+", "C")
+        rtresult = RTResult.from_compiled_position(self.cp, "*")
+        self.assertEqual(rtresult.mean_quality, 20)
+
+    def test_noise_threshold(self) -> None:
+        """Check noise threshold feature."""
+        for base in ("A", "A", "A", "T", "G", "G"):
+            self.cp.add_base(10, "+", base)
+
+        self.assertEqual(
+            RTResult.from_compiled_position(self.cp, "*", 0.1).variants,
+            ["G", "T"],
+        )
+        self.assertEqual(
+            RTResult.from_compiled_position(self.cp, "*", 0.3).variants,
+            ["G"],
+        )
+        self.assertEqual(
+            RTResult.from_compiled_position(self.cp, "*", 0.4).variants,
+            [],
+        )
+
+    def test_split_by_strand(self) -> None:
+        """Check split_by_strand function."""
         self.cp.add_base(40, "+", "A")
         self.cp.add_base(35, "-", "C")
         self.cp.add_base(30, "+", "G")
-        self.assertEqual(
-            self.cp.variants(),
-            ["AC", "AG"],
-        )
+        fwd, rev = self.cp.split_by_strand()
+        self.assertEqual(fwd.bases, ["A", "G"])
+        self.assertEqual(fwd.strands, ["+", "+"])
+        self.assertEqual(rev.bases, ["C"])
+        self.assertEqual(rev.strands, ["-"])
+
+    def test_split_by_strand_no_reads(self) -> None:
+        """Check split_by_strand function when there are no reads."""
+        cps = self.cp.split_by_strand()
+        self.assertEqual(len(cps), 0)
+
+    def test_split_by_strand_one_stranded(self) -> None:
+        """Check split_by_strand function when only one strand present."""
+        self.cp.add_base(40, "-", "A")
+        self.cp.add_base(40, "-", "A")
+        self.cp.add_base(40, "-", "G")
+        cps = self.cp.split_by_strand()
+        self.assertEqual(len(cps), 1)
+        self.assertEqual(cps[0].bases, ["A", "A", "G"])
+        self.assertEqual(cps[0].strands, ["-", "-", "-"])

@@ -3,8 +3,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from reditools.constants import bases
-
 if TYPE_CHECKING:
     import argparse
 
@@ -31,7 +29,7 @@ class CheckColumnMinEdits:
         options : argparse.Namespace
             The command-line options containing min_edits_per_nucleotide.
         """
-        self.min_edits = options.min_edits_per_nucleotide
+        self.min_edits_per_nucleotide = options.min_edits_per_nucleotide
 
     @classmethod
     def is_needed(cls, options: argparse.Namespace) -> bool:
@@ -63,12 +61,11 @@ class CheckColumnMinEdits:
             None if all nucleotide edits are sufficient, a tuple with
             error message otherwise.
         """
-        for base in bases:
-            if base != rtresult.reference and \
-                    0 < rtresult.base_counts[base] < self.min_edits:
+        for alt in rtresult.variants:
+            if rtresult.base_counts[alt] < self.min_edits_per_nucleotide:
                 return (
                     "DISCARDING COLUMN edits={} < {}",
-                    rtresult.base_counts[base],
-                    self.min_edits,
+                    alt,
+                    self.min_edits_per_nucleotide,
                 )
         return None

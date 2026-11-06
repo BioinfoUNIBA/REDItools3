@@ -57,7 +57,7 @@ class RegionStartPastStopError(ValueError):
         """
         self.message = (
             f"Stop position ({stop}) must be greater than or "
-            f"equal to start ({start}).",
+            f"equal to start ({start})."
         )
         super().__init__(self.message)
 

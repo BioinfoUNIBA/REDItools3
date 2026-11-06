@@ -38,5 +38,5 @@ def write_results(
             msg = filters.check(rt_result)
             if msg:
                 logger(Logger.debug_level, *msg)
-            else:
-                writer.writerow(rt_result.output_list(strand_numbers))
+                continue
+            writer.writerow(rt_result.output_list(strand_numbers))

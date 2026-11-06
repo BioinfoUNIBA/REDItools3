@@ -59,7 +59,7 @@ class CheckExclusions:
         return options.exclude_regions is not None or \
             options.splicing_file is not None
 
-    def run_check(self, rtresult: RTResult) -> None | tuple:
+    def run_check(self, rtresult: RTResult) -> tuple | None:
         """Run the check on a specific position.
 
         Parameters

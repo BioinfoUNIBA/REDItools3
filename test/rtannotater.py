@@ -82,7 +82,7 @@ class TestRTAnnotater(unittest.TestCase):
         self.assertEqual(output[12], "-")
 
         self.dna.reference = "T"
-        self.dna.variants = ["TC"]
+        self.dna.variants = ["C"]
         rta.annotate_row(self.rna, self.dna)
         output = self.rna.output_list()
         self.assertEqual(output[12], "AG")
@@ -101,7 +101,7 @@ class TestRTAnnotater(unittest.TestCase):
         self.assertEqual(output[11], "[1, 0, 0, 0]")
         self.assertEqual(output[12], "-")
 
-        self.dna.variants = ["TC"]
+        self.dna.variants = ["C"]
         rta.annotate_row(self.rna, self.dna)
         output = self.rna.output_list()
         self.assertEqual(output[12], "TC")

@@ -44,7 +44,7 @@ class TestRTResult(unittest.TestCase):
         self.cp.add_base(10, "+", "C")
         self.cp.add_base(10, "+", "A")
         rtresult = RTResult.from_compiled_position(self.cp, "*")
-        self.assertEqual(rtresult.variants, ["AC"])
+        self.assertEqual(rtresult.variants, ["C"])
 
     def test_edit_ratio(self) -> None:
         """Check edit_ratio cacluation from RTResult."""
@@ -104,7 +104,7 @@ class TestRTResult(unittest.TestCase):
             rtresult.base_counts,
             {"A": 1, "C": 0, "G": 0, "T": 0},
         )
-        self.assertEqual(rtresult.variants, ["GA"])
+        self.assertEqual(rtresult.variants, ["A"])
         self.assertEqual(rtresult.edit_ratio, 1)
 
     def test_from_dict_number_strands(self) -> None:
@@ -131,15 +131,16 @@ class TestRTResult(unittest.TestCase):
         """Test complement() method."""
         self.cp.add_base(40, "+", "A")
         self.cp.add_base(35, "-", "C")
+        self.cp.add_base(35, "-", "C")
         self.cp.add_base(30, "+", "G")
         rtresult = RTResult.from_compiled_position(self.cp, "*")
         rtresult.complement()
         self.assertEqual(rtresult.reference, "T")
         self.assertEqual(
             rtresult.base_counts,
-            {"A": 0, "C": 1, "G": 1, "T": 1},
+            {"A": 0, "C": 1, "G": 2, "T": 1},
         )
-        self.assertEqual(rtresult.variants, ["TC", "TG"])
+        self.assertEqual(rtresult.variants, ["G", "C"])
 
     def test_output_list(self) -> None:
         """Test output_list() method."""

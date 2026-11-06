@@ -116,24 +116,40 @@ class CompiledPosition:
         self.strands = [self.strands[_] for _ in keep]
         self.bases = [self.bases[_] for _ in keep]
 
+    def split_by_strand(self) -> tuple[CompiledPosition, ...]:
+        """Split the CompiledPosition into new objects for each strand.
+
+        Returns
+        -------
+        tuple[CompiledPosition]
+            CompiledPositions for each strand.
+
+        """
+        idx_by_strand: dict[str, list[int]] = {
+            "+": [],
+            "-": [],
+            "*": [],
+        }
+        for idx in range(len(self.bases)):  # noqa: WPS518
+            idx_by_strand[self.strands[idx]].append(idx)
+
+        return tuple(
+            CompiledPosition(
+                self.ref,
+                self.position,
+                self.contig,
+                [self.qualities[_] for _ in strand_sublist],
+                [self.strands[_] for _ in strand_sublist],
+                [self.bases[_] for _ in strand_sublist],
+            )
+            for strand_sublist in idx_by_strand.values()
+            if len(strand_sublist) > 0
+        )
+
     def complement(self) -> None:
         """Replace all bases and the reference with their complements."""
         self.bases = [comp_map[base] for base in self.bases]
         self.ref = comp_map[self.ref]
-
-    def variants(self) -> list[str]:
-        """Retrieve detected variants.
-
-        Variants are in the format of {reference base}{alternate base}.
-
-        Returns
-        -------
-        list[str]
-            Detected variants.
-        """
-        alts = {_ for _ in self.bases if _ != self.ref}
-        return sorted([f"{self.ref}{base}" for base in alts])
-
 
 @dataclass(slots=True)
 class RTResult:
@@ -154,7 +170,7 @@ class RTResult:
     counter : dict
         A dictionary counting occurrences of each nucleotide.
     variants : list
-        A list of observed variants (e.g., ['AG']).
+        A list of observed alternate bases ('A', 'C', 'G', and/or 'T').
     """
 
     strand: str
@@ -173,6 +189,7 @@ class RTResult:
         cls,
         cp: CompiledPosition,
         strand: str,
+        noise_threshold: float = 0,
     ) -> RTResult:
         """Initialize RTResult.
 
@@ -182,6 +199,8 @@ class RTResult:
             The compiled position data.
         strand : str
             The strand assigned to this position.
+        noise_threshold : float
+            Noise threshold for populating variants list.
         """
         counter = dict.fromkeys(base_order, 0)
         for base in cp.bases:
@@ -201,13 +220,25 @@ class RTResult:
             if len(cp) else 0
         )
 
+        ref_reads = counter[cp.ref]
+        variants = [
+            _ for _ in sorted(
+                base_order,
+                key=counter.__getitem__,
+                reverse=True,
+            )
+            if counter[_] and \
+                counter[_] / (counter[_] + ref_reads) > noise_threshold and \
+                _ != cp.ref
+        ]
+
         return RTResult(
             strand=strand,
             reference=cp.ref,
             position=cp.position,
             contig=cp.contig,
             base_counts=counter,
-            variants=cp.variants(),
+            variants=variants,
             depth=len(cp),
             edit_ratio=edit_ratio,
             mean_quality=mean_quality,
@@ -223,10 +254,7 @@ class RTResult:
             base: self.base_counts[comp_map[base]]
             for base in self.base_counts
         }
-        self.variants = sorted([
-            "".join([comp_map[_] for _ in variant])
-            for variant in self.variants
-        ])
+        self.variants = [comp_map[_] for _ in self.variants]
 
     def output_list(self, strand_as_numbers: bool = False) -> list[str]:
         """Generate list for Analayze tool output.
@@ -250,6 +278,12 @@ class RTResult:
                 strand = undetermined_strand_number
         else:
             strand = self.strand
+        if self.variants:
+            variants = " ".join([
+                f"{self.reference}{_}" for _ in self.variants
+            ])
+        else:
+            variants = empty_field
         output_list = [
             self.contig,
             str(self.position + 1),
@@ -258,7 +292,7 @@ class RTResult:
             str(self.depth),
             f"{self.mean_quality:.2f}",
             str(list(self.base_counts.values())),
-            " ".join(self.variants) if self.variants else empty_field,
+            variants,
             f"{self.edit_ratio:.2f}",
         ]
         if self.dna is None:
@@ -302,13 +336,17 @@ class RTResult:
                 src_dict["BaseCount[A,C,G,T]"][1:-1].split(", "),
             )
         }
+        if src_dict["AllSubs"] == "-":
+            variants = []
+        else:
+            variants=[_[1] for _ in src_dict["AllSubs"].split(" ")]
         return RTResult(
             strand=strand,
             reference=src_dict["Reference"],
             position=int(src_dict["Position"]) - 1,
             contig=src_dict["Region"],
             base_counts=counter,
-            variants=src_dict["AllSubs"].split(" "),
+            variants=variants,
             depth=int(depth),
             edit_ratio=float(src_dict["Frequency"]),
             mean_quality=float(src_dict["MeanQ"]),

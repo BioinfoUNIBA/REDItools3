@@ -43,7 +43,7 @@ class CheckMaxEditingNucleotides:
         """
         return options.max_editing_nucleotides < 3  # noqa: PLR2004
 
-    def run_check(self, rtresult: RTResult) -> None | tuple:
+    def run_check(self, rtresult: RTResult) -> tuple | None:
         """Run the check on a specific position.
 
         Parameters
@@ -57,11 +57,11 @@ class CheckMaxEditingNucleotides:
             None if number of variants is within limits, a tuple with
             error message otherwise.
         """
-        variants = rtresult.variants
-        if len(variants) > self.max_editing_nucleotides:
+        n_variants = len(rtresult.variants)
+        if n_variants > self.max_editing_nucleotides:
             return (
-                "DISCARD COLUMN variants={} > {}",
-                len(variants),
+                "DISCARD COLUMN len(variants)={} > {}",
+                n_variants,
                 self.max_editing_nucleotides,
             )
         return None

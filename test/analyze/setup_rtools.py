@@ -1,0 +1,46 @@
+"""Test cases for setup_rtools() method."""
+from __future__ import annotations
+
+import unittest
+
+from reditools.reditools import REDItools, SplitREDItools
+from reditools.tools.analyze.parse_args.parse_args import parse_args
+from reditools.tools.analyze.setup_rtools import setup_rtools
+
+
+class TestSetupRTools(unittest.TestCase):
+    """Test cases for setup_rtools() method."""
+
+    def test_options(self) -> None:
+        """Check setup_rtools() method."""
+        options = parse_args([
+            "example.bam",
+            "-r", "genome.fa",
+            "--min-base-position", "10",
+            "--max-base-position", "30",
+            "--min-base-quality", "23",
+            "--strand", "1",
+            "--strand-confidence-threshold", "0.567",
+            "--strand-correction",
+            "--noise-threshold", "0.5",
+        ])
+        rtools = setup_rtools(options)
+        self.assertIsInstance(rtools, REDItools)
+        self.assertEqual(rtools.reference, "genome.fa")
+        self.assertEqual(rtools.min_base_position, 10)
+        self.assertEqual(rtools.max_base_position, 30)
+        self.assertEqual(rtools.min_base_quality, 23)
+        self.assertEqual(rtools.strand, 1)
+        self.assertEqual(rtools.strand_confidence_threshold, 0.567)
+        self.assertTrue(rtools._use_strand_correction)
+        self.assertEqual(rtools.noise_threshold, 0.5)
+
+    def test_split(self) -> None:
+        """Check that correct class is used with --separate-strands."""
+        options = parse_args([
+            "example.bam",
+            "--strand", "1",
+            "--separate-strands",
+        ])
+        rtools = setup_rtools(options)
+        self.assertIsInstance(rtools, SplitREDItools)

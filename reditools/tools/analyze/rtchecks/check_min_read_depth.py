@@ -43,7 +43,7 @@ class CheckMinReadDepth:
         """
         return options.min_read_depth > 1
 
-    def run_check(self, rtresult: RTResult) -> None | tuple:
+    def run_check(self, rtresult: RTResult) -> tuple | None:
         """Run the check on a specific position.
 
         Parameters

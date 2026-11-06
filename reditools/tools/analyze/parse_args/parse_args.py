@@ -18,7 +18,10 @@ class DNAStrandError(argparse.ArgumentTypeError):
 
     def __init__(self) -> None:
         """Initialize self."""
-        self.message = "-N/--dna can only be used with -s/--strand 0."
+        self.message = (
+            "-N/--dna can only be used with "
+            f"-s/--strand {reditools.UNSTRANDED_MODE}"
+        )
         super().__init__(self.message)
 
 class StrictConflictError(argparse.ArgumentTypeError):
@@ -224,6 +227,20 @@ def build_argument_parser() -> argparse.ArgumentParser:  # noqa: WPS213, WPS210,
             "the Coverage column.)"
         ),
     )
+    rf_group.add_argument(
+        "-n",
+        "--noise-threshold",
+        type=bounded_float(min_value=0, max_value=1),
+        default=0,
+        help=(
+            "Only report edits with a ratio greater than or equal to -n "
+            "(corresponds to the Frequency column.) This option generally "
+            "filters what gets reported in the AllSubs column. Edits filtered "
+            "by this option will not be considered by --variants, "
+            "--max-editing-nucleotides, --min-edits, or "
+            "--min-edits-per-nucleotide filters."
+        ),
+    )
 
     strand_group = parser.add_argument_group(
         title="Strandedness Options",
@@ -261,7 +278,8 @@ def build_argument_parser() -> argparse.ArgumentParser:  # noqa: WPS213, WPS210,
         help=(
             "Only report the strandedness if at least -T proportion of "
             "reads are of a given strand. This option is only applicable "
-            "if -s/--strand is not zero."
+            f"if -s/--strand is not {reditools.UNSTRANDED_MODE} and "
+            "--separate-strands is not used."
         ),
     )
     strand_group.add_argument(
@@ -272,7 +290,24 @@ def build_argument_parser() -> argparse.ArgumentParser:  # noqa: WPS213, WPS210,
             "Report the base complements for the Reference, AllSubs, and "
             "BaseCount columns in the output if the detected edit is on "
             "the minus strand. "
-            "This option is only applicable if -s/--strand is not zero."
+            "This option is only applicable if -s/--strand is not "
+            f"{reditools.UNSTRANDED_MODE}."
+        ),
+        action="store_true",
+    )
+    strand_group.add_argument(
+        "-p",
+        "--separate-strands",
+        default=False,
+        help=(
+            "Report edits for each strand on separate lines of the output. "
+            "When using this option, all result filters will be applied to "
+            "each strand individually. For example, a base position with 7 "
+            "forward reads and 3 reverse reads would produce no output "
+            " with --min-read-depth 10 and only report the fowrard reads "
+            " with --min-read-depth 5. "
+            "This option is only applicable if -s/--strand is not "
+            f"{reditools.UNSTRANDED_MODE}."
         ),
         action="store_true",
     )
@@ -411,7 +446,10 @@ def build_argument_parser() -> argparse.ArgumentParser:  # noqa: WPS213, WPS210,
         "-N",
         "--dna",
         default=False,
-        help="Run REDItools on DNA-Seq data. (Equivalent to -s/--strand 0)",
+        help=(
+            "Run REDItools on DNA-Seq data. "
+            f"(Equivalent to -s/--strand {reditools.UNSTRANDED_MODE})"
+        ),
         action="store_true",
     )
     leg_group.add_argument(
@@ -459,7 +497,7 @@ def fix_legacy_options(args: argparse.Namespace) -> None:
     """Adjust arguments to handle legacy options.
 
     The specific fixes are:
-    - --dna sets --strand 0
+    - --dna sets --strand reditools.UNSTRANDED_MODE
     - --exclude-multis sets --max-editing-nucleotides 1
     - --strict sets --min-edits 1
     - --load-omopolymeric-file adds the input to --exclude-regions
@@ -474,7 +512,7 @@ def fix_legacy_options(args: argparse.Namespace) -> None:
     DNAStrandError, StrictConflictError
         If mutually exclusive options are provided.
     """
-    if args.strand != 0 and args.dna:
+    if args.strand != reditools.UNSTRANDED_MODE and args.dna:
         raise DNAStrandError
     delattr(args, "dna")  # noqa: WPS421
 
@@ -529,9 +567,16 @@ def parse_args(sys_args: list[str] | None = None) -> argparse.Namespace:
             "-me/--min-edits.",
         )
 
-    if args.strand == 0 and args.strand_correction:
+    if args.strand == reditools.UNSTRANDED_MODE and args.strand_correction:
         parser.error(
-            "-s/--strand 0 and -C/--strand-correction are mutually exclusive.",
+            f"-s/--strand {reditools.UNSTRANDED_MODE} and "
+            "-C/--strand-correction are mutually exclusive.",
+        )
+
+    if args.strand == 0 and args.separate_strands:
+        parser.error(
+            f"-s/--strand {reditools.UNSTRANDED_MODE} and "
+            "-p/--separate-strands are mutually exclusive.",
         )
 
     return args

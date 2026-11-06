@@ -20,5 +20,6 @@ from test.rtannotater import TestRTAnnotater
 from test.rtindexer import TestRTIndexer
 from test.rtresult import TestRTResult
 from test.splicing_file import TestSplicingFile
+from test.splitreditools import TestSplitREDItools
 
 unittest.main()
