@@ -3,7 +3,11 @@ from __future__ import annotations
 
 import unittest
 
-from reditools.compiled_position import CompiledPosition, RTResult
+from reditools.compiled_position import (
+    CompiledPosition,
+    rtresult_from_compiled_position,
+    rtresult_from_dict,
+)
 
 
 class TestRTResult(unittest.TestCase):
@@ -18,7 +22,7 @@ class TestRTResult(unittest.TestCase):
         self.cp.add_base(40, "+", "A")
         self.cp.add_base(35, "-", "C")
         self.cp.add_base(30, "+", "G")
-        rtresult = RTResult.from_compiled_position(self.cp, "*")
+        rtresult = rtresult_from_compiled_position(self.cp, "*")
         self.assertEqual(rtresult.depth, 3)
 
     def test_base_counts(self) -> None:
@@ -26,7 +30,7 @@ class TestRTResult(unittest.TestCase):
         self.cp.add_base(5, "+", "A")
         self.cp.add_base(5, "+", "A")
         self.cp.add_base(6, "-", "C")
-        rtresult = RTResult.from_compiled_position(self.cp, "*")
+        rtresult = rtresult_from_compiled_position(self.cp, "*")
         self.assertEqual(rtresult.base_counts, {
             "A": 2,
             "C": 1,
@@ -36,49 +40,49 @@ class TestRTResult(unittest.TestCase):
 
     def test_reference(self) -> None:
         """Check reference base propagates to RTResult class."""
-        rtresult = RTResult.from_compiled_position(self.cp, "*")
+        rtresult = rtresult_from_compiled_position(self.cp, "*")
         self.assertEqual(rtresult.reference, "A")
 
     def test_variants(self) -> None:
         """Check variant summary for RTResult."""
         self.cp.add_base(10, "+", "C")
         self.cp.add_base(10, "+", "A")
-        rtresult = RTResult.from_compiled_position(self.cp, "*")
+        rtresult = rtresult_from_compiled_position(self.cp, "*")
         self.assertEqual(rtresult.variants, ["C"])
 
     def test_edit_ratio(self) -> None:
         """Check edit_ratio cacluation from RTResult."""
-        rtresult = RTResult.from_compiled_position(self.cp, "*")
+        rtresult = rtresult_from_compiled_position(self.cp, "*")
         self.assertEqual(rtresult.edit_ratio, 0)
 
         self.cp.add_base(10, "+", "A")
         self.cp.add_base(10, "+", "C")
-        rtresult = RTResult.from_compiled_position(self.cp, "*")
+        rtresult = rtresult_from_compiled_position(self.cp, "*")
         self.assertEqual(rtresult.edit_ratio, 0.5)
 
         self.cp.add_base(10, "+", "T")
-        rtresult = RTResult.from_compiled_position(self.cp, "*")
+        rtresult = rtresult_from_compiled_position(self.cp, "*")
         self.assertEqual(rtresult.edit_ratio, 0.5)
 
         self.cp.add_base(10, "+", "C")
         self.cp.add_base(10, "+", "C")
-        rtresult = RTResult.from_compiled_position(self.cp, "*")
+        rtresult = rtresult_from_compiled_position(self.cp, "*")
         self.assertEqual(rtresult.edit_ratio, 0.75)
 
     def test_mean_quality(self) -> None:
         """Check mean_quality calculation from RTResult."""
-        rtresult = RTResult.from_compiled_position(self.cp, "*")
+        rtresult = rtresult_from_compiled_position(self.cp, "*")
         self.assertEqual(rtresult.mean_quality, 0)
 
         self.cp.add_base(10, "+", "C")
         self.cp.add_base(20, "+", "C")
         self.cp.add_base(30, "+", "C")
-        rtresult = RTResult.from_compiled_position(self.cp, "*")
+        rtresult = rtresult_from_compiled_position(self.cp, "*")
         self.assertEqual(rtresult.mean_quality, 20)
 
     def test_from_dict(self) -> None:
         """Check from_dict() method."""
-        rtresult = RTResult.from_dict({
+        rtresult = rtresult_from_dict({
             "Region": "chr1",
             "Position": "137622",
             "Reference": "G",
@@ -109,7 +113,7 @@ class TestRTResult(unittest.TestCase):
 
     def test_from_dict_number_strands(self) -> None:
         """Test from_dict() when strands are numbers."""
-        rtresult = RTResult.from_dict({
+        rtresult = rtresult_from_dict({
             "Region": "chr1",
             "Position": "137622",
             "Reference": "G",
@@ -133,7 +137,7 @@ class TestRTResult(unittest.TestCase):
         self.cp.add_base(35, "-", "C")
         self.cp.add_base(35, "-", "C")
         self.cp.add_base(30, "+", "G")
-        rtresult = RTResult.from_compiled_position(self.cp, "*")
+        rtresult = rtresult_from_compiled_position(self.cp, "*")
         rtresult.complement()
         self.assertEqual(rtresult.reference, "T")
         self.assertEqual(
@@ -147,7 +151,7 @@ class TestRTResult(unittest.TestCase):
         self.cp.add_base(40, "+", "A")
         self.cp.add_base(35, "-", "C")
         self.cp.add_base(30, "+", "G")
-        rtresult = RTResult.from_compiled_position(self.cp, "*")
+        rtresult = rtresult_from_compiled_position(self.cp, "*")
         self.assertEqual(rtresult.output_list(), [
             "chr1", "101", "A", "*", "3", "35.00", "[1, 1, 1, 0]", "AC AG",
             "0.50", "-", "-", "-", "-", "-",
@@ -158,14 +162,14 @@ class TestRTResult(unittest.TestCase):
         self.cp.add_base(40, "+", "A")
         self.cp.add_base(35, "-", "C")
         self.cp.add_base(30, "+", "G")
-        rtresult = RTResult.from_compiled_position(self.cp, "*")
+        rtresult = rtresult_from_compiled_position(self.cp, "*")
         self.assertEqual(rtresult.output_list(True), [  # noqa: FBT003
             "chr1", "101", "A", "2", "3", "35.00", "[1, 1, 1, 0]", "AC AG",
             "0.50", "-", "-", "-", "-", "-",
         ])
-        rtresult = RTResult.from_compiled_position(self.cp, "-")
+        rtresult = rtresult_from_compiled_position(self.cp, "-")
         self.assertEqual(rtresult.output_list(True)[3], "0")  # noqa: FBT003
-        rtresult = RTResult.from_compiled_position(self.cp, "+")
+        rtresult = rtresult_from_compiled_position(self.cp, "+")
         self.assertEqual(rtresult.output_list(True)[3], "1")  # noqa: FBT003
 
     def test_annotate(self) -> None:
@@ -173,12 +177,12 @@ class TestRTResult(unittest.TestCase):
         self.cp.add_base(40, "+", "A")
         self.cp.add_base(35, "-", "C")
         self.cp.add_base(30, "+", "G")
-        rna = RTResult.from_compiled_position(self.cp, "*")
+        rna = rtresult_from_compiled_position(self.cp, "*")
 
         dna_cp = CompiledPosition(ref="A", contig="chr1", position=100)
         dna_cp.add_base(40, "+", "A")
         dna_cp.add_base(38, "+", "A")
-        dna = RTResult.from_compiled_position(dna_cp, "*")
+        dna = rtresult_from_compiled_position(dna_cp, "*")
 
         rna.dna = dna
 

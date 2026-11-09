@@ -17,6 +17,21 @@ from reditools.constants import (
 
 
 def _calc_edit_ratio(counter: dict[str, int], ref: str) -> float:
+    """
+    Caclulate the edit ratio.
+
+    Parameters
+    ----------
+    counter : dict[str, int]
+        Base counts
+    ref : str
+        Base from genomic reference
+
+    Returns
+    -------
+    float
+        Edit ratio, or zero if no edits detected.
+    """
     max_edits = 0
     for base, count in counter.items():
         if base != ref and count > max_edits:
@@ -27,13 +42,31 @@ def _calc_edit_ratio(counter: dict[str, int], ref: str) -> float:
         return 0
 
 def _strand_from_string(strand_value: str) -> str:
-        if strand_value == forward_strand_number:
-            return forward_strand_symbol
-        if strand_value == reverse_strand_number:
-            return reverse_strand_symbol
-        if strand_value == undetermined_strand_number:
-            return undetermined_strand_symbol
-        return strand_value
+    """
+    Get the strand symbol from string input.
+
+    Depending on the parameters used from the analyze tool, the strand may
+    be represented as a string ("+", "-", or "*") or as a number (0, 1, or 2).
+    This function converts the former to the latter, or just reports the number
+    if that was used instead.
+
+    Parameters
+    ----------
+    strand_value : str
+        Value from the Strand column in analyze output
+
+    Returns
+    -------
+    str
+        Strand number (as a string)
+    """
+    if strand_value == forward_strand_number:
+        return forward_strand_symbol
+    if strand_value == reverse_strand_number:
+        return reverse_strand_symbol
+    if strand_value == undetermined_strand_number:
+        return undetermined_strand_symbol
+    return strand_value
 
 @dataclass
 class CompiledPosition:
@@ -203,59 +236,6 @@ class RTResult:
     mean_quality: float
     dna: RTResult | None = None
 
-    @classmethod
-    def from_compiled_position(
-        cls,
-        cp: CompiledPosition,
-        strand: str,
-        noise_threshold: float = 0,
-    ) -> RTResult:
-        """Initialize RTResult.
-
-        Parameters
-        ----------
-        compiled_position : CompiledPosition
-            The compiled position data.
-        strand : str
-            The strand assigned to this position.
-        noise_threshold : float
-            Noise threshold for populating variants list.
-        """
-        counter = dict.fromkeys(base_order, 0)
-        for base in cp.bases:
-            counter[base] += 1
-
-        edit_ratio = _calc_edit_ratio(counter, cp.ref)
-
-        mean_quality = (
-            sum(cp.qualities) / len(cp)
-            if len(cp) else 0
-        )
-
-        ref_reads = counter[cp.ref]
-        variants = [
-            _ for _ in sorted(
-                base_order,
-                key=counter.__getitem__,
-                reverse=True,
-            )
-            if counter[_] and \
-                counter[_] / (counter[_] + ref_reads) > noise_threshold and \
-                _ != cp.ref
-        ]
-
-        return RTResult(
-            strand=strand,
-            reference=cp.ref,
-            position=cp.position,
-            contig=cp.contig,
-            base_counts=counter,
-            variants=variants,
-            depth=len(cp),
-            edit_ratio=edit_ratio,
-            mean_quality=mean_quality,
-        )
-
     def complement(self) -> None:
         """Compute base complement.
 
@@ -313,46 +293,97 @@ class RTResult:
             output_list.extend(self.dna.output_list()[4:9])
         return output_list
 
-    @classmethod
-    def from_dict(cls, src_dict: dict[str, str]) -> RTResult:
-        """Create an RTResult object from a dictionary.
+def rtresult_from_dict(src_dict: dict[str, str]) -> RTResult:
+    """Create an RTResult object from a dictionary.
 
-        This will NOT fill in annotation column values.
+    This will NOT fill in annotation column values.
 
-        Parameters
-        ----------
-        src_dict : dict[str, str]
-            Dictionary data from a REDItools analyze file.
+    Parameters
+    ----------
+    src_dict : dict[str, str]
+        Dictionary data from a REDItools analyze file.
 
-        Returns
-        -------
-        RTResult
-        """
-        strand = _strand_from_string(src_dict["Strand"])
-        if "Coverage" in src_dict:
-            depth = src_dict["Coverage"]  # noqa: WPS529
-        else:
-            depth = src_dict["Coverage-q30"]
-        counter = {
-            base: int(count)
-            for base, count in zip(
-                base_order,
-                src_dict["BaseCount[A,C,G,T]"][1:-1].split(", "),
-            )
-        }
-        if src_dict["AllSubs"] == "-":
-            variants = []
-        else:
-            variants=[_[1] for _ in src_dict["AllSubs"].split(" ")]
-        return RTResult(
-            strand=strand,
-            reference=src_dict["Reference"],
-            position=int(src_dict["Position"]) - 1,
-            contig=src_dict["Region"],
-            base_counts=counter,
-            variants=variants,
-            depth=int(depth),
-            edit_ratio=float(src_dict["Frequency"]),
-            mean_quality=float(src_dict["MeanQ"]),
+    Returns
+    -------
+    RTResult
+    """
+    strand = _strand_from_string(src_dict["Strand"])
+    if "Coverage" in src_dict:
+        depth = src_dict["Coverage"]  # noqa: WPS529
+    else:
+        depth = src_dict["Coverage-q30"]
+    counter = {
+        base: int(count)
+        for base, count in zip(
+            base_order,
+            src_dict["BaseCount[A,C,G,T]"][1:-1].split(", "),
         )
+    }
+    if src_dict["AllSubs"] == "-":
+        variants = []
+    else:
+        variants=[_[1] for _ in src_dict["AllSubs"].split(" ")]
+    return RTResult(
+        strand=strand,
+        reference=src_dict["Reference"],
+        position=int(src_dict["Position"]) - 1,
+        contig=src_dict["Region"],
+        base_counts=counter,
+        variants=variants,
+        depth=int(depth),
+        edit_ratio=float(src_dict["Frequency"]),
+        mean_quality=float(src_dict["MeanQ"]),
+    )
+
+
+def rtresult_from_compiled_position(
+    cp: CompiledPosition,
+    strand: str,
+    noise_threshold: float = 0,
+) -> RTResult:
+    """Initialize RTResult.
+
+    Parameters
+    ----------
+    compiled_position : CompiledPosition
+        The compiled position data.
+    strand : str
+        The strand assigned to this position.
+    noise_threshold : float
+        Noise threshold for populating variants list.
+    """
+    counter = dict.fromkeys(base_order, 0)
+    for base in cp.bases:
+        counter[base] += 1
+
+    edit_ratio = _calc_edit_ratio(counter, cp.ref)
+
+    mean_quality = (
+        sum(cp.qualities) / len(cp)
+        if len(cp) else 0
+    )
+
+    ref_reads = counter[cp.ref]
+    variants = [
+        _ for _ in sorted(
+            base_order,
+            key=counter.__getitem__,
+            reverse=True,
+        )
+        if counter[_] and \
+            counter[_] / (counter[_] + ref_reads) > noise_threshold and \
+            _ != cp.ref
+    ]
+
+    return RTResult(
+        strand=strand,
+        reference=cp.ref,
+        position=cp.position,
+        contig=cp.contig,
+        base_counts=counter,
+        variants=variants,
+        depth=len(cp),
+        edit_ratio=edit_ratio,
+        mean_quality=mean_quality,
+    )
 

@@ -3,7 +3,10 @@ from __future__ import annotations
 
 import unittest
 
-from reditools.compiled_position import CompiledPosition, RTResult
+from reditools.compiled_position import (
+    CompiledPosition,
+    rtresult_from_compiled_position,
+)
 
 
 class TestCompiledPosition(unittest.TestCase):
@@ -61,37 +64,37 @@ class TestCompiledPosition(unittest.TestCase):
         self.cp.add_base(10, "+", "C")
         for _ in range(3):
             self.cp.add_base(10, "+", "T")
-        rtresult = RTResult.from_compiled_position(self.cp, "*")
+        rtresult = rtresult_from_compiled_position(self.cp, "*")
         self.assertEqual(rtresult.variants, ["T", "C"])
 
     def test_edit_ratio(self) -> None:
         """Check edit_ratio cacluation from RTResult."""
-        rtresult = RTResult.from_compiled_position(self.cp, "*")
+        rtresult = rtresult_from_compiled_position(self.cp, "*")
         self.assertEqual(rtresult.edit_ratio, 0)
 
         self.cp.add_base(10, "+", "A")
         self.cp.add_base(10, "+", "C")
-        rtresult = RTResult.from_compiled_position(self.cp, "*")
+        rtresult = rtresult_from_compiled_position(self.cp, "*")
         self.assertEqual(rtresult.edit_ratio, 0.5)
 
         self.cp.add_base(10, "+", "T")
-        rtresult = RTResult.from_compiled_position(self.cp, "*")
+        rtresult = rtresult_from_compiled_position(self.cp, "*")
         self.assertEqual(rtresult.edit_ratio, 0.5)
 
         self.cp.add_base(10, "+", "C")
         self.cp.add_base(10, "+", "C")
-        rtresult = RTResult.from_compiled_position(self.cp, "*")
+        rtresult = rtresult_from_compiled_position(self.cp, "*")
         self.assertEqual(rtresult.edit_ratio, 0.75)
 
     def test_mean_quality(self) -> None:
         """Check mean_quality calculation from RTResult."""
-        rtresult = RTResult.from_compiled_position(self.cp, "*")
+        rtresult = rtresult_from_compiled_position(self.cp, "*")
         self.assertEqual(rtresult.mean_quality, 0)
 
         self.cp.add_base(10, "+", "C")
         self.cp.add_base(20, "+", "C")
         self.cp.add_base(30, "+", "C")
-        rtresult = RTResult.from_compiled_position(self.cp, "*")
+        rtresult = rtresult_from_compiled_position(self.cp, "*")
         self.assertEqual(rtresult.mean_quality, 20)
 
     def test_noise_threshold(self) -> None:
@@ -100,15 +103,15 @@ class TestCompiledPosition(unittest.TestCase):
             self.cp.add_base(10, "+", base)
 
         self.assertEqual(
-            RTResult.from_compiled_position(self.cp, "*", 0.1).variants,
+            rtresult_from_compiled_position(self.cp, "*", 0.1).variants,
             ["G", "T"],
         )
         self.assertEqual(
-            RTResult.from_compiled_position(self.cp, "*", 0.3).variants,
+            rtresult_from_compiled_position(self.cp, "*", 0.3).variants,
             ["G"],
         )
         self.assertEqual(
-            RTResult.from_compiled_position(self.cp, "*", 0.4).variants,
+            rtresult_from_compiled_position(self.cp, "*", 0.4).variants,
             [],
         )
 

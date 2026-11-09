@@ -5,7 +5,7 @@ import csv
 from typing import IO, Iterator
 
 from reditools import file_utils
-from reditools.compiled_position import RTResult
+from reditools.compiled_position import RTResult, rtresult_from_dict
 from reditools.constants import comp_map
 
 
@@ -31,7 +31,7 @@ def read_rta_file(file_stream: IO) -> Iterator[RTResult]:
     """
     reader = csv.DictReader(file_stream, delimiter="\t")
     for row in reader:
-        yield RTResult.from_dict(row)
+        yield rtresult_from_dict(row)
 
 class RTAnnotater:
     """Class to annotate RNA editing sites with DNA data.

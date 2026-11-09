@@ -6,7 +6,10 @@ from argparse import Namespace
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
-from reditools.compiled_position import CompiledPosition, RTResult
+from reditools.compiled_position import (
+    CompiledPosition,
+    rtresult_from_compiled_position,
+)
 from reditools.tools.analyze.rtchecks import RTChecks
 
 
@@ -42,7 +45,7 @@ class TestRTChecks(unittest.TestCase):
         """
         rtc = RTChecks(self.options)
         check_value =  rtc.check(
-            RTResult.from_compiled_position(self.bases, "*", noise_threshold),
+            rtresult_from_compiled_position(self.bases, "*", noise_threshold),
         )
         if is_none:
             self.assertIsNone(check_value)
