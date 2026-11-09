@@ -16,6 +16,25 @@ from reditools.constants import (
 )
 
 
+def _calc_edit_ratio(counter: dict[str, int], ref: str) -> float:
+    max_edits = 0
+    for base, count in counter.items():
+        if base != ref and count > max_edits:
+            max_edits = count
+    try:
+        return max_edits  / (counter[ref] + max_edits)
+    except ZeroDivisionError:
+        return 0
+
+def _strand_from_string(strand_value: str) -> str:
+        if strand_value == forward_strand_number:
+            return forward_strand_symbol
+        if strand_value == reverse_strand_number:
+            return reverse_strand_symbol
+        if strand_value == undetermined_strand_number:
+            return undetermined_strand_symbol
+        return strand_value
+
 @dataclass
 class CompiledPosition:
     """Class to store compiled information for a specific genomic position.
@@ -206,14 +225,7 @@ class RTResult:
         for base in cp.bases:
             counter[base] += 1
 
-        max_edits = 0
-        for base, count in counter.items():
-            if base != cp.ref and count > max_edits:
-                max_edits = count
-        try:
-            edit_ratio = max_edits  / (counter[cp.ref] + max_edits)
-        except ZeroDivisionError:
-            edit_ratio = 0
+        edit_ratio = _calc_edit_ratio(counter, cp.ref)
 
         mean_quality = (
             sum(cp.qualities) / len(cp)
@@ -316,15 +328,7 @@ class RTResult:
         -------
         RTResult
         """
-        strand_value = src_dict["Strand"]
-        if strand_value == forward_strand_number:
-            strand = forward_strand_symbol
-        elif strand_value == reverse_strand_number:
-            strand = reverse_strand_symbol
-        elif strand_value == undetermined_strand_number:
-            strand = undetermined_strand_symbol
-        else:
-            strand = strand_value
+        strand = _strand_from_string(src_dict["Strand"])
         if "Coverage" in src_dict:
             depth = src_dict["Coverage"]  # noqa: WPS529
         else:
@@ -351,3 +355,4 @@ class RTResult:
             edit_ratio=float(src_dict["Frequency"]),
             mean_quality=float(src_dict["MeanQ"]),
         )
+

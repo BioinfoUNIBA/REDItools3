@@ -78,7 +78,7 @@ class REDIThread:
             The command-line options.
         """
         self.rtools = reditools.REDItools()
-        self.rtools.log_level = log_level(options)
+        self.rtools.set_log_level(log_level(options))
 
         if options.reference:
             self.rtools.add_reference(options.reference)
@@ -140,7 +140,7 @@ class REDIThreadDNA(REDIThread):
         """
         super().__init__(options)
         self.dna_rtools = reditools.REDItools()
-        self.dna_rtools.log_level = log_level(options)
+        self.dna_rtools.set_log_level(log_level(options))
 
         if options.reference:
             self.dna_rtools.add_reference(options.reference)

@@ -3,14 +3,15 @@ from __future__ import annotations
 
 import pathlib
 import unittest
-import pysam
 from test.sam_gen import SAM, Sequence, ntf
+
+import pysam
 
 from reditools.logger import Logger
 from reditools.reditools import REDItools
 from reditools.region import Region
-from reditools.tools.analyze.parse_args.parse_args import parse_args
 from reditools.tools.analyze import redi_thread
+from reditools.tools.analyze.parse_args.parse_args import parse_args
 
 
 class TestREDIThread(unittest.TestCase):
