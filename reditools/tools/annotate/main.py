@@ -9,6 +9,7 @@ import traceback
 import pysam
 
 from reditools import file_utils
+from reditools.constants import analyze_output_fieldnames
 from reditools.rtannotater import RTAnnotater
 from reditools.tools.annotate.parse_args import parse_args
 
@@ -123,8 +124,11 @@ def main() -> None:
         sys.exit(1)
 
     rta = RTAnnotater(contig_order, options.strand_correction)
+    writer = csv.writer(sys.stdout, delimiter="\t", lineterminator="\n")
+    writer.writerow(analyze_output_fieldnames)
     try:
-        rta.annotate(options.rna_file, options.dna_file, sys.stdout)
+        for rtresult in rta.merge_files(options.rna_file, options.dna_file):
+            writer.writerow(rtresult.output_list())
     except Exception as exc:  # noqa: BLE001
         if options.debug:
             traceback.print_exception(*sys.exc_info())

@@ -103,7 +103,10 @@ def analyze(
             len(temp_file_manager),
         )
 
-        if not run_pool(options, temp_file_manager):
+        if not run_pool(
+                options,
+                temp_file_manager,
+                options.dna_sample is not None):
             return False
 
         temp_file_manager.concat(

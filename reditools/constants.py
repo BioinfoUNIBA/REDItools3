@@ -22,3 +22,25 @@ undetermined_strand_symbol = "*"
 forward_strand_number = "1"
 reverse_strand_number = "0"
 undetermined_strand_number = "2"
+
+"""Empty output field string."""
+empty_field = "-"
+
+"""Analyze output fieldnames."""
+analyze_output_fieldnames = [
+    "Region",
+    "Position",
+    "Reference",
+    "Strand",
+    "Coverage",
+    "MeanQ",
+    "BaseCount[A,C,G,T]",
+    "AllSubs",
+    "Frequency",
+    "gCoverage",
+    "gMeanQ",
+    "gBaseCount[A,C,G,T]",
+    "gAllSubs",
+    "gFrequency",
+]
+

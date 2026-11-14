@@ -43,5 +43,7 @@ class TestSetupAlignmentManager(unittest.TestCase):
         self.assertIn("bad_read", rtam.excluded_read_names)
 
         Path(fasta_fname).unlink()
+        Path(f"{fasta_fname}.fai").unlink()
         Path(bam_fname).unlink()
+        Path(f"{bam_fname}.bai").unlink()
         Path(exclusions_fname).unlink()

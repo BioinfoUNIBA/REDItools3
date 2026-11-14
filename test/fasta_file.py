@@ -30,6 +30,7 @@ class TestRTFastaFile(unittest.TestCase):
                 delete=False,
                 mode="w",
                 encoding="utf-8",
+                suffix=".fa",
         ) as stream:
             self.fasta_fname = stream.name
         self.genome.save_to_fasta(self.fasta_fname)
@@ -37,6 +38,7 @@ class TestRTFastaFile(unittest.TestCase):
     def tearDown(self) -> None:
         """Post-check cleanup."""
         Path(self.fasta_fname).unlink()
+        Path(f"{self.fasta_fname}.fai").unlink()
 
     def test_get_base(self) -> None:
         """Check get_base() function."""

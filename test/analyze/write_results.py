@@ -5,7 +5,10 @@ import unittest
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
-from reditools.compiled_position import CompiledPosition, RTResult
+from reditools.compiled_position import (
+    CompiledPosition,
+    rtresult_from_compiled_position,
+)
 from reditools.logger import Logger
 from reditools.tools.analyze.parse_args.parse_args import parse_args
 from reditools.tools.analyze.rtchecks import RTChecks
@@ -23,9 +26,9 @@ class TestWriteResults(unittest.TestCase):
         cp.add_base(40, "+", "A")
         cp.add_base(30, "+", "G")
         cp.add_base(30, "+", "T")
-        self.rtresults.append(RTResult(cp, "+"))
-        self.rtresults.append(RTResult(cp, "-"))
-        self.rtresults.append(RTResult(cp, "*"))
+        self.rtresults.append(rtresult_from_compiled_position(cp, "+"))
+        self.rtresults.append(rtresult_from_compiled_position(cp, "-"))
+        self.rtresults.append(rtresult_from_compiled_position(cp, "*"))
 
         with NamedTemporaryFile(mode="w", dir=".", delete=False) as temp_file:
             self.fname = temp_file.name

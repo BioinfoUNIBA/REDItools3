@@ -21,7 +21,9 @@ class TestCompiledReads(unittest.TestCase):
     def tearDown(self) -> None:
         """Post-check cleanup."""
         Path(self.fasta_fname).unlink()
+        Path(f"{self.fasta_fname}.fai").unlink()
         Path(self.bam_fname).unlink()
+        Path(f"{self.bam_fname}.bai").unlink()
 
     def test_ref_seq_spliced(self) -> None:
         """Check ability to get reference sequence from spliced reads."""

@@ -2,16 +2,71 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Iterator
 
 from reditools.constants import bases as base_order
 from reditools.constants import (
     comp_map,
+    empty_field,
+    forward_strand_number,
     forward_strand_symbol,
+    reverse_strand_number,
     reverse_strand_symbol,
+    undetermined_strand_number,
     undetermined_strand_symbol,
 )
 
+
+def _calc_edit_ratio(counter: dict[str, int], ref: str) -> float:
+    """
+    Caclulate the edit ratio.
+
+    Parameters
+    ----------
+    counter : dict[str, int]
+        Base counts
+    ref : str
+        Base from genomic reference
+
+    Returns
+    -------
+    float
+        Edit ratio, or zero if no edits detected.
+    """
+    max_edits = 0
+    for base, count in counter.items():
+        if base != ref and count > max_edits:
+            max_edits = count
+    try:
+        return max_edits  / (counter[ref] + max_edits)
+    except ZeroDivisionError:
+        return 0
+
+def _strand_from_string(strand_value: str) -> str:
+    """
+    Get the strand symbol from string input.
+
+    Depending on the parameters used from the analyze tool, the strand may
+    be represented as a number ("0", "1", or "2") or as a string
+    ("+", "-", "*"). This function converts the former to the latter, or just
+    reports the number if that was used instead.
+
+    Parameters
+    ----------
+    strand_value : str
+        Value from the Strand column in analyze output
+
+    Returns
+    -------
+    str
+        Strand number (as a string)
+    """
+    if strand_value == forward_strand_number:
+        return forward_strand_symbol
+    if strand_value == reverse_strand_number:
+        return reverse_strand_symbol
+    if strand_value == undetermined_strand_number:
+        return undetermined_strand_symbol
+    return strand_value
 
 @dataclass
 class CompiledPosition:
@@ -148,7 +203,7 @@ class CompiledPosition:
         self.bases = [comp_map[base] for base in self.bases]
         self.ref = comp_map[self.ref]
 
-
+@dataclass(slots=True)
 class RTResult:
     """Class to represent the results of REDItools analysis at a position.
 
@@ -170,111 +225,165 @@ class RTResult:
         A list of observed alternate bases ('A', 'C', 'G', and/or 'T').
     """
 
-    def __init__(
-        self,
-        compiled_position: CompiledPosition,
-        strand: str,
-        noise_threshold: float=0,
-    ) -> None:
-        """Initialize RTResult.
+    strand: str
+    reference: str
+    position: int
+    contig: str
+    base_counts: dict[str, int]
+    variants: list[str]
+    depth: int
+    edit_ratio: float
+    mean_quality: float
+    dna: RTResult | None = None
+
+    def complement(self) -> None:
+        """Compute base complement.
+
+        Updates the reference, variants, and base_counts properties.
+        """
+        self.reference = comp_map[self.reference]
+        self.base_counts = {
+            base: self.base_counts[comp_map[base]]
+            for base in self.base_counts
+        }
+        self.variants = [comp_map[_] for _ in self.variants]
+
+    def output_list(self, strand_as_numbers: bool = False) -> list[str]:
+        """Generate list for Analayze tool output.
 
         Parameters
         ----------
-        compiled_position : CompiledPosition
-            The compiled position data.
-        strand : str
-            The strand assigned to this position.
+        strand_as_numbers : bool
+            If True, uses numbers for the Strand field. Otherwise uses symbols.
+
+        Returns
+        -------
+        list[str]
+            Output fields for the Analyze tool.
         """
-        self.cp = compiled_position
-        self.strand = strand
-
-        self.reference = self.cp.ref
-        self.position = self.cp.position
-        self.contig = self.cp.contig
-
-        self.counter = dict.fromkeys(base_order, 0)
-        for base in self.cp.bases:
-            self.counter[base] += 1
-
-        ref_reads = self[self.cp.ref]
-        self.variants = [
-            _ for _ in sorted(
-                base_order,
-                key=self.__getitem__,
-                reverse=True,
-            )
-            if self[_] and \
-                self[_] / (self[_] + ref_reads) > noise_threshold and \
-                _ != self.reference
+        if strand_as_numbers:
+            if self.strand == reverse_strand_symbol:
+                strand = reverse_strand_number
+            elif self.strand == forward_strand_symbol:
+                strand = forward_strand_number
+            else:
+                strand = undetermined_strand_number
+        else:
+            strand = self.strand
+        if self.variants:
+            variants = " ".join([
+                f"{self.reference}{_}" for _ in self.variants
+            ])
+        else:
+            variants = empty_field
+        output_list = [
+            self.contig,
+            str(self.position + 1),
+            self.reference,
+            strand,
+            str(self.depth),
+            f"{self.mean_quality:.2f}",
+            str(list(self.base_counts.values())),
+            variants,
+            f"{self.edit_ratio:.2f}",
         ]
+        if self.dna is None:
+            output_list.extend([empty_field for _ in range(5)])
+        else:
+            output_list.extend(self.dna.output_list()[4:9])
+        return output_list
 
-    def __getitem__(self, base: str) -> int:
-        """Get the count of a specific base or the reference base.
+def rtresult_from_dict(src_dict: dict[str, str]) -> RTResult:
+    """Create an RTResult object from a dictionary.
 
-        Parameters
-        ----------
-        base : str
-            The nucleotide ('A', 'C', 'G', 'T') or 'REF'.
+    This will NOT fill in annotation column values.
 
-        Returns
-        -------
-        int
-            The count of the requested base.
-        """
-        if base.upper() == "REF":
-            return self.counter[self.reference]
-        return self.counter[base]
+    Parameters
+    ----------
+    src_dict : dict[str, str]
+        Dictionary data from a REDItools analyze file.
 
-    def __iter__(self) -> Iterator[int]:
-        """Iterate over the counts of bases in ACGT order.
+    Returns
+    -------
+    RTResult
+    """
+    strand = _strand_from_string(src_dict["Strand"])
+    if "Coverage" in src_dict:
+        depth = src_dict["Coverage"]  # noqa: WPS529
+    else:
+        depth = src_dict["Coverage-q30"]
+    counter = {
+        base: int(count)
+        for base, count in zip(
+            base_order,
+            src_dict["BaseCount[A,C,G,T]"][1:-1].split(", "),
+        )
+    }
+    if src_dict["AllSubs"] == "-":
+        variants = []
+    else:
+        variants=[_[1] for _ in src_dict["AllSubs"].split(" ")]
+    return RTResult(
+        strand=strand,
+        reference=src_dict["Reference"],
+        position=int(src_dict["Position"]) - 1,
+        contig=src_dict["Region"],
+        base_counts=counter,
+        variants=variants,
+        depth=int(depth),
+        edit_ratio=float(src_dict["Frequency"]),
+        mean_quality=float(src_dict["MeanQ"]),
+    )
 
-        Yields
-        ------
-        int
-            The count of each base in order: "A", "C", "G", "T".
-        """
-        return (self[base] for base in base_order)
 
-    def __len__(self) -> int:
-        """Return the total number of reads at this position.
+def rtresult_from_compiled_position(
+    cp: CompiledPosition,
+    strand: str,
+    noise_threshold: float = 0,
+) -> RTResult:
+    """Initialize RTResult.
 
-        Returns
-        -------
-        int
-            Total reads.
-        """
-        return len(self.cp)
+    Parameters
+    ----------
+    compiled_position : CompiledPosition
+        The compiled position data.
+    strand : str
+        The strand assigned to this position.
+    noise_threshold : float
+        Noise threshold for populating variants list.
+    """
+    counter = dict.fromkeys(base_order, 0)
+    for base in cp.bases:
+        counter[base] += 1
 
-    @property
-    def edit_ratio(self) -> float:
-        """Calculate the editing ratio at this position.
+    edit_ratio = _calc_edit_ratio(counter, cp.ref)
 
-        The ratio of the most frequent variant to the sum of reference
-        and that variant.
+    mean_quality = (
+        sum(cp.qualities) / len(cp)
+        if len(cp) else 0
+    )
 
-        Returns
-        -------
-        float
-            The editing ratio.
-        """
-        max_edits = 0
-        for base, count in zip(base_order, self):
-            if base != self.reference and count > max_edits:
-                max_edits = count
-        try:
-            return max_edits / (self["REF"] + max_edits)
-        except ZeroDivisionError:
-            return 0
+    ref_reads = counter[cp.ref]
+    variants = [
+        _ for _ in sorted(
+            base_order,
+            key=counter.__getitem__,
+            reverse=True,
+        )
+        if counter[_] and \
+            counter[_] / (counter[_] + ref_reads) > noise_threshold and \
+            _ != cp.ref
+    ]
 
-    @property
-    def mean_quality(self) -> float:
-        """Calculate the mean quality score at this position.
+    return RTResult(
+        strand=strand,
+        reference=cp.ref,
+        position=cp.position,
+        contig=cp.contig,
+        base_counts=counter,
+        variants=variants,
+        depth=len(cp),
+        edit_ratio=edit_ratio,
+        mean_quality=mean_quality,
+    )
 
-        Returns
-        -------
-        float
-            The mean quality score.
-        """
-        if len(self) == 0:
-            return 0
-        return sum(self.cp.qualities) / len(self)

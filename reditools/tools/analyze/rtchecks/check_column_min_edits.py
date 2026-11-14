@@ -62,7 +62,7 @@ class CheckColumnMinEdits:
             error message otherwise.
         """
         for alt in rtresult.variants:
-            if rtresult[alt] < self.min_edits_per_nucleotide:
+            if rtresult.base_counts[alt] < self.min_edits_per_nucleotide:
                 return (
                     "DISCARDING COLUMN edits={} < {}",
                     alt,

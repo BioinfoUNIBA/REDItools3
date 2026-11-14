@@ -1,26 +1,29 @@
-"""Test cases for CompiledPosition and RTResult classes."""
+"""Test cases for CompiledPosition class."""
 from __future__ import annotations
 
 import unittest
 
-from reditools.compiled_position import CompiledPosition, RTResult
+from reditools.compiled_position import (
+    CompiledPosition,
+    _calc_edit_ratio,
+    _strand_from_string,
+    rtresult_from_compiled_position,
+)
 
 
 class TestCompiledPosition(unittest.TestCase):
-    """Test cases for CompiledPosition and RTResult classes."""
+    """Test cases for CompiledPosition class."""
 
     def setUp(self) -> None:
         """Pre-flight setup."""
         self.cp = CompiledPosition(ref="A", contig="chr1", position=100)
 
     def test_len(self) -> None:
-        """Check len() functions for both classes."""
+        """Check len() function."""
         self.cp.add_base(40, "+", "A")
         self.cp.add_base(35, "-", "C")
         self.cp.add_base(30, "+", "G")
         self.assertEqual(len(self.cp), 3)
-        rtresult = RTResult(self.cp, "*")
-        self.assertEqual(len(rtresult), 3)
 
     def test_complement(self) -> None:
         """Check compelement() function of CompiledPosition."""
@@ -45,9 +48,6 @@ class TestCompiledPosition(unittest.TestCase):
         self.cp.add_base(6, "-", "C")
         self.cp.filter_by_strand("+")
         self.assertEqual(len(self.cp), 2)
-        rtresult = RTResult(self.cp, "*")
-        self.assertEqual(rtresult["A"], 2)
-        self.assertEqual(rtresult["C"], 0)
 
     def test_filter_by_strand_star(self) -> None:
         """Check filter_by_strand() with undetermined strand."""
@@ -59,71 +59,68 @@ class TestCompiledPosition(unittest.TestCase):
             self.cp.calculate_strand(threshold=1),
             "*",
         )
-        self.cp.filter_by_strand("*")
-        rtresult = RTResult(self.cp, "*")
-        self.assertEqual(len(rtresult), 4)
-        self.assertEqual(rtresult["A"], 2)
-        self.assertEqual(rtresult["C"], 1)
-
-    def test_reference(self) -> None:
-        """Check reference base propagates to RTResult class."""
-        self.assertEqual(self.cp.ref, "A")
-        rtresult = RTResult(self.cp, "*")
-        self.assertEqual(rtresult.reference, "A")
-
-    def test_get_base_counts(self) -> None:
-        """Check RTResult base count summary."""
-        self.cp.add_base(40, "+", "A")
-        self.cp.add_base(35, "-", "A")
-        self.cp.add_base(30, "+", "C")
-        rtresult = RTResult(self.cp, "*")
-        self.assertEqual(rtresult["A"], 2)
-        self.assertEqual(rtresult["C"], 1)
-        self.assertEqual(rtresult["REF"], 2)
-
-    def test_iter(self) -> None:
-        """Check list casting for RTResult."""
-        self.cp.add_base(41, "+", "A")
-        self.cp.add_base(42, "+", "C")
-        self.cp.add_base(43, "+", "G")
-        counts = list(RTResult(self.cp, "*"))
-        self.assertEqual(counts, [1, 1, 1, 0])
 
     def test_variants(self) -> None:
         """Check variant summary for RTResult."""
-        self.cp.add_base(10, "+", "C")
         self.cp.add_base(10, "+", "A")
-        rtresult = RTResult(self.cp, "*")
-        self.assertEqual(rtresult.variants, ["C"])
+        self.cp.add_base(10, "+", "C")
+        for _ in range(3):
+            self.cp.add_base(10, "+", "T")
+        rtresult = rtresult_from_compiled_position(self.cp, "*")
+        self.assertEqual(rtresult.variants, ["T", "C"])
+
+    def test_strand_from_string(self) -> None:
+        """Check the _strand_from_string function."""
+        self.assertEqual(_strand_from_string("+"), "+")
+        self.assertEqual(_strand_from_string("-"), "-")
+        self.assertEqual(_strand_from_string("*"), "*")
+        self.assertEqual(_strand_from_string("1"), "+")
+        self.assertEqual(_strand_from_string("0"), "-")
+        self.assertEqual(_strand_from_string("2"), "*")
+
+    def test_calc_edit_ratio(self) -> None:
+        """Check the _calc_edit_ratio functions."""
+        self.assertEqual(
+            _calc_edit_ratio({"A": 0, "C": 0, "G": 0, "T": 10}, "T"),
+            0,
+        )
+        self.assertEqual(
+            _calc_edit_ratio({"A": 0, "C": 2, "G": 0, "T": 6}, "T"),
+            0.25,
+        )
+        self.assertEqual(
+            _calc_edit_ratio({"A": 0, "C": 2, "G": 1, "T": 6}, "T"),
+            0.25,
+        )
 
     def test_edit_ratio(self) -> None:
         """Check edit_ratio cacluation from RTResult."""
-        rtresult = RTResult(self.cp, "*")
+        rtresult = rtresult_from_compiled_position(self.cp, "*")
         self.assertEqual(rtresult.edit_ratio, 0)
 
         self.cp.add_base(10, "+", "A")
         self.cp.add_base(10, "+", "C")
-        rtresult = RTResult(self.cp, "*")
+        rtresult = rtresult_from_compiled_position(self.cp, "*")
         self.assertEqual(rtresult.edit_ratio, 0.5)
 
         self.cp.add_base(10, "+", "T")
-        rtresult = RTResult(self.cp, "*")
+        rtresult = rtresult_from_compiled_position(self.cp, "*")
         self.assertEqual(rtresult.edit_ratio, 0.5)
 
         self.cp.add_base(10, "+", "C")
         self.cp.add_base(10, "+", "C")
-        rtresult = RTResult(self.cp, "*")
+        rtresult = rtresult_from_compiled_position(self.cp, "*")
         self.assertEqual(rtresult.edit_ratio, 0.75)
 
     def test_mean_quality(self) -> None:
         """Check mean_quality calculation from RTResult."""
-        rtresult = RTResult(self.cp, "*")
+        rtresult = rtresult_from_compiled_position(self.cp, "*")
         self.assertEqual(rtresult.mean_quality, 0)
 
         self.cp.add_base(10, "+", "C")
         self.cp.add_base(20, "+", "C")
         self.cp.add_base(30, "+", "C")
-        rtresult = RTResult(self.cp, "*")
+        rtresult = rtresult_from_compiled_position(self.cp, "*")
         self.assertEqual(rtresult.mean_quality, 20)
 
     def test_noise_threshold(self) -> None:
@@ -132,15 +129,15 @@ class TestCompiledPosition(unittest.TestCase):
             self.cp.add_base(10, "+", base)
 
         self.assertEqual(
-            RTResult(self.cp, "*", 0.1).variants,
+            rtresult_from_compiled_position(self.cp, "*", 0.1).variants,
             ["G", "T"],
         )
         self.assertEqual(
-            RTResult(self.cp, "*", 0.3).variants,
+            rtresult_from_compiled_position(self.cp, "*", 0.3).variants,
             ["G"],
         )
         self.assertEqual(
-            RTResult(self.cp, "*", 0.4).variants,
+            rtresult_from_compiled_position(self.cp, "*", 0.4).variants,
             [],
         )
 

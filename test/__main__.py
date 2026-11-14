@@ -4,10 +4,10 @@ from test.alignment_file import TestRTAlignmentFile
 from test.alignment_manager import TestAlignmentManager
 from test.analyze.parse_args import TestParseArgs
 from test.analyze.parse_args_utils import TestParseArgsUtils
+from test.analyze.redi_thread import TestREDIThread
 from test.analyze.region_args import TestRegionArgs
 from test.analyze.rtchecks import TestRTChecks
 from test.analyze.setup_alignment_manager import TestSetupAlignmentManager
-from test.analyze.setup_rtools import TestSetupRTools
 from test.analyze.write_results import TestWriteResults
 from test.compiled_position import TestCompiledPosition
 from test.compiled_reads import TestCompiledReads
@@ -18,6 +18,7 @@ from test.region import TestRegion
 from test.region_collection import TestRegionCollection
 from test.rtannotater import TestRTAnnotater
 from test.rtindexer import TestRTIndexer
+from test.rtresult import TestRTResult
 from test.splicing_file import TestSplicingFile
 from test.splitreditools import TestSplitREDItools
 

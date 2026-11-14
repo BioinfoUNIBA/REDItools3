@@ -5,25 +5,39 @@ import unittest
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
+from reditools.compiled_position import RTResult
+from reditools.constants import analyze_output_fieldnames
 from reditools.rtannotater import AnalyzeMismatchError, RTAnnotater
 
 
 class TestRTAnnotater(unittest.TestCase):
     """Test cases for RTAnnotater class."""
 
-    def test_legacy_translate(self) -> None:
-        """Check legacy_translate() method."""
-        test_dict = {
-            "Coverage-q30": "100",
-            "gCoverage-q30": "200",
-            "AnotherField": "123",
-        }
-        RTAnnotater.legacy_translate(test_dict)
-        self.assertEqual(test_dict, {
-            "Coverage": "100",
-            "gCoverage": "200",
-            "AnotherField": "123",
-        })
+    def setUp(self) -> None:
+        """Preflight setup."""
+        self.rna = RTResult(
+            reference="A",
+            strand="*",
+            position=1,
+            contig="chr1",
+            base_counts={"A": 1, "C": 0, "G": 3, "T": 0},
+            variants=["AG"],
+            depth=4,
+            edit_ratio=0.25,
+            mean_quality=30,
+        )
+
+        self.dna = RTResult(
+            reference="A",
+            strand="*",
+            position=1,
+            contig="chr1",
+            base_counts={"A": 1, "C": 0, "G": 0, "T": 0},
+            variants=[],
+            depth=1,
+            edit_ratio=0,
+            mean_quality=35,
+        )
 
     def test_cmp_position(self) -> None:
         """Check cmp_position() method."""
@@ -33,238 +47,96 @@ class TestRTAnnotater(unittest.TestCase):
             "chr2": 3,
         }
 
+        self.rna.contig = "chr1"
+        self.rna.position = 5
+
+        self.dna.contig = "chr1"
+        self.dna.position = 5
+
         rta = RTAnnotater(contig_order)
-        self.assertEqual(
-            rta.cmp_position(
-                {"Region": "chr1", "Position": "5"},
-                {"Region": "chr1", "Position": "5"},
-            ),
-            0,
-        )
-        self.assertTrue(
-            rta.cmp_position(
-                {"Region": "chr1", "Position": "5"},
-                None,
-            ) < 0,
-        )
-        self.assertTrue(
-            rta.cmp_position(
-                {"Region": "chrZ", "Position": "1"},
-                {"Region": "chr2", "Position": "1"},
-            ) < 0,
-        )
-        self.assertTrue(
-            rta.cmp_position(
-                {"Region": "chr1", "Position": "10"},
-                {"Region": "chr1", "Position": "1"},
-            ) > 0,
-        )
+        self.assertEqual(rta.cmp_position(self.rna, self.dna), 0)
 
-    def test_annotate_row(self) -> None:
-        """Check annotate_row() method."""
-        rta = RTAnnotater({})
-        self.assertEqual(
-            rta.annotate_row(
-                {
-                    "Reference": "A",
-                    "Coverage": "-",
-                    "MeanQ": "-",
-                    "BaseCount[A,C,G,T]": "[0, 0, 0, 0]",
-                    "AllSubs": "-",
-                    "Frequency": "-",
-                    "AnotherField": "ABCD",
-                },
-                {
-                    "Reference": "A",
-                    "Coverage": "100",
-                    "MeanQ": "40",
-                    "BaseCount[A,C,G,T]": "[1, 2, 3, 4]",
-                    "AllSubs": "AC AG AT",
-                    "Frequency": "0.5",
-                    "AnotherField": "EFGH",
-                    "YetAnotherField": "IJKL",
-                },
-            ),
-            {
-                "Reference": "A",
-                "Coverage": "-",
-                "MeanQ": "-",
-                "BaseCount[A,C,G,T]": "[0, 0, 0, 0]",
-                "AllSubs": "-",
-                "Frequency": "-",
-                "gCoverage": "100",
-                "gMeanQ": "40",
-                "gBaseCount[A,C,G,T]": "[1, 2, 3, 4]",
-                "gAllSubs": "AC AG AT",
-                "gFrequency": "0.5",
-                "AnotherField": "ABCD",
-            },
-        )
+        self.rna.contig = "chrZ"
+        self.dna.contig = "chr2"
+        self.assertTrue(rta.cmp_position(self.rna, self.dna) < 0)
 
-    def test_annotate_complement_row_no_dna_edit(self) -> None:
-        """Check annotate_row() on minus strand with unedited DNA."""
-        rta = RTAnnotater({}, True)  # noqa: FBT003
-        self.assertEqual(
-            rta.annotate_row(
-                {
-                    "Reference": "T",
-                    "Coverage": "100",
-                    "MeanQ": "40",
-                    "BaseCount[A,C,G,T]": "[1, 2, 3, 4]",
-                    "AllSubs": "AC AG AT",
-                    "Frequency": "0.5",
-                    "AnotherField": "EFGH",
-                    "YetAnotherField": "IJKL",
-                },
-                {
-                    "Reference": "A",
-                    "Coverage": "-",
-                    "MeanQ": "-",
-                    "BaseCount[A,C,G,T]": "[0, 0, 0, 0]",
-                    "AllSubs": "-",
-                    "Frequency": "-",
-                    "AnotherField": "ABCD",
-                },
-            ),
-            {
-                "Reference": "T",
-                "Coverage": "100",
-                "MeanQ": "40",
-                "BaseCount[A,C,G,T]": "[1, 2, 3, 4]",
-                "AllSubs": "AC AG AT",
-                "Frequency": "0.5",
-                "gCoverage": "-",
-                "gMeanQ": "-",
-                "gBaseCount[A,C,G,T]": "[0, 0, 0, 0]",
-                "gAllSubs": "-",
-                "gFrequency": "-",
-                "AnotherField": "EFGH",
-                "YetAnotherField": "IJKL",
-            },
-        )
+        self.rna.contig = "chr1"
+        self.rna.position = 10
+
+        self.dna.contig = "chr1"
+        self.dna.position = 1
+        self.assertTrue(rta.cmp_position(self.rna, self.dna) > 0)
 
     def test_annotate_complement_row(self) -> None:
         """Check annotate_row() on minus strand."""
         rta = RTAnnotater({}, True)  # noqa: FBT003
-        self.assertEqual(
-            rta.annotate_row(
-                {
-                    "Reference": "A",
-                    "gCoverage": "-",
-                    "gMeanQ": "-",
-                    "gBaseCount[A,C,G,T]": "-",
-                    "gAllSubs": "-",
-                    "gFrequency": "-",
-                    "AnotherField": "ABCD",
-                },
-                {
-                    "Reference": "T",
-                    "Coverage": "100",
-                    "MeanQ": "40",
-                    "BaseCount[A,C,G,T]": "[1, 2, 3, 4]",
-                    "AllSubs": "AC AG AT",
-                    "Frequency": "0.5",
-                    "AnotherField": "EFGH",
-                    "YetAnotherField": "IJKL",
-                },
-            ),
-            {
-                "Reference": "A",
-                "gCoverage": "100",
-                "gMeanQ": "40",
-                "gBaseCount[A,C,G,T]": "[4, 3, 2, 1]",
-                "gAllSubs": "TA TC TG",
-                "gFrequency": "0.5",
-                "AnotherField": "ABCD",
-            },
-        )
+
+        self.rna.strand = "+"
+        self.dna.strand = "-"
+        self.dna.reference = "T"
+
+        rta.annotate_row(self.rna, self.dna)
+        output = self.rna.output_list()
+
+        self.assertEqual(output[11], "[0, 0, 0, 1]")
+        self.assertEqual(output[12], "-")
+
+        self.dna.reference = "T"
+        self.dna.variants = ["C"]
+        rta.annotate_row(self.rna, self.dna)
+        output = self.rna.output_list()
+        self.assertEqual(output[12], "AG")
 
     def test_annotate_no_complement_row(self) -> None:
         """Check annotate_row() on minus strand without complementing."""
         rta = RTAnnotater({})
-        self.assertEqual(
-            rta.annotate_row(
-                {
-                    "Reference": "A",
-                    "gCoverage": "-",
-                    "gMeanQ": "-",
-                    "gBaseCount[A,C,G,T]": "-",
-                    "gAllSubs": "-",
-                    "gFrequency": "-",
-                    "AnotherField": "ABCD",
-                },
-                {
-                    "Reference": "T",
-                    "Coverage": "100",
-                    "MeanQ": "40",
-                    "BaseCount[A,C,G,T]": "[1, 2, 3, 4]",
-                    "AllSubs": "AC AG AT",
-                    "Frequency": "0.5",
-                    "AnotherField": "EFGH",
-                    "YetAnotherField": "IJKL",
-                },
-            ),
-            {
-                "Reference": "A",
-                "gCoverage": "100",
-                "gMeanQ": "40",
-                "gBaseCount[A,C,G,T]": "[1, 2, 3, 4]",
-                "gAllSubs": "AC AG AT",
-                "gFrequency": "0.5",
-                "AnotherField": "ABCD",
-            },
-        )
 
+        self.rna.strand = "+"
+        self.dna.strand = "-"
+        self.dna.reference = "T"
+
+        rta.annotate_row(self.rna, self.dna)
+        output = self.rna.output_list()
+
+        self.assertEqual(output[11], "[1, 0, 0, 0]")
+        self.assertEqual(output[12], "-")
+
+        self.dna.variants = ["C"]
+        rta.annotate_row(self.rna, self.dna)
+        output = self.rna.output_list()
+        self.assertEqual(output[12], "TC")
 
     def test_mismatched_reference(self) -> None:
         """Check error handling for reference mismatch."""
         rta = RTAnnotater({})
+        self.rna.reference = "A"
+        self.dna.reference = "G"
         with self.assertRaises(AnalyzeMismatchError):
-            rta.annotate_row(
-                { "Reference": "A"},
-                { "Reference": "G"},
-            )
+            rta.annotate_row(self.rna, self.dna)
 
     def test_merge_files(self) -> None:
         """Check merge_files() method."""
-        fieldnames = [
-            "Region",
-            "Position",
-            "Reference",
-            "Strand",
-            "Coverage",
-            "MeanQ",
-            "BaseCount[A,C,G,T]",
-            "AllSubs",
-            "Frequency",
-            "gCoverage",
-            "gMeanQ",
-            "gBaseCount[A,C,G,T]",
-            "gAllSubs",
-            "gFrequency",
-        ]
-
         with NamedTemporaryFile(
                 delete=False,
                 suffix=".out",
                 mode="w",
         ) as stream:
             rna_file = stream.name
-            stream.write("\t".join(fieldnames))
+            stream.write("\t".join(analyze_output_fieldnames))
             stream.write("\n")
             stream.write("\t".join([
-                "chr1", "3", "A", "*", "5", "30", "[5, 0, 0, 0]", "", "0.0",
-                "-", "-", "-", "-", "-",
+                "chr1", "3", "A", "*", "5", "30.00", "[5, 0, 0, 0]", "-",
+                "0.00", "-", "-", "-", "-", "-",
             ]))
             stream.write("\n")
             stream.write("\t".join([
-                "chr1", "5", "A", "*", "5", "30", "[2, 0, 3, 0]", "AG", "0.6",
-                "-", "-", "-", "-", "-",
+                "chr1", "5", "A", "*", "5", "30.00", "[2, 0, 3, 0]", "AG",
+                "0.60", "-", "-", "-", "-", "-",
             ]))
             stream.write("\n")
             stream.write("\t".join([
-                "chr2", "7", "G", "*", "5", "30", "[2, 0, 3, 0]", "GA", "0.4",
-                "-", "-", "-", "-", "-",
+                "chr2", "7", "G", "*", "5", "30.00", "[2, 0, 3, 0]", "GA",
+                "0.40", "-", "-", "-", "-", "-",
             ]))
             stream.write("\n")
 
@@ -274,83 +146,44 @@ class TestRTAnnotater(unittest.TestCase):
                 mode="w",
         ) as stream:
             dna_file = stream.name
-            stream.write("\t".join(fieldnames))
+            stream.write("\t".join(analyze_output_fieldnames))
             stream.write("\n")
             stream.write("\t".join([
-                "chrZ", "3", "A", "*", "5", "30", "[5, 0, 0, 0]", "", "0.0",
-                "-", "-", "-", "-", "-",
+                "chrZ", "3", "A", "*", "5", "30.00", "[5, 0, 0, 0]", "-",
+                "0.00", "-", "-", "-", "-", "-",
             ]))
             stream.write("\n")
             stream.write("\t".join([
-                "chr1", "5", "A", "*", "5", "35", "[2, 0, 0, 3]", "AT", "0.6",
-                "-", "-", "-", "-", "-",
+                "chr1", "5", "A", "*", "5", "35.00", "[2, 0, 0, 3]", "AT",
+                "0.60", "-", "-", "-", "-", "-",
             ]))
             stream.write("\n")
             stream.write("\t".join([
-                "chr1", "9", "G", "*", "5", "30", "[2, 0, 3, 0]", "GA", "0.4",
-                "-", "-", "-", "-", "-",
+                "chr1", "9", "G", "*", "5", "30.00", "[2, 0, 3, 0]", "GA",
+                "0.40", "-", "-", "-", "-", "-",
             ]))
             stream.write("\n")
 
         rta = RTAnnotater({"chrZ": 1, "chr1": 2, "chr2": 3})
         annotated_data = list(rta.merge_files(rna_file, dna_file))
-        self.assertEqual(
-            annotated_data.pop(0),
-            {
-                "Region": "chr1",
-                "Position": "3",
-                "Reference": "A",
-                "Strand": "*",
-                "Coverage": "5",
-                "MeanQ": "30",
-                "BaseCount[A,C,G,T]": "[5, 0, 0, 0]",
-                "AllSubs": "",
-                "Frequency": "0.0",
-                "gCoverage": "-",
-                "gMeanQ": "-",
-                "gBaseCount[A,C,G,T]": "-",
-                "gAllSubs": "-",
-                "gFrequency": "-",
-            },
-        )
-        self.assertEqual(
-            annotated_data.pop(0),
-            {
-                "Region": "chr1",
-                "Position": "5",
-                "Reference": "A",
-                "Strand": "*",
-                "Coverage": "5",
-                "MeanQ": "30",
-                "BaseCount[A,C,G,T]": "[2, 0, 3, 0]",
-                "AllSubs": "AG",
-                "Frequency": "0.6",
-                "gCoverage": "5",
-                "gMeanQ": "35",
-                "gBaseCount[A,C,G,T]": "[2, 0, 0, 3]",
-                "gAllSubs": "AT",
-                "gFrequency": "0.6",
-            },
-        )
-        self.assertEqual(
-            annotated_data.pop(0),
-            {
-                "Region": "chr2",
-                "Position": "7",
-                "Reference": "G",
-                "Strand": "*",
-                "Coverage": "5",
-                "MeanQ": "30",
-                "BaseCount[A,C,G,T]": "[2, 0, 3, 0]",
-                "AllSubs": "GA",
-                "Frequency": "0.4",
-                "gCoverage": "-",
-                "gMeanQ": "-",
-                "gBaseCount[A,C,G,T]": "-",
-                "gAllSubs": "-",
-                "gFrequency": "-",
-            },
-        )
+
+        row = annotated_data.pop(0)
+        self.assertEqual(row.output_list(), [
+            "chr1", "3", "A", "*", "5", "30.00", "[5, 0, 0, 0]", "-", "0.00",
+            "-", "-", "-", "-", "-",
+        ])
+
+        row = annotated_data.pop(0)
+        self.assertEqual(row.output_list(), [
+            "chr1", "5", "A", "*", "5", "30.00", "[2, 0, 3, 0]", "AG", "0.60",
+            "5", "35.00", "[2, 0, 0, 3]", "AT", "0.60",
+        ])
+
+        row = annotated_data.pop(0)
+        self.assertEqual(row.output_list(), [
+            "chr2", "7", "G", "*", "5", "30.00", "[2, 0, 3, 0]", "GA", "0.40",
+            "-", "-", "-", "-", "-",
+        ])
         self.assertEqual(len(annotated_data), 0)
         Path(rna_file).unlink()
         Path(dna_file).unlink()
