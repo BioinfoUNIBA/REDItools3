@@ -5,6 +5,8 @@ import unittest
 
 from reditools.compiled_position import (
     CompiledPosition,
+    _calc_edit_ratio,
+    _strand_from_string,
     rtresult_from_compiled_position,
 )
 
@@ -66,6 +68,30 @@ class TestCompiledPosition(unittest.TestCase):
             self.cp.add_base(10, "+", "T")
         rtresult = rtresult_from_compiled_position(self.cp, "*")
         self.assertEqual(rtresult.variants, ["T", "C"])
+
+    def test_strand_from_string(self) -> None:
+        """Check the _strand_from_string function."""
+        self.assertEqual(_strand_from_string("+"), "+")
+        self.assertEqual(_strand_from_string("-"), "-")
+        self.assertEqual(_strand_from_string("*"), "*")
+        self.assertEqual(_strand_from_string("1"), "+")
+        self.assertEqual(_strand_from_string("0"), "-")
+        self.assertEqual(_strand_from_string("2"), "*")
+
+    def test_calc_edit_ratio(self) -> None:
+        """Check the _calc_edit_ratio functions."""
+        self.assertEqual(
+            _calc_edit_ratio({"A": 0, "C": 0, "G": 0, "T": 10}, "T"),
+            0,
+        )
+        self.assertEqual(
+            _calc_edit_ratio({"A": 0, "C": 2, "G": 0, "T": 6}, "T"),
+            0.25,
+        )
+        self.assertEqual(
+            _calc_edit_ratio({"A": 0, "C": 2, "G": 1, "T": 6}, "T"),
+            0.25,
+        )
 
     def test_edit_ratio(self) -> None:
         """Check edit_ratio cacluation from RTResult."""

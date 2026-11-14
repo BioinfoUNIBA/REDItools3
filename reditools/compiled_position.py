@@ -46,9 +46,9 @@ def _strand_from_string(strand_value: str) -> str:
     Get the strand symbol from string input.
 
     Depending on the parameters used from the analyze tool, the strand may
-    be represented as a string ("+", "-", or "*") or as a number (0, 1, or 2).
-    This function converts the former to the latter, or just reports the number
-    if that was used instead.
+    be represented as a number ("0", "1", or "2") or as a string
+    ("+", "-", "*"). This function converts the former to the latter, or just
+    reports the number if that was used instead.
 
     Parameters
     ----------
