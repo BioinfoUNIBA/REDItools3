@@ -86,12 +86,12 @@ def build_argument_parser() -> argparse.ArgumentParser:  # noqa: WPS213
 
     return parser
 
-def _delattr(namespace: argparser.Namespace, attribute: str) -> None:
+def _delattr(namespace: argparse.Namespace, attribute: str) -> None:
     """Delete an attribute from a namespace.
 
     Parameters
     ----------
-    namespace : argparser.Namespace
+    namespace : argparse.Namespace
         Namespace to modify
     attribute : str
         Attribute to delete
