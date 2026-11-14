@@ -86,6 +86,18 @@ def build_argument_parser() -> argparse.ArgumentParser:  # noqa: WPS213
 
     return parser
 
+def _delattr(namespace: argparser.Namespace, attribute: str) -> None:
+    """Delete an attribute from a namespace.
+
+    Parameters
+    ----------
+    namespace : argparser.Namespace
+        Namespace to modify
+    attribute : str
+        Attribute to delete
+    """
+    delattr(namespace, attribute)  # noqa: WPS421
+
 def fix_legacy_options(args: argparse.Namespace) -> None:
     """Adjust arguments to handle legacy options.
 
@@ -107,21 +119,21 @@ def fix_legacy_options(args: argparse.Namespace) -> None:
     """
     if args.strand != reditools.UNSTRANDED_MODE and args.dna:
         raise DNAStrandError
-    delattr(args, "dna")  # noqa: WPS421
+    _delattr(args, "dna")
 
     if args.exclude_multis:
         args.max_editing_nucleotides = 1
-    delattr(args, "exclude_multis")  # noqa: WPS421
+    _delattr(args, "exclude_multis")
 
     if args.strict and args.min_edits != 1:
         raise StrictConflictError
-    delattr(args, "strict")  # noqa: WPS421
+    _delattr(args, "strict")
 
     if args.load_omopolymeric_file:
         if args.exclude_regions is None:
             args.exclude_regions = []
         args.exclude_regions.append(args.load_omopolymeric_file)
-    delattr(args, "load_omopolymeric_file")  # noqa: WPS421
+    _delattr(args, "load_omopolymeric_file")
 
 def parse_args(sys_args: list[str] | None = None) -> argparse.Namespace:
     """Parse command-line arguments for reditools analyze.
